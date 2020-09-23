@@ -1,0 +1,1 @@
+This project is being developed as part of a Master's degree dissertation. Shortly, when finished, the architecture here described will be able to execute the arithmetic encoder used by the AV1 video coding standard. This goal here is to improve AV1's overall performance by accelerating one of the slowest blocks.
