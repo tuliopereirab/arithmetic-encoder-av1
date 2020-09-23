@@ -1,0 +1,95 @@
+Stage 1:
+    Inputs (fl, fh, LUT)
+    Outputs (UU, COMP_mux_1, VV, A) 
+
+        UU = [(fl >> EC_PROB_SHIFT) >> 1] + [EC_MIN_PROB*((nsyms-1)-(symb-1))]      // LUT
+
+        VV = [(fh >> EC_PROB_SHIFT) >> 1] + [EC_MIN_PROB*((nsyms-1)-(symb+0))]      // LUT
+        
+        A = UU - VV
+
+        COMP_mux_1 (fl < CDF_PROB_TOP)
+
+------------------------------------------------
+Stage 2:
+    Inputs (UU, COMP_mux_1, VV, in_range, in_low, A)
+    Outputs (LOW, RANGE)
+    
+
+        LOW_1 = in_low + [in_range - ((in_range >> 8) * UU)]
+        LOW_2 = in_low
+        
+        RANGE_1 = (in_range >> 8) * A
+
+        RANGE_0 = in_range - [(in_range >> 8) * VV]
+
+        mux_1_range (COMP_mux_1)        -> RANGE
+            1: RANGE_1
+            0: RANGE_2
+            
+        mux_1_low (COMP_mux_1)          -> LOW
+            1: LOW_1
+            0: LOW_2        
+
+------------------------------------------------
+Stage 3: 
+    Inputs (LOW, RANGE, in_cnt)
+    Outputs (LOW, RANGE, in_cnt, D, C_s0, M_s0)     
+        
+        D = 16 - __builtin_clz(RANGE)
+        C_s0 = in_cnt + 16
+        M_s0 = [1 << (in_cnt + 16)] - 1
+        
+        
+        
+-----------------------------------------------
+Stage 4:
+    Inputs (LOW, RANGE, in_cnt, D, C_s0, M_s0)
+    Outputs (LOW, RANGE, in_cnt, D, S, COMP_mux_2, COMP_mux_3, C_s0, M_s0, M_s8, C_s8, LOW_s8)
+        
+        S = in_cnt + D
+        COMP_mux_2 = (S > 0) OR (S = 0)
+        COMP_mux_3 = (S > 8) OR (S = 8)
+        
+        M_s8 = M_s0 >> 8
+        C_s8 = C_s0 - 8
+        LOW_s8 = LOW and M_s0
+        
+-----------------------------------------------
+Stage 5:
+    Inputs (LOW, RANGE, in_cnt, D, C_s0, M_s0, S, COMP_mux_2, COMP_mux_3, M_s8, C_s8, LOW_s8)
+    Outputs (OUT_LOW, OUT_RANGE_OUT_CNT)
+    
+    MUX_3_low (COMP_mux_3)
+        1: LOW_s8
+        0: LOW
+    MUX_3_c (COMP_mux_3)
+        1: C_s8
+        0: C_s0
+    MUX_3_m (COMP_mux_3)
+        1: M_s8
+        0: M_s0
+    
+    OUT_LOW_1 = [MUX_3_low and MUX_3_m] << D
+    OUT_LOW_2 = LOW << D
+    
+    MUX_2_low (COMP_mux_2)
+        1: OUT_LOW_1
+        0: OUT_LOW_2
+    
+    OUT_RANGE = RANGE << D
+    
+    OUT_CNT_1 = [MUX_3_c + D] - 24
+    OUT_CNT_2 = S
+    
+    MUX_2_cnt (COMP_mux_2)
+        1: OUT_CNT_1
+        0: OUT_CNT_2
+        
+        
+        
+        
+
+
+
+
