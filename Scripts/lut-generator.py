@@ -1,3 +1,5 @@
+BINARY_WIDTH = 16       # change this value will change the number of bits generated in each memory position
+
 
 def padded_bin(i, width):
     s = "{0:b}".format(i)
@@ -29,7 +31,7 @@ def lut_u():
             value = 6 * (N - (s - 1))
             if(s > N):
                 value = 0
-            bin_value = padded_bin(value, 8)
+            bin_value = padded_bin(value, BINARY_WIDTH)
             count += 1
             print(str(N) + "," + str(s) + " -> " + str(value) + " - " + bin_value)
             file_insertion(1, count, bin_value)
@@ -42,7 +44,7 @@ def lut_v():
             value = 6 * (N - (s + 0))
             if(s > N):
                 value = 0
-            bin_value = padded_bin(value, 8)
+            bin_value = padded_bin(value, BINARY_WIDTH)
             count += 1
             print("-> " + str(count) + " " + str(N) + "," + str(s) + " -> " + str(value) + " - " + bin_value)
             file_insertion(2, count, bin_value)
