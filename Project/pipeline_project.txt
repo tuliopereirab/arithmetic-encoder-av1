@@ -84,11 +84,10 @@ Stage 5:
     OUT_RANGE = RANGE << D
     
     OUT_CNT_1 = [MUX_3_c + D] - 24
-    OUT_CNT_2 = S
     
     MUX_2_cnt (COMP_mux_2)
         1: OUT_CNT_1
-        0: OUT_CNT_2
+        0: S
         
         
         
