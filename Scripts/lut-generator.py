@@ -27,6 +27,8 @@ def lut_u():
     for N in range(0,16):
         for s in range(0,16):
             value = 6 * (N - (s - 1))
+            if(s > N):
+                value = 0
             bin_value = padded_bin(value, 8)
             count += 1
             print(str(N) + "," + str(s) + " -> " + str(value) + " - " + bin_value)
