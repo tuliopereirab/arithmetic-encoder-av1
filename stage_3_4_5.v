@@ -4,7 +4,7 @@ module stage_3_4_5 #(
     parameter D_SIZE = 4
     )(
         input [(DATA_16-1):0] low, range,
-        input [(DATA_32-2):0] in_cnt,
+        input [(DATA_32-1):0] in_cnt,
         output wire [(DATA_16-1):0] out_low, out_range,
         output wire [(DATA_32-1):0] out_cnt
     );
@@ -20,7 +20,7 @@ module stage_3_4_5 #(
             .in_range (range),
             .lzc_out (lzc_rng)
         );
-    assign D = 5'b10000 - lzc_rng;
+    assign D = lzc_rng;
     assign C_s0 = in_cnt + 32'd16;
     assign M_s0 = (32'd1 << C_s0) - 32'd1;
 
@@ -42,8 +42,8 @@ module stage_3_4_5 #(
 
     // ---------------------------------------------------
     // stage 5
-    wire [(DATA_16):0] MUX_3_low, out_low_1, out_low_2;
-    wire [(DATA_32):0] MUX_3_c, MUX_3_m, out_cnt_1;
+    wire [(DATA_16-1):0] MUX_3_low, out_low_1, out_low_2;
+    wire [(DATA_32-1):0] MUX_3_c, MUX_3_m, out_cnt_1;
 
     assign MUX_3_low = (COMP_mux_3) ? low_s8   :
                         low;
@@ -52,7 +52,7 @@ module stage_3_4_5 #(
     assign MUX_3_m = (COMP_mux_3) ? M_s8    :
                         M_s0;
 
-    assign out_low_1 = (MUX_3_low & MUX_3_m) << D;
+    assign out_low_1 = (MUX_3_low & MUX_3_m[(DATA_16-1):0]) << D;   // Using 16 least significant bits
     assign out_low_2 = low << D;
 
     assign out_cnt_1 = (MUX_3_c + {27'd0, D}) - 32'd24;
