@@ -1,6 +1,6 @@
-module tb_artih_encoder #(
-    parameter TB_DATA_16 = 16,
-    parameter TB_DATA_32 = 32,
+module tb_arith_encoder #(
+    parameter TB_RANGE_WIDTH = 16,
+    parameter TB_LOW_WIDTH = 24,
     parameter TB_SYMBOL_WIDTH = 4,
     parameter TB_LUT_ADDR_WIDTH = 8,
     parameter TB_LUT_DATA_WIDTH = 16,
@@ -8,16 +8,16 @@ module tb_artih_encoder #(
     ) ();
 
     reg tb_clk, tb_reset;
-    reg [(TB_DATA_16-1):0] tb_fl, tb_fh;
+    reg [(TB_RANGE_WIDTH-1):0] tb_fl, tb_fh;
     reg [(TB_SYMBOL_WIDTH-1):0] tb_symbol;
     reg [TB_SYMBOL_WIDTH:0] tb_nsyms;
-    wire [(TB_DATA_16-1):0] tb_range, tb_low;
-    wire [(TB_DATA_32-1):0] tb_cnt;
+    wire [(TB_RANGE_WIDTH-1):0] tb_range;
+    wire [(TB_LOW_WIDTH-1):0] tb_low;
 
 
     arithmetic_encoder #(
-        .GENERAL_DATA_16 (TB_DATA_16),
-        .GENERAL_DATA_32 (TB_DATA_32),
+        .GENERAL_RANGE_WIDTH (TB_RANGE_WIDTH),
+        .GENERAL_LOW_WIDTH (TB_LOW_WIDTH),
         .GENERAL_SYMBOL_WIDTH (TB_SYMBOL_WIDTH),
         .GENERAL_LUT_ADDR_WIDTH (TB_LUT_ADDR_WIDTH),
         .GENERAL_LUT_DATA_WIDTH (TB_LUT_DATA_WIDTH),
@@ -31,8 +31,7 @@ module tb_artih_encoder #(
             .general_nsyms (tb_nsyms),
             // outputs
             .RANGE_OUTPUT (tb_range),
-            .LOW_OUTPUT (tb_low),
-            .CNT_OUTPUT (tb_cnt)
+            .LOW_OUTPUT (tb_low)
         );
 
         always #6ns tb_clk <= ~tb_clk;
