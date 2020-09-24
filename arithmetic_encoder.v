@@ -21,6 +21,19 @@ module arithmetic_encoder #(
     assign LOW_OUTPUT = reg_Low_s3;
     assign CNT_OUTPUT = reg_Cnt_s3;
 
+    // control unit
+    wire ctrl_reg_1_2, ctrl_reg_2_3, ctrl_reg_final;
+
+    control_unit control (
+        .clk (general_clk),
+        .reset_ctrl (reset),
+        //outputs
+        .pipeline_reg_1_2 (ctrl_reg_1_2),
+        .pipeline_reg_2_3 (ctrl_reg_2_3),
+        .pipeline_reg_final (ctrl_reg_final)
+        );
+
+
     // stage 1
     wire [(GENERAL_DATA_16-1):0] UU_out, VV_out, A_out;
     wire COMP_mux_1_out;
@@ -39,13 +52,13 @@ module arithmetic_encoder #(
     assign init_low = 16'b0000_0000_0000_0000;                  // 16'd0;
     assign init_cnt = 32'b11111111_11111111_11111111_11110111;  // 32'd4294967287;
     // reset
-    always @ (general_clk) begin
+    always @ (posedge general_clk) begin
         if(reset) begin
             reg_Range_s3 <= init_range;
             reg_Low_s3 <= init_low;
             reg_Cnt_s3 <= init_cnt;
         end
-        else begin  // already saving what comes from the Stage [3,4,5]
+        else if(ctrl_reg_final) begin  // already saving what comes from the Stage [3,4,5]
             reg_Range_s3 <= range_out_s3;
             reg_Low_s3 <= low_out_s3;
             reg_Cnt_s3 <= cnt_out_s3;
@@ -57,7 +70,7 @@ module arithmetic_encoder #(
         .SYMBOL_WIDTH (GENERAL_SYMBOL_WIDTH),
         .LUT_ADDR_WIDTH (GENERAL_LUT_ADDR_WIDTH),
         .LUT_DATA_WIDTH (GENERAL_LUT_DATA_WIDTH)
-        )(
+        ) state_pipeline_1 (
             .clk_stage_1 (general_clk),
             .FL (general_fl),
             .FH (general_fh),
@@ -70,17 +83,19 @@ module arithmetic_encoder #(
             .COMP_mux_1 (COMP_mux_1_out)
         );
 
-    always @ (general_clk) begin
-        reg_UU <= UU_out;
-        reg_VV <= VV_out;
-        reg_A <= A_out;
-        reg_COMP_mux_1 <= COMP_mux_1_out;
+    always @ (posedge general_clk) begin
+        if(ctrl_reg_1_2) begin
+            reg_UU <= UU_out;
+            reg_VV <= VV_out;
+            reg_A <= A_out;
+            reg_COMP_mux_1 <= COMP_mux_1_out;
+        end
     end
     // ---------------------------------------------------
     stage_2 #(
         .DATA_16 (GENERAL_DATA_16),
         .DATA_32 (GENERAL_DATA_32)
-        )(
+        ) state_pipeline_2 (
             .UU (reg_UU),
             .VV (reg_VV),
             .A (reg_A),
@@ -92,16 +107,18 @@ module arithmetic_encoder #(
             .low (low_out_s2)
         );
 
-    always @ (general_clk) begin
-        reg_Range_s2 <= range_out_s2;
-        reg_Low_s2 <= low_out_s2;
+    always @ (posedge general_clk) begin
+        if(ctrl_reg_2_3) begin
+            reg_Range_s2 <= range_out_s2;
+            reg_Low_s2 <= low_out_s2;
+        end
     end
     // ---------------------------------------------------
     stage_3_4_5 #(
         .DATA_16 (GENERAL_DATA_16),
         .DATA_32 (GENERAL_DATA_32),
         .D_SIZE (GENERAL_D_SIZE)
-        )(
+        ) state_pipeline_3 (
             .low (reg_Low_s2),
             .range (reg_Range_s2),
             .in_cnt (reg_Cnt_s3),
