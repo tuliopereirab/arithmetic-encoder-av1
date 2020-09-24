@@ -35,9 +35,12 @@ module arithmetic_encoder #(
 
 
     // stage 1
-    wire [(GENERAL_DATA_16-1):0] UU_out, VV_out, A_out;
+    wire [(GENERAL_LUT_DATA_WIDTH-1):0] lut_u_output, lut_v_output;
+    wire [(GENERAL_DATA_16-1):0] uu_out, vv_out;
     wire COMP_mux_1_out;
-    reg [(GENERAL_DATA_16-1):0] reg_UU, reg_VV, reg_A, reg_COMP_mux_1;
+    reg [(GENERAL_LUT_DATA_WIDTH-1):0] reg_lut_u, reg_lut_v;
+    reg [(GENERAL_DATA_16-1):0] reg_UU, reg_VV;
+    reg reg_COMP_mux_1;
     // stage 2
     wire [(GENERAL_DATA_16-1):0] range_out_s2, low_out_s2, mux_reset_range, mux_reset_low;
     reg [(GENERAL_DATA_16-1):0] reg_Range_s2, reg_Low_s2;
@@ -77,17 +80,19 @@ module arithmetic_encoder #(
             .SYMBOL (general_symbol),
             .NSYMS (general_nsyms),
             // outputs
-            .UU (UU_out),
-            .VV (VV_out),
-            .A (A_out),
+            .lut_u_out (lut_u_output),
+            .lut_v_out (lut_v_output),
+            .UU (uu_out),
+            .VV (vv_out),
             .COMP_mux_1 (COMP_mux_1_out)
         );
 
     always @ (posedge general_clk) begin
         if(ctrl_reg_1_2) begin
-            reg_UU <= UU_out;
-            reg_VV <= VV_out;
-            reg_A <= A_out;
+            reg_lut_u <= lut_u_output;
+            reg_lut_v <= lut_v_output;
+            reg_UU <= uu_out;
+            reg_VV <= vv_out;
             reg_COMP_mux_1 <= COMP_mux_1_out;
         end
     end
@@ -96,9 +101,10 @@ module arithmetic_encoder #(
         .DATA_16 (GENERAL_DATA_16),
         .DATA_32 (GENERAL_DATA_32)
         ) state_pipeline_2 (
+            .lut_u (reg_lut_u),
+            .lut_v (reg_lut_v),
             .UU (reg_UU),
             .VV (reg_VV),
-            .A (reg_A),
             .in_range (RANGE_OUTPUT),
             .in_low (LOW_OUTPUT),
             .COMP_mux_1 (reg_COMP_mux_1),

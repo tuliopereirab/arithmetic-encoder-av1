@@ -1,31 +1,32 @@
 Stage 1:
     Inputs (fl[16], fh[16], symb[4], nsyms[5], LUT[addr:8,data:16)
-    Outputs (UU[16], COMP_mux_1[1], VV[16], A[16]) 
+    Outputs (UU[16], COMP_mux_1[1], VV[16], LUT_U_OUT[16], LUT_V_OUT[16]) 
 
-        UU = [(fl >> EC_PROB_SHIFT) >> 1] + [EC_MIN_PROB*((nsyms-1)-(symb-1))]      // LUT
+        UU = (fl >> EC_PROB_SHIFT)    
 
-        VV = [(fh >> EC_PROB_SHIFT) >> 1] + [EC_MIN_PROB*((nsyms-1)-(symb+0))]      // LUT
+        VV = (fh >> EC_PROB_SHIFT)       
         
-        A = UU - VV
+        LUT_U_OUT = LUT[{nsyms-1, symb}]        // [EC_MIN_PROB*((nsyms-1)-(symb-1))]
+        LUT_V_OUT = LUT[{nsyms-1, symb}]        // [EC_MIN_PROB*((nsyms-1)-(symb+0))]
+
 
         COMP_mux_1 (fl < CDF_PROB_TOP)
 
 ------------------------------------------------
 Stage 2:
-    Inputs (UU[16], COMP_mux_1[1], VV[16], in_range[16], in_low[16], A[16])
+    Inputs (UU[16], COMP_mux_1[1], VV[16], in_range[16], in_low[16], LUT_U[16], LUT_V[16], UU[16], VV[16])
     Outputs (LOW[16], RANGE[16])
     
         RR = in_range >> 8
-        mult_low_1 = RR * UU
-        
-        mult_range_1 = RR * A
-        mult_range_2 = RR * VV
-        
-        LOW_1 = (in_low + in_range) - mult_low_1[15:0]
+    
+        u = (RR * UU >> 1) + LUT_U
+        v = (RR * VV >> 1) + LUT_V
+    
+        LOW_1 = in_low + (in_range - u))
         LOW_2 = in_low
         
-        RANGE_1 = mult_range_1[15:0]
-        RANGE_2 = in_range - mult_range_2[15:0]
+        RANGE_1 = u - v
+        RANGE_2 = in_range - v
 
         mux_1_range (COMP_mux_1)        -> RANGE
             1: RANGE_1
