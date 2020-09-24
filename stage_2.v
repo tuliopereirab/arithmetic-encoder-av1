@@ -1,23 +1,26 @@
 module stage_2 #(
-    parameter DATA_16 = 16,
-    parameter DATA_32 = 32
+    parameter RANGE_WIDTH = 16,
+    parameter LOW_WIDTH = 24
     )(
-        input [(DATA_16-1):0] UU, VV, in_range, in_low, lut_u, lut_v,
+        input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v,
+        input [(LOW_WIDTH-1):0] in_low,
         input COMP_mux_1,
-        output wire [(DATA_16-1):0] low, range
+        output wire [(RANGE_WIDTH-1):0] range,
+        output wire [(LOW_WIDTH-1):0] low
     );
-    wire [(DATA_16-1):0] RR, range_1, range_2, low_1;
+    wire [(RANGE_WIDTH-1):0] RR, range_1, range_2;
+    wire [(LOW_WIDTH-1):0] low_1;
 
-    wire [(DATA_32-1):0] u, v;
+    wire [(RANGE_WIDTH-1):0] u, v;
 
     assign RR = in_range >> 8;
 
     assign u = (RR * UU >> 32'd1) + lut_u;
     assign v = (RR * VV >> 32'd1) + lut_v;
 
-    assign low_1 = in_low + (in_range - u[(DATA_16-1):0]);
-    assign range_1 = u[(DATA_16-1):0] - v[(DATA_16-1):0];
-    assign range_2 = in_range - v[(DATA_16-1):0];
+    assign low_1 = in_low + (in_range - u);
+    assign range_1 = u - v;
+    assign range_2 = in_range - v;
 
 
     // muxes

@@ -1,16 +1,16 @@
 module stage_1 #(
-    parameter DATA_16 = 16,
+    parameter RANGE_WIDTH = 16,
     parameter SYMBOL_WIDTH = 4,
     parameter LUT_ADDR_WIDTH = 8,
     parameter LUT_DATA_WIDTH = 16
     )(
         input clk_stage_1,      // only used for the LUTs
-        input [(DATA_16-1):0] FL, FH,
+        input [(RANGE_WIDTH-1):0] FL, FH,
         input [(SYMBOL_WIDTH-1):0] SYMBOL,  // receives the symbol in the range 0 to 15
         input [SYMBOL_WIDTH:0] NSYMS,       // defined as 1 bit longer than SYMBOL; receives the number of symbols used
         output wire COMP_mux_1,
         output wire [(LUT_DATA_WIDTH-1):0] lut_u_out, lut_v_out,
-        output wire [(DATA_16-1):0] UU, VV
+        output wire [(RANGE_WIDTH-1):0] UU, VV
 
     );
 

@@ -12,10 +12,10 @@
 
 
 module leading_zero #(
-    parameter RANGE_SIZE = 16,
+    parameter RANGE_WIDTH_LCZ = 16,
     parameter D_SIZE_LZC = 4
     )(
-        input [(RANGE_SIZE)-1:0] in_range,
+        input [(RANGE_WIDTH_LCZ)-1:0] in_range,
         output wire [(D_SIZE_LZC-1):0] lzc_out,
         output wire v
     );
