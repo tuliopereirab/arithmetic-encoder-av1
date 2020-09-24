@@ -40,7 +40,7 @@ Stage 3:
     Inputs (LOW[16], RANGE[16], in_cnt[32])
     Outputs (LOW[16], RANGE[16], in_cnt[32], D[5], C_s0[32], M_s0[32])     
         
-        D = 16 - __builtin_clz(RANGE)
+        D = lcz(RANGE)                   // instead of being defined as D = [16 - __builtin_clz(rng)], it can be just LCZ for 16 bits.
         C_s0 = in_cnt + 16
         M_s0 = [1 << (in_cnt + 16)] - 1
         
@@ -89,8 +89,44 @@ Stage 5:
         1: OUT_CNT_1
         0: S
         
-        
-        
+-----------------------------------------------
+Leading Zero's counter
+
+    G4_1 = (15 OR 14) OR (13 OR 12)
+    G3_1 = 15 OR (!14 AND 13)
+    G2_1 = !14 AND !12
+    G1_1 = !(13 OR 12)
+    
+    G4_2 = (11 OR 10) OR (9 OR 8)
+    G3_2 = 11 OR (!10 AND 9)
+    G2_2 = !10 AND !8
+    G1_2 = !(9 OR 8)
+    
+    G4_3 = (7 OR 6) OR (5 OR 4)
+    G3_3 = 7 OR (!6 AND 5)
+    G2_3 = !6 AND !4
+    G1_3 = !(5 OR 4)
+    
+    G4_4 = (3 OR 2) OR (1 OR 0)
+    G3_4 = 3 OR (!2 AND 1)
+    
+    // Q
+    Q1_1 = G4_1 OR G4_2
+    Q2_1 = G3_1 OR (G2_1 AND G3_2)
+    Q3_1 = G3_1 AND G2_2
+    Q4_1 = (15 OR 14) OR [G1_1 AND (11 OR 10)]
+    Q5_1 = G1_1 AND G1_2
+    Q6_1 = !G4_2
+    
+    Q1_2 = G4_3 OR G4_4
+    Q2_2 = G3_3 OR (G2_3 AND G3_4)
+    Q3_2 = (7 OR 6) OR [G1_3 AND (3 OR 2)]
+    
+    V = !(Q1_1 OR Q1_2)
+    Z0 = ![Q2_1 OR (Q3_1 AND Q2_2)]
+    Z1 = ![Q4_1 OR (Q5_1 AND Q3_2)]
+    Z2 = ![G4_1 OR (Q6_1 AND G4_3)]
+    Z3 = !Q1_1
         
 
 
