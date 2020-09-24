@@ -44,7 +44,7 @@ def lut_u():
     mif_creation(1)        # creating file U
     for N in range(0,16):
         for s in range(0,16):
-            value = 6 * (N - (s - 1))
+            value = 4 * (N - (s - 1))
             if(s > N):
                 value = 0
             bin_value = padded_bin(value, BINARY_WIDTH)
@@ -60,7 +60,7 @@ def lut_v():
     mif_creation(2)        # creating file V
     for N in range(0,16):
         for s in range(0,16):
-            value = 6 * (N - (s + 0))
+            value = 4 * (N - (s + 0))
             if(s > N):
                 value = 0
             bin_value = padded_bin(value, BINARY_WIDTH)
