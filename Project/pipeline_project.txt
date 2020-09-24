@@ -90,6 +90,36 @@ Stage 5:
         1: OUT_CNT_1
         0: S
         
+        
+-----------------------------------------------
+New Stage 3
+One-round normalization
+    Inputs (in_low[24], in_range[16])
+    Outputs (low[24], range[16])
+    
+    D = LZC(in_range)
+    M = 16'h7FFF
+    
+    range[16] = in_range << D
+    
+    low_1[24] = in_low << D
+    
+    low_m[16] = low_1[23:8] OR M
+    
+    COMP_mux_2[1] = (low_m > 7FFF)
+    
+    MUX_2[8] (COMP_mux_2)
+        1: 0000 0000
+        0: 1111 1111
+        
+    most_signification_low = low_1[23:16] AND MUX_2
+    
+    low = {most_signification_low, low_1[15:0]}
+    
+    
+    
+    
+    
 -----------------------------------------------
 Leading Zero's counter
 
