@@ -1,7 +1,7 @@
 module stage_3_4_5 #(
     parameter DATA_16 = 16,
     parameter DATA_32 = 32,
-    parameter D_SIZE = 5
+    parameter D_SIZE = 4
     )(
         input [(DATA_16-1):0] low, range,
         input [(DATA_32-2):0] in_cnt,
@@ -14,7 +14,8 @@ module stage_3_4_5 #(
     wire [(DATA_32-1):0] C_s0, M_s0;
 
     leading_zero #(
-        .RANGE_SIZE (DATA_16)
+        .RANGE_SIZE (DATA_16),
+        .D_SIZE_LZC (D_SIZE)
         ) LZC (
             .in_range (range),
             .lzc_out (lzc_rng)
@@ -54,7 +55,7 @@ module stage_3_4_5 #(
     assign out_low_1 = (MUX_3_low & MUX_3_m) << D;
     assign out_low_2 = low << D;
 
-    assign out_cnt_1 = (MUX_3_c + {25'd0, D}) - 32'd24;
+    assign out_cnt_1 = (MUX_3_c + {27'd0, D}) - 32'd24;
 
     // outputs
     assign out_range = range << D;
