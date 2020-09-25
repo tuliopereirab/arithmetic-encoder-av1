@@ -88,19 +88,14 @@ module tb_arith_encoder #(
             #12ns;
             $display("-> Setting reset 0\n");
             tb_reset <= 1'b0;
-            #18ns;
-            tb_fl <= simulation[1].input_fl;
-            tb_fh <= simulation[1].input_fh;
-            tb_symbol <= simulation[1].input_symbol;
-            tb_nsyms <= simulation[1].input_nsyms;
             #24ns;
-            for(i=2; i<10; i++) begin
+            for(i=1; i<10; i++) begin
                 $display("\t-> Setting data test # %d\n", i);
                 tb_fl <= simulation[i].input_fl;
                 tb_fh <= simulation[i].input_fh;
                 tb_symbol <= simulation[i].input_symbol;
                 tb_nsyms <= simulation[i].input_nsyms;
-                #12ns;
+                #24ns;
             end
 
         end
