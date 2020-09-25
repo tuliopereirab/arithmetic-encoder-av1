@@ -95,6 +95,16 @@ module tb_arith_encoder #(
                 tb_fh <= simulation[i].input_fh;
                 tb_symbol <= simulation[i].input_symbol;
                 tb_nsyms <= simulation[i].input_nsyms;
+                if(tb_range == simulation[i-2].output_range)
+                    $display("\t\t-> Range matching with expected.\n---------\n");
+                else
+                    $display("\t\t-> Range doesn't match with what was expected. Got %d, expecting %d\n---------\n", tb_range, simulation[i-2].output_range);
+
+                if(tb_low == simulation[i-2].output_low)
+                    $display("\t\t-> Low matching with expected.\n");
+                else
+                    $display("\t\t-> Low doesn't match with what was expected. Got %d, expecting %d\n", tb_low, simulation[i-2].output_low);
+                $display("=================\n");
                 #24ns;
             end
 
