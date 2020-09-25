@@ -1,3 +1,5 @@
+do pipeline_waveform.do
+
 restart -f
 
 # load memories
