@@ -1,3 +1,18 @@
+// The stage 3 of this architecture was adapted from the following article.
+// The adaptation made was to switch the length from 8 bits to 16 bits.
+// This adaptation made it possible to use this block in the AV1 arithmetic encoder.
+
+    // @INPROCEEDINGS{6116523,
+    //   author={Z. {Liu} and D. {Wang}},
+    //   booktitle={2011 18th IEEE International Conference on Image Processing},
+    //   title={One-round renormalization based 2-bin/cycle H.264/AVC CABAC encoder},
+    //   year={2011},
+    //   volume={},
+    //   number={},
+    //   pages={369-372},
+    //   doi={10.1109/ICIP.2011.6116523}
+    // }
+
 module stage_3 #(
     parameter RANGE_WIDTH = 16,
     parameter LOW_WIDTH = 24,
