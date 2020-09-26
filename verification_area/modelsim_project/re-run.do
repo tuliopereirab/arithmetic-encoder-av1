@@ -6,4 +6,4 @@ mem load -i C:/Users/Tulio/Desktop/arithmetic_encoder_av1/lut/lut_v.mem -format 
 
 
 # do wave.do
-run 200 ns
+run 300 ns
