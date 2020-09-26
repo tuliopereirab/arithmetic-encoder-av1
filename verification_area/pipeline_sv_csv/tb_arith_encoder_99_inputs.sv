@@ -1,10 +1,11 @@
-module tb_arith_encoder #(
+module tb_arith_encoder_99 #(
     parameter TB_RANGE_WIDTH = 16,
     parameter TB_LOW_WIDTH = 24,
     parameter TB_SYMBOL_WIDTH = 4,
     parameter TB_LUT_ADDR_WIDTH = 8,
     parameter TB_LUT_DATA_WIDTH = 16,
-    parameter TB_D_SIZE = 4
+    parameter TB_D_SIZE = 4,
+    parameter INTERNAL_TB_SIZE = 99
     ) ();
 
     typedef struct {
@@ -16,7 +17,7 @@ module tb_arith_encoder #(
         int output_low;
     } sim_data;
 
-    sim_data simulation [9:0];      // creates the simulation vector
+    sim_data simulation [(INTERNAL_TB_SIZE-1):0];      // creates the simulation vector
 
     // file reader
     integer fd;
@@ -58,9 +59,10 @@ module tb_arith_encoder #(
         always #6ns tb_clk <= ~tb_clk;
 
         initial begin
+            $display("Start to read the file.\n");
             tb_clk <= 1'b0;
-            fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/decimal-csv-files/miss-video_10-rows.csv", "r");
-            for(i=0; i<10; i++) begin
+            fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/decimal-csv-files/miss-video_99-rows.csv", "r");
+            for(i=0; i<INTERNAL_TB_SIZE; i++) begin
                 status = $fscanf (fd, "%d;%d;%d;%d;%d;%d\n", temp_fl, temp_fh, temp_symbol, temp_nsyms, temp_low, temp_range);
                 if(status != 6) begin
                     $display("Not read %d\n", i);
@@ -72,7 +74,7 @@ module tb_arith_encoder #(
                     simulation[i].input_symbol = temp_symbol;
                     simulation[i].input_nsyms = temp_nsyms;
                     simulation[i].output_low = temp_low;
-                    $display("Test print: \tInput_FL: %d\tOutput_low: %d\n----------\n", simulation[i].input_fl, simulation[i].output_low);
+                    // $display("Test print: \tInput_FL: %d\tOutput_low: %d\n----------\n", simulation[i].input_fl, simulation[i].output_low);
                 end
             end
             $fclose(fd);
@@ -89,21 +91,18 @@ module tb_arith_encoder #(
             $display("-> Setting reset 0\n");
             tb_reset <= 1'b0;
             #24ns;
-            for(i=1; i<10; i++) begin
+            for(i=1; i<INTERNAL_TB_SIZE; i++) begin
                 $display("\t-> Setting data test # %d\n", i);
                 tb_fl <= simulation[i].input_fl;
                 tb_fh <= simulation[i].input_fh;
                 tb_symbol <= simulation[i].input_symbol;
                 tb_nsyms <= simulation[i].input_nsyms;
+                // Now the simulation will only print values that don't match with expected.
                 if(i >= 2) begin
-                    if(tb_range == simulation[i-2].output_range)
-                        $display("\t\t-> Range matching with expected.\n---------\n");
-                    else
+                    if(tb_range != simulation[i-2].output_range)
                         $display("\t\t-> Range doesn't match with what was expected. Got %d, expecting %d\n---------\n", tb_range, simulation[i-2].output_range);
 
-                    if(tb_low == simulation[i-2].output_low)
-                        $display("\t\t-> Low matching with expected.\n");
-                    else
+                    if(tb_low != simulation[i-2].output_low)
                         $display("\t\t-> Low doesn't match with what was expected. Got %d, expecting %d\n", tb_low, simulation[i-2].output_low);
                 end
                 $display("=================\n");
