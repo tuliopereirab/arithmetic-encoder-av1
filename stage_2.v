@@ -11,16 +11,16 @@ module stage_2 #(
     wire [(RANGE_WIDTH-1):0] RR, range_1, range_2;
     wire [(LOW_WIDTH-1):0] low_1;
 
-    wire [(RANGE_WIDTH-1):0] u, v;
+    wire [(RANGE_WIDTH):0] u, v;
 
     assign RR = in_range >> 8;
 
-    assign u = (RR * UU >> 32'd1) + lut_u;
-    assign v = (RR * VV >> 32'd1) + lut_v;
+    assign u = (RR * UU >> 1) + lut_u;
+    assign v = (RR * VV >> 1) + lut_v;
 
-    assign low_1 = in_low + (in_range - u);
-    assign range_1 = u - v;
-    assign range_2 = in_range - v;
+    assign low_1 = in_low + (in_range - u[(RANGE_WIDTH-1):0]);
+    assign range_1 = u[(RANGE_WIDTH-1):0] - v[(RANGE_WIDTH-1):0];
+    assign range_2 = in_range - v[(RANGE_WIDTH-1):0];
 
 
     // muxes
