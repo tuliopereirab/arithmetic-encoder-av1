@@ -4,7 +4,7 @@ module lut_v #(
     )(
 	input [(ADDR_WIDTH-1):0] addr,
 	input clk,
-	output reg [(DATA_WIDTH-1):0] q
+	output wire [(DATA_WIDTH-1):0] q
 );
 
 	// (* ram_init_file = "Scripts/lut_v.mif" *) reg [DATA_WIDTH-1:0] rom[2**ADDR_WIDTH-1:0];
@@ -16,9 +16,6 @@ module lut_v #(
         $readmemh("Scripts/lut_v.mem", rom);
 	end
 
-	always @ (posedge clk)
-	begin
-		q <= rom[addr];
-	end
+	assign q = rom[addr];
 
 endmodule

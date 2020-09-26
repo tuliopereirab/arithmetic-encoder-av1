@@ -4,7 +4,7 @@ module lut_u #(
     )(
 	input [(ADDR_WIDTH-1):0] addr,
 	input clk,
-	output reg [(DATA_WIDTH-1):0] q
+	output wire [(DATA_WIDTH-1):0] q
 );
 
 
@@ -17,9 +17,8 @@ module lut_u #(
         $readmemh("Scripts/lut_u.mem", rom);
 	end
 
-	always @ (posedge clk)
-	begin
-		q <= rom[addr];
-	end
+
+	assign q = rom[addr];
+	
 
 endmodule
