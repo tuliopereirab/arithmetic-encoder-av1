@@ -1,3 +1,8 @@
+Reset:
+    Reg_range_final = 32768
+    Reg_Low_Final = 0
+    Reg_S_Final = 0
+------------------------------------------------
 Stage 1:
     Inputs (fl[16], fh[16], symb[4], nsyms[5], LUT[addr:8,data:16)
     Outputs (UU[16], COMP_mux_1[1], VV[16], LUT_U_OUT[16], LUT_V_OUT[16]) 
@@ -94,8 +99,8 @@ Stage 5:
 -----------------------------------------------
 New Stage 3
 One-round normalization
-    Inputs (in_low[24], in_range[16])
-    Outputs (low[24], range[16])
+    Inputs (in_low[24], in_range[16], in_s[5])
+    Outputs (low[24], range[16], s[5))
     
     D = LZC(in_range)
     M = 16'h7FFF
@@ -104,11 +109,15 @@ One-round normalization
     
     low_1[24] = in_low << D
     
-    low_m[16] = low_1[23:8] OR M
+    s_internal = in_s + d                    //low_m[16] = low_1[23:8] OR M
     
-    COMP_mux_2[1] = (low_m > 7FFF)
+    COMP_mux_2[1] = (s >= 5'd9)
     
-    MUX_2[8] (COMP_mux_2)
+    MUX_2_s[5] (COMP_MUX_2)
+        1: 5'd1
+        0: s_internal
+    
+    MUX_2_normalization[8] (COMP_mux_2)
         1: 0000 0000
         0: 1111 1111
         

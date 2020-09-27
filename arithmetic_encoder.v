@@ -17,6 +17,7 @@ module arithmetic_encoder #(
     // general
     reg [(GENERAL_RANGE_WIDTH-1):0] reg_Range_s3;
     reg [(GENERAL_LOW_WIDTH-1):0] reg_Low_s3;
+    reg [(GENERAL_D_SIZE-1):0] reg_S_s3;
     assign RANGE_OUTPUT = reg_Range_s3;
     assign LOW_OUTPUT = reg_Low_s3;
 
@@ -48,21 +49,24 @@ module arithmetic_encoder #(
     // stage 3
     wire [(GENERAL_RANGE_WIDTH-1):0] range_out_s3;
     wire [(GENERAL_LOW_WIDTH-1):0] low_out_s3;
-
+    wire [(GENERAL_D_SIZE-1):0] s_out_s3;
     // ---------------------------------------------------
     wire [(GENERAL_RANGE_WIDTH-1):0] init_range;
     wire [(GENERAL_LOW_WIDTH-1):0] init_low;
     assign init_range = 16'd32768;                // 16'd32768;
     assign init_low = 24'd0;                  // 16'd0;
+    assign init_s = 5'd0;
     // reset
     always @ (posedge general_clk) begin
         if(reset) begin
             reg_Range_s3 <= init_range;
             reg_Low_s3 <= init_low;
+            reg_S_s3 <= init_s;
         end
         else if(ctrl_reg_final) begin  // already saving what comes from the Stage [3,4,5]
             reg_Range_s3 <= range_out_s3;
             reg_Low_s3 <= low_out_s3;
+            reg_S_s3 <= s_out_s3;
         end
     end
     // ---------------------------------------------------
@@ -125,8 +129,10 @@ module arithmetic_encoder #(
         ) state_pipeline_3 (
             .low (reg_Low_s2),
             .range (reg_Range_s2),
+            .in_s (reg_S_s3),
             // outputs
             .out_low (low_out_s3),
-            .out_range (range_out_s3)
+            .out_range (range_out_s3),
+            .out_s (s_out_s3)
         );
 endmodule

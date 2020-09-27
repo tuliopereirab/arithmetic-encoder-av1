@@ -20,14 +20,16 @@ module stage_3 #(
     )(
         input [(RANGE_WIDTH-1):0] range,
         input [(LOW_WIDTH-1):0] low,
+        input [(D_SIZE-1):0] in_s,
         output wire [(RANGE_WIDTH-1):0] out_range,
-        output wire [(LOW_WIDTH-1):0] out_low
+        output wire [(LOW_WIDTH-1):0] out_low,
+        output wire [(D_SIZE-1):0] out_s
     );
 
 
-    wire [(LOW_WIDTH-1):0] low_1, low_m;
+    wire [(LOW_WIDTH-1):0] low_1;
     wire [((RANGE_WIDTH/2)-1):0] mux_2, most_sig_low;
-    wire [(D_SIZE-1):0] d;
+    wire [(D_SIZE-1):0] d, s_internal_1, s_internal_2;
     wire [(RANGE_WIDTH-1):0] m;
     wire v_lzc;     // this is the bit that shows if lzc is valid or not (I'm not really sure about this)
 
@@ -44,11 +46,16 @@ module stage_3 #(
             .v (v_lzc)
         );
 
-    assign low_1 = low << d;
-    assign low_m = low_1[(LOW_WIDTH-1):(RANGE_WIDTH/2)] | m;
 
-    assign mux_2 = (low_m > 24'h7FFF) ? 8'd0 :
+    assign low_1 = low << d;
+    assign s_internal_1 = in_s + d;
+    assign s_internal_2 = ((in_s + 5'd16) + d) - 24;
+
+    assign mux_2 = (s_internal_1 >= 5'd9) ? 8'd0 :
                     8'd255;
+
+    assign out_s = (s_internal_1 >= 5'd9) ? s_internal_2 :
+                    s_internal_1;
 
     assign most_sig_low = low_1[(LOW_WIDTH-1):RANGE_WIDTH] & mux_2;
 
