@@ -4,7 +4,7 @@ module arithmetic_encoder #(
     parameter GENERAL_SYMBOL_WIDTH = 4,
     parameter GENERAL_LUT_ADDR_WIDTH = 8,
     parameter GENERAL_LUT_DATA_WIDTH = 16,
-    parameter GENERAL_D_SIZE = 4
+    parameter GENERAL_D_SIZE = 5
     )(
         input general_clk, reset,
         input [(GENERAL_RANGE_WIDTH-1):0] general_fl, general_fh,
@@ -53,6 +53,7 @@ module arithmetic_encoder #(
     // ---------------------------------------------------
     wire [(GENERAL_RANGE_WIDTH-1):0] init_range;
     wire [(GENERAL_LOW_WIDTH-1):0] init_low;
+    wire [(GENERAL_D_SIZE-1):0] init_s;
     assign init_range = 16'd32768;                // 16'd32768;
     assign init_low = 24'd0;                  // 16'd0;
     assign init_s = 5'd0;

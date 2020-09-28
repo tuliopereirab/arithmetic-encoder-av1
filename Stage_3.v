@@ -30,12 +30,10 @@ module stage_3 #(
     wire [(LOW_WIDTH-1):0] low_1;
     wire [((RANGE_WIDTH/2)-1):0] mux_2, most_sig_low;
     wire [(D_SIZE-1):0] d, s_internal_1, s_internal_2;
-    wire [(RANGE_WIDTH-1):0] m;
     wire v_lzc;     // this is the bit that shows if lzc is valid or not (I'm not really sure about this)
 
 
 
-    assign m = 16'h7FFF;
 
     leading_zero #(
         .RANGE_WIDTH_LCZ (RANGE_WIDTH),
@@ -49,7 +47,7 @@ module stage_3 #(
 
     assign low_1 = low << d;
     assign s_internal_1 = in_s + d;
-    assign s_internal_2 = ((in_s + 5'd16) + d) - 24;
+    assign s_internal_2 = ((in_s + 5'd16) + d) - 5'd24;
 
     assign mux_2 = (s_internal_1 >= 5'd9) ? 8'd0 :
                     8'd255;

@@ -13,7 +13,7 @@ module lut_v #(
 
 	initial
 	begin
-        $readmemh("Scripts/lut_v.mem", rom);
+        $readmemh("lut/lut_v.mem", rom);
 	end
 
 	assign q = rom[addr];

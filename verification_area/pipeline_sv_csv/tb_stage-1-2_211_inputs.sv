@@ -158,7 +158,7 @@ module tb_stage_1_2 #(
                     tb_nsyms <= simulation[i].input_nsyms;
                     #6ns
                     // Now the simulation will only print values that don't match with expected.
-                    if((i > 0) && (i != 15) && (i != 106) && (i != 110) && (i != 142) && (i != 146) && (i != 190) && (i != 199) && (i != 203)) begin
+                    if((i > 0) && (i != 15) && (i != 106) && (i != 110) && (i != 142) && (i != 146) && (i != 190) && (i != 177) && (i != 199) && (i != 203)) begin
                         if(tb_range_out != simulation[i-1].norm_input_range)
                             $display("\t\t-> Range doesn't match with what was expected. Got %d, expecting %d\n", tb_range_out, simulation[i].norm_input_range);
 
