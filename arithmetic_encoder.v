@@ -22,7 +22,7 @@ module arithmetic_encoder #(
     assign LOW_OUTPUT = reg_Low_s3;
 
     // control unit
-    wire ctrl_reg_1_2, ctrl_reg_2_3, ctrl_reg_final, mux_s2_ctrl;
+    wire ctrl_reg_1_2, ctrl_reg_2_3, ctrl_reg_final, ctrl_mux_reset;
 
     control_unit control (
         .clk (general_clk),
@@ -31,7 +31,7 @@ module arithmetic_encoder #(
         .pipeline_reg_1_2 (ctrl_reg_1_2),
         .pipeline_reg_2_3 (ctrl_reg_2_3),
         .pipeline_reg_final (ctrl_reg_final),
-        .mux_start (mux_s2_ctrl)
+        .mux_reset (ctrl_mux_reset)
         );
 
 
@@ -57,14 +57,10 @@ module arithmetic_encoder #(
     wire [(GENERAL_RANGE_WIDTH-1):0] init_range;
     wire [(GENERAL_LOW_WIDTH-1):0] init_low;
     wire [(GENERAL_D_SIZE-1):0] init_s;
-    assign init_range = 16'd32768;                // 16'd32768;
-    assign init_low = 24'd0;                  // 16'd0;
     assign init_s = 5'd0;
     // reset
     always @ (posedge general_clk) begin
         if(reset) begin
-            reg_Range_s3 <= init_range;
-            reg_Low_s3 <= init_low;
             reg_S_s3 <= init_s;
         end
         else if(ctrl_reg_final) begin  // already saving what comes from the Stage [3,4,5]
@@ -73,9 +69,9 @@ module arithmetic_encoder #(
             reg_S_s3 <= s_out_s3;
         end
     end
-    assign s2_in_range_mux = (mux_s2_ctrl == 1'b1) ? RANGE_OUTPUT :
+    assign s2_in_range_mux = (ctrl_mux_reset == 1'b1) ? 16'd32768 :        // reset value for range
                             range_out_s3;
-    assign s2_in_low_mux = (mux_s2_ctrl == 1'b1) ? LOW_OUTPUT :
+    assign s2_in_low_mux = (ctrl_mux_reset == 1'b1) ? 24'd0 :              // reset value for low
                             low_out_s3;
     // ---------------------------------------------------
     stage_1 #(
