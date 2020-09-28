@@ -88,7 +88,7 @@ module tb_arith_encoder_10 #(
             #12ns;
             $display("-> Setting reset 0\n");
             tb_reset <= 1'b0;
-            #24ns;
+            #12ns;
             for(i=1; i<10; i++) begin
                 $display("\t-> Setting data test # %d\n", i);
                 tb_fl <= simulation[i].input_fl;
@@ -96,18 +96,18 @@ module tb_arith_encoder_10 #(
                 tb_symbol <= simulation[i].input_symbol;
                 tb_nsyms <= simulation[i].input_nsyms;
                 if(i >= 2) begin
-                    if(tb_range == simulation[i-2].output_range)
+                    if(tb_range == simulation[i-3].output_range)
                         $display("\t\t-> Range matching with expected.\n---------\n");
                     else
                         $display("\t\t-> Range doesn't match with what was expected. Got %d, expecting %d\n---------\n", tb_range, simulation[i-2].output_range);
 
-                    if(tb_low == simulation[i-2].output_low)
+                    if(tb_low == simulation[i-3].output_low)
                         $display("\t\t-> Low matching with expected.\n");
                     else
                         $display("\t\t-> Low doesn't match with what was expected. Got %d, expecting %d\n", tb_low, simulation[i-2].output_low);
                 end
                 $display("=================\n");
-                #24ns;
+                #12ns;
             end
 
         end
