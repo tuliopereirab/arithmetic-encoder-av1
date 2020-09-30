@@ -48,7 +48,6 @@ One-round normalization
     Outputs (low[24], range[16], s[5))
     
     D = LZC(in_range)
-    M = 16'h7FFF
     
     range[16] = in_range << D
     
@@ -59,11 +58,11 @@ One-round normalization
     COMP_mux_2[1] = (s >= 5'd9)
     
     MUX_2_s[5] (COMP_MUX_2)
-        1: 5'd1
+        1: 5'd1     // reset for S
         0: s_internal
     
     MUX_2_normalization[8] (COMP_mux_2)
-        1: 0000 0000
+        1: 0000 0000        // normalization to reduce data
         0: 1111 1111
         
     most_signification_low = low_1[23:16] AND MUX_2
@@ -113,7 +112,24 @@ Leading Zero's counter
     Z2 = ![G4_1 OR (Q6_1 AND G4_3)]
     Z3 = !Q1_1
         
+-----------------------------------------------
+8-bit multiplication
+Urdhva-tiryakbyham Vedic Sutra
 
 
-
+r[0] = m[0]*p[0]
+c1,r[1] = m[1]*p[2] + m[2]*p[1]
+c2,r[2] = c1 + m[2]*p[0] + m[1]*p[1] + m[0]*p[2]
+c3,r[3] = c2 + m[3]*p[0] + m[2]*p[1] + m[1]*p[2] + m[0]*p[3]
+c4,r[4] = c3 + m[4]*p[0] + m[3]*p[1] + m[2]*p[2] + m[1]*p[3] + m[0]*p[4]
+c5,r[5] = c4 + m[5]*p[0] + m[4]*p[1] + m[3]*p[2] + m[2]*p[3] + m[1]*p[4] + m[0]*p[5]
+c6,r[6] = c5 + m[6]*p[0] + m[5]*p[1] + m[4]*p[2] + m[3]*p[3] + m[2]*p[4] + m[1]*p[5] + m[0]*p[6]
+c7,r[7] = c6 + m[7]*p[0] + m[6]*p[1] + m[5]*p[2] + m[4]*p[3] + m[3]*p[4] + m[2]*p[5] + m[1]*p[6] + m[0]*p[7]
+c8,r[8] = c7 + m[7]*p[1] + m[6]*p[2] + m[5]*p[3] + m[4]*p[4] + m[3]*p[5] + m[2]*p[6] + m[1]*p[7]
+c9,r[9] = c8 + m[7]*p[2] + m[6]*p[3] + m[5]*p[4] + m[4]*p[5] + m[3]*p[6] + m[2]*p[7]
+c10,r[10] = c9 + m[7]*p[3] + m[6]*p[4] + m[5]*p[5] + m[4]*p[6] + m[3]*p[7]
+c11,r[11] = c10 + m[7]*p[4] + m[6]*p[5] + m[5]*p[6] + m[4]*p[7]
+c12,r[12] = c11 + m[7]*p[5] + m[6]*p[6] + m[5]*p[7]
+c13,r[13] = c12 + m[7]*p[6] + m[6]*p[7]
+c14,r[14] = c13 + m[7]*p[7]
 
