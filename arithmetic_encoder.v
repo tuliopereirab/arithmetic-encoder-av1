@@ -29,9 +29,7 @@ module arithmetic_encoder #(
         .reset_ctrl (reset),
         //outputs
         .pipeline_reg_1_2 (ctrl_reg_1_2),
-        .pipeline_reg_2_3 (ctrl_reg_2_3),
-        .pipeline_reg_final (ctrl_reg_final),
-        .mux_reset (ctrl_mux_reset)
+        .pipeline_reg_final (ctrl_reg_final)
         );
 
 
@@ -43,13 +41,6 @@ module arithmetic_encoder #(
     reg [(GENERAL_RANGE_WIDTH-1):0] reg_UU, reg_VV;
     reg reg_COMP_mux_1;
     // stage 2
-    wire [(GENERAL_RANGE_WIDTH-1):0] range_out_s2, mux_reset_range;
-    wire [(GENERAL_LOW_WIDTH-1):0] mux_reset_low, low_out_s2;
-    reg [(GENERAL_RANGE_WIDTH-1):0] reg_Range_s2;
-    reg [(GENERAL_LOW_WIDTH-1):0] reg_Low_s2;
-    wire [(GENERAL_RANGE_WIDTH-1):0] s2_in_range_mux;
-    wire [(GENERAL_LOW_WIDTH-1):0] s2_in_low_mux;
-    // stage 3
     wire [(GENERAL_RANGE_WIDTH-1):0] range_out_s3;
     wire [(GENERAL_LOW_WIDTH-1):0] low_out_s3;
     wire [(GENERAL_D_SIZE-1):0] s_out_s3;
@@ -62,6 +53,8 @@ module arithmetic_encoder #(
     always @ (posedge general_clk) begin
         if(reset) begin
             reg_S_s3 <= init_s;
+            reg_Range_s3 <= 16'd32768;
+            reg_Low_s3 <= 24'd0;
         end
         else if(ctrl_reg_final) begin  // already saving what comes from the Stage [3,4,5]
             reg_Range_s3 <= range_out_s3;
@@ -69,10 +62,6 @@ module arithmetic_encoder #(
             reg_S_s3 <= s_out_s3;
         end
     end
-    assign s2_in_range_mux = (ctrl_mux_reset == 1'b1) ? 16'd32768 :        // reset value for range
-                            range_out_s3;
-    assign s2_in_low_mux = (ctrl_mux_reset == 1'b1) ? 24'd0 :              // reset value for low
-                            low_out_s3;
     // ---------------------------------------------------
     stage_1 #(
         .RANGE_WIDTH (GENERAL_RANGE_WIDTH),
@@ -105,38 +94,24 @@ module arithmetic_encoder #(
     // ---------------------------------------------------
     stage_2 #(
         .RANGE_WIDTH (GENERAL_RANGE_WIDTH),
-        .LOW_WIDTH (GENERAL_LOW_WIDTH)
+        .LOW_WIDTH (GENERAL_LOW_WIDTH),
+        .D_SIZE (GENERAL_D_SIZE)
         ) state_pipeline_2 (
+            // inputs from stage 1
             .lut_u (reg_lut_u),
             .lut_v (reg_lut_v),
             .UU (reg_UU),
             .VV (reg_VV),
-            .in_range (s2_in_range_mux),
-            .in_low (s2_in_low_mux),
             .COMP_mux_1 (reg_COMP_mux_1),
-            // outputs
-            .range (range_out_s2),
-            .low (low_out_s2)
-        );
-
-    always @ (posedge general_clk) begin
-        if(ctrl_reg_2_3) begin
-            reg_Range_s2 <= range_out_s2;
-            reg_Low_s2 <= low_out_s2;
-        end
-    end
-    // ---------------------------------------------------
-    stage_3 #(
-        .RANGE_WIDTH (GENERAL_RANGE_WIDTH),
-        .LOW_WIDTH (GENERAL_LOW_WIDTH),
-        .D_SIZE (GENERAL_D_SIZE)
-        ) state_pipeline_3 (
-            .low (reg_Low_s2),
-            .range (reg_Range_s2),
+            // inputs from stage 3
+            .in_range (reg_Range_s3),
+            .in_low (reg_Low_s3),
             .in_s (reg_S_s3),
+            // former stage 3
             // outputs
+            .out_s (s_out_s3),
             .out_low (low_out_s3),
-            .out_range (range_out_s3),
-            .out_s (s_out_s3)
+            .out_range (range_out_s3)
         );
+    // ---------------------------------------------------
 endmodule
