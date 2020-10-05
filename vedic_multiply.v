@@ -1,15 +1,39 @@
-// This module is a 8-bit adaptation of the following article:
+// This module is a 8-bit adaptation of the following articles:
 
-    // @INPROCEEDINGS{8554743,
-    //   author={S. {Sujina} and R. {Remya}},
-    //   booktitle={2018 International Conference on Advances in Computing, Communications and Informatics (ICACCI)},
-    //   title={An Effective Method For Hardware Multiplication Using Vedic Mathematics},
-    //   year={2018},
-    //   volume={},
-    //   number={},
-    //   pages={1499-1504},
-    //   doi={10.1109/ICACCI.2018.8554743}
-//}
+    //@INPROCEEDINGS{8554743,
+    //  author={S. {Sujina} and R. {Remya}},
+    //  booktitle={2018 International Conference on Advances in Computing, Communications and Informatics (ICACCI)},
+    //  title={An Effective Method For Hardware Multiplication Using Vedic Mathematics},
+    //  year={2018},
+    //  volume={},
+    //  number={},
+    //  pages={1499-1504},
+    //  doi={10.1109/ICACCI.2018.8554743}
+    //}
+
+    // @INPROCEEDINGS{5423043,
+        // author={M. E. {Paramasivam} and R. S. {Sabeenian}},
+        // booktitle={2010 IEEE 2nd International Advance Computing Conference (IACC)},
+        // title={An efficient bit reduction binary multiplication algorithm using vedic methods},
+        // year={2010},
+        // volume={},
+        // number={},
+        // pages={25-28},
+        // doi={10.1109/IADCC.2010.5423043}
+    // }
+
+// -------------------------------------------
+// Didn't work
+    // @INPROCEEDINGS{7894719,
+        // author={K. D. {Rao} and C. {Gangadhar} and P. K. {Korrai}},
+        // booktitle={2016 IEEE Uttar Pradesh Section International Conference on Electrical, Computer and Electronics Engineering (UPCON)},
+        // title={FPGA implementation of complex multiplier using minimum delay Vedic real multiplier architecture},
+        // year={2016},
+        // volume={},
+        // number={},
+        // pages={580-584},
+        // doi={10.1109/UPCON.2016.7894719}
+    // }
 
 module vedic_multiply #(
     parameter RANGE_WIDTH = 16
