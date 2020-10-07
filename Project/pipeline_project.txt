@@ -19,8 +19,8 @@ Stage 1:
 
 ------------------------------------------------
 Stage 2:
-    Inputs (UU[16], COMP_mux_1[1], VV[16], in_range[16], in_low[16], LUT_U[16], LUT_V[16], UU[16], VV[16])
-    Outputs (LOW[16], RANGE[16])
+    Inputs (UU[16], COMP_mux_1[1], in_range[16], in_low[16], LUT_U[16], LUT_V[16], UU[16], VV[16], in_s[5])
+    Outputs (out_low[16], out_range[16], out_s[5])
     
         RR = in_range >> 8
     
@@ -40,39 +40,32 @@ Stage 2:
         mux_1_low (COMP_mux_1)          -> LOW
             1: LOW_1
             0: in_low        
-
------------------------------------------------
-New Stage 3
-One-round normalization
-    Inputs (in_low[24], in_range[16], in_s[5])
-    Outputs (low[24], range[16], s[5))
-    
-    D = LZC(in_range)
-    
-    range[16] = in_range << D
-    
-    low_1[24] = in_low << D
-    
-    s_internal = in_s + d                    //low_m[16] = low_1[23:8] OR M
-    
-    COMP_mux_2[1] = (s >= 5'd9)
-    
-    MUX_2_s[5] (COMP_MUX_2)
-        1: 5'd1     // reset for S
-        0: s_internal
-    
-    MUX_2_normalization[8] (COMP_mux_2)
-        1: 0000 0000        // normalization to reduce data
-        0: 1111 1111
+    // ----------------------------------------------------------------------------------------
+    // former stage 3
+    // One-round normalization
+        D = LZC(in_range)
         
-    most_signification_low = low_1[23:16] AND MUX_2
-    
-    low = {most_signification_low, low_1[15:0]}
-    
-    
-    
-    
-    
+        out_range[16] = RANGE << D
+        
+        low_1[24] = LOW << D
+        
+        s_internal = in_s + d                    //low_m[16] = low_1[23:8] OR M
+        
+        COMP_mux_2[1] = (s >= 5'd9)
+        
+        MUX_2_s[5] (COMP_MUX_2)
+            1: 5'd1     // reset for S
+            0: s_internal
+        
+        MUX_2_normalization[8] (COMP_mux_2)
+            1: 0000 0000        // normalization to reduce data
+            0: 1111 1111
+            
+        most_signification_low = low_1[23:16] AND MUX_2
+        
+        out_low = {most_signification_low, low_1[15:0]}
+
+-----------------------------------------------   
 -----------------------------------------------
 Leading Zero's counter
 
