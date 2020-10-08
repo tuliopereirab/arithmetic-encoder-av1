@@ -9,8 +9,6 @@ module arith_encoder_software #(
     )();
 
     // functions
-    int in_range_lzc, out_range_lzc, v_lzc;
-    // ----------------------------------------
     int range, low, cnt;
     // ----------------------------------------
 
@@ -23,15 +21,16 @@ module arith_encoder_software #(
     int i;
     // ----------------------
 
-    leading_zero #(
-        .RANGE_WIDTH_LCZ (TB_RANGE_WIDTH),
-        .D_SIZE_LZC (TB_D_SIZE)
-        ) lzc (
-            .in_range (in_range_lzc),
-            .lzc_out (out_range_lzc),
-            .v (v_lzc)
-        );
-
+    function int leading_zero;
+        input bit [(TB_RANGE_WIDTH-1):0] rng;
+        int i;
+        for(i=0;i<TB_RANGE_WIDTH; i = i + 1) begin
+            if(rng[(TB_RANGE_WIDTH-1)-i] == 1) begin
+                return i;
+            end
+        end
+        return TB_RANGE_WIDTH;
+    endfunction
     function void od_ec_encode_q15;
         input bit [(TB_RANGE_WIDTH-1):0] fl, fh;
         input bit [(TB_SYMBOL_WIDTH-1):0] symbol;
@@ -60,9 +59,8 @@ module arith_encoder_software #(
         int d, c, s;
         c = cnt;
         $display("Norm stuff\tRange = %d\tLow = %d\tCnt = %d\n", rng, low_norm, c);
-        in_range_lzc = rng;
-        d = out_range_lzc;
-        $display("Rng = %b\tlzc_in = %b\tlzc_out = %d\n", rng, in_range_lzc, d);
+        d = leading_zero(rng);
+        $display("Rng = %b\tlzc_out = %d\n", rng, d);
         s = c + d;
         if(s >= 0) begin
             int m;
