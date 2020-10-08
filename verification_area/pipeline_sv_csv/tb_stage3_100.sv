@@ -55,7 +55,7 @@ module tb_stage_3 #(
         initial begin
             $display("Start to read the file.\n");
             //tb_clk <= 1'b0;
-            fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/decimal-csv-files/miss-video_stage-3_tb_100rows.csv", "r");
+            fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/miss-video_stage-3_tb_100rows.csv", "r");
             for(i=0; i<INTERNAL_TB_SIZE; i++) begin
                 status = $fscanf (fd, "%d;%d;%d;%d;%d\n", temp_low_in, temp_range_in, temp_cnt_in, temp_low_out, temp_range_out);
                 if(status != 5) begin

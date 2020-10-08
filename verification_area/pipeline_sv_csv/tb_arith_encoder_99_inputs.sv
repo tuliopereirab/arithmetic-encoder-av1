@@ -61,7 +61,7 @@ module tb_arith_encoder_99 #(
         initial begin
             $display("Start to read the file.\n");
             tb_clk <= 1'b0;
-            fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/decimal-csv-files/miss-video_99-rows.csv", "r");
+            fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/miss-video_99-rows.csv", "r");
             for(i=0; i<INTERNAL_TB_SIZE; i++) begin
                 status = $fscanf (fd, "%d;%d;%d;%d;%d;%d\n", temp_fl, temp_fh, temp_symbol, temp_nsyms, temp_low, temp_range);
                 if(status != 6) begin

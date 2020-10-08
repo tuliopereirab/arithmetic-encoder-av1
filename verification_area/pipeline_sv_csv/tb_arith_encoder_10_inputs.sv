@@ -59,7 +59,7 @@ module tb_arith_encoder_10 #(
 
         initial begin
             tb_clk <= 1'b0;
-            fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/decimal-csv-files/miss-video_10-rows.csv", "r");
+            fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/miss-video_10-rows.csv", "r");
             for(i=0; i<10; i++) begin
                 status = $fscanf (fd, "%d;%d;%d;%d;%d;%d\n", temp_fl, temp_fh, temp_symbol, temp_nsyms, temp_low, temp_range);
                 if(status != 6) begin
