@@ -4,8 +4,8 @@ Reset:
     Reg_S_Final = 0
 ------------------------------------------------
 Stage 1:
-    Inputs (fl[16], fh[16], symb[4], nsyms[5], LUT[addr:8,data:16)
-    Outputs (UU[16], COMP_mux_1[1], VV[16], LUT_U_OUT[16], LUT_V_OUT[16]) 
+    Inputs (fl[16], fh[16], symb[4], nsyms[5], LUT[addr:8,data:16, bool[1])     
+    Outputs (UU[16], COMP_mux_1[1], VV[16], LUT_U_OUT[16], LUT_V_OUT[16], out_bool[1], symbol_out[4]) 
 
         UU = (fl >> EC_PROB_SHIFT)    
 
@@ -14,18 +14,25 @@ Stage 1:
         LUT_U_OUT = LUT[{nsyms-1, symb}]        // [EC_MIN_PROB*((nsyms-1)-(symb-1))]
         LUT_V_OUT = LUT[{nsyms-1, symb}]        // [EC_MIN_PROB*((nsyms-1)-(symb+0))]
 
-
+        out_bool = bool
+        symbol_out = symb
+        
         COMP_mux_1 (fl < CDF_PROB_TOP)
 
 ------------------------------------------------
 Stage 2:
-    Inputs (UU[16], COMP_mux_1[1], in_range[16], in_low[16], LUT_U[16], LUT_V[16], UU[16], VV[16], in_s[5])
+    Inputs (UU[16], COMP_mux_1[1], in_range[16], in_low[16], LUT_U[16], LUT_V[16], UU[16], VV[16], in_s[5], bool[1], symbol[4])
     Outputs (out_low[16], out_range[16], out_s[5])
     
         RR = in_range >> 8
     
         u = (RR * UU >> 1) + LUT_U
         v = (RR * VV >> 1) + LUT_V
+        
+        
+        v_bool = (RR * VV >> 1) + 4
+        low_bool = symbol[0] ? (in_low + (in_range - v_bool)) : in_low
+        range_bool = symbol[0] ? v_bool : (in_range - v_bool)
     
         LOW_1 = in_low + (in_range - u))
         LOW_2 = in_low
@@ -33,13 +40,18 @@ Stage 2:
         RANGE_1 = u - v
         RANGE_2 = in_range - v
 
-        mux_1_range (COMP_mux_1)        -> RANGE
+        mux_1_range (COMP_mux_1)        -> RANGE_not_bool
             1: RANGE_1
             0: RANGE_2
             
-        mux_1_low (COMP_mux_1)          -> LOW
+        mux_1_low (COMP_mux_1)          -> LOW_not_bool
             1: LOW_1
             0: in_low        
+            
+        mux_bool_range (bool):
+            1: range_bool
+            0: RANGE_not_bool
+        
     // ----------------------------------------------------------------------------------------
     // former stage 3
     // One-round normalization
