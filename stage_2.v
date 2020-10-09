@@ -17,11 +17,15 @@
 module stage_2 #(
     parameter RANGE_WIDTH = 16,
     parameter LOW_WIDTH = 24,
-    parameter D_SIZE = 5
+    parameter D_SIZE = 5,
+    parameter SYMBOL_WIDTH = 4
     )(
         input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v,
         input [(LOW_WIDTH-1):0] in_low,
         input COMP_mux_1,
+        // bool
+        input [(SYMBOL_WIDTH-1):0] symbol,
+        input bool,
         // former stage 3 input
         input [(D_SIZE-1):0] in_s,
         // former stage 3 outputs
@@ -29,15 +33,15 @@ module stage_2 #(
         output wire [(RANGE_WIDTH-1):0] out_range,
         output wire [(LOW_WIDTH-1):0] out_low
     );
-    wire [(RANGE_WIDTH-1):0] RR, range_1, range_2;
-    wire [(LOW_WIDTH-1):0] low_1;
+    wire [(RANGE_WIDTH-1):0] RR, range_1, range_2, range_bool, range_not_bool;
+    wire [(LOW_WIDTH-1):0] low_1, low_bool, low_not_bool;
 
     // former stage 3 input
     wire [(RANGE_WIDTH-1):0] range;
     wire [(LOW_WIDTH-1):0] low;
     // -------------------------------
 
-    wire [(RANGE_WIDTH):0] u, v;
+    wire [(RANGE_WIDTH):0] u, v, v_bool;
 
     assign RR = in_range >> 8;
 
@@ -50,10 +54,29 @@ module stage_2 #(
 
 
     // muxes
-    assign low = (COMP_mux_1 == 1'b1) ? low_1 :
+    assign low_not_bool = (COMP_mux_1 == 1'b1) ? low_1 :
                  in_low;
-    assign range = (COMP_mux_1 == 1'b1) ? range_1 :
+    assign range_not_bool = (COMP_mux_1 == 1'b1) ? range_1 :
                     range_2;
+
+    // bool
+    assign v_bool = (RR * VV >> 1) + 16'd4;
+    assign low_bool = (symbol[0] == 1'b1) ? (in_low + (in_range - v_bool[(RANGE_WIDTH-1):0])) :
+                        in_low;
+    assign range_bool = (symbol[0] == 1'b1) ? v_bool[(RANGE_WIDTH-1):0] :
+                        in_range - v_bool[(RANGE_WIDTH-1):0];
+    // -------------------
+
+    // final stage 2
+    // this part define which function results will be used:
+        // Q15 normal
+        // Boolean
+    assign low = (bool == 1'b1) ? low_bool :
+                low_not_bool;
+    assign range = (bool == 1'b1) ? range_bool :
+                    range_not_bool;
+
+
     // -------------------------------
     // former stage 3
 

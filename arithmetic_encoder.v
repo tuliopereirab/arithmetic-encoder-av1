@@ -10,6 +10,7 @@ module arithmetic_encoder #(
         input [(GENERAL_RANGE_WIDTH-1):0] general_fl, general_fh,
         input [(GENERAL_SYMBOL_WIDTH-1):0] general_symbol,
         input [GENERAL_SYMBOL_WIDTH:0] general_nsyms,
+        input general_bool,
         output wire [(GENERAL_RANGE_WIDTH-1):0] RANGE_OUTPUT,
         output wire [(GENERAL_LOW_WIDTH-1):0] LOW_OUTPUT
     );
@@ -36,10 +37,12 @@ module arithmetic_encoder #(
     // stage 1
     wire [(GENERAL_LUT_DATA_WIDTH-1):0] lut_u_output, lut_v_output;
     wire [(GENERAL_RANGE_WIDTH-1):0] uu_out, vv_out;
-    wire COMP_mux_1_out;
+    wire [(GENERAL_SYMBOL_WIDTH-1):0] symbol_output;
+    wire COMP_mux_1_out, bool_output;
     reg [(GENERAL_LUT_DATA_WIDTH-1):0] reg_lut_u, reg_lut_v;
     reg [(GENERAL_RANGE_WIDTH-1):0] reg_UU, reg_VV;
-    reg reg_COMP_mux_1;
+    reg [(GENERAL_SYMBOL_WIDTH-1):0] reg_symbol;
+    reg reg_COMP_mux_1, reg_bool;
     // stage 2
     wire [(GENERAL_RANGE_WIDTH-1):0] range_out_s3;
     wire [(GENERAL_LOW_WIDTH-1):0] low_out_s3;
@@ -74,12 +77,15 @@ module arithmetic_encoder #(
             .FH (general_fh),
             .SYMBOL (general_symbol),
             .NSYMS (general_nsyms),
+            .bool (general_bool),
             // outputs
             .lut_u_out (lut_u_output),
             .lut_v_out (lut_v_output),
             .UU (uu_out),
             .VV (vv_out),
-            .COMP_mux_1 (COMP_mux_1_out)
+            .COMP_mux_1 (COMP_mux_1_out),
+            .bool_out (bool_output),
+            .out_symbol (symbol_output)
         );
 
     always @ (posedge general_clk) begin
@@ -89,13 +95,16 @@ module arithmetic_encoder #(
             reg_UU <= uu_out;
             reg_VV <= vv_out;
             reg_COMP_mux_1 <= COMP_mux_1_out;
+            reg_bool <= bool_output;
+            reg_symbol <= symbol_output;
         end
     end
     // ---------------------------------------------------
     stage_2 #(
         .RANGE_WIDTH (GENERAL_RANGE_WIDTH),
         .LOW_WIDTH (GENERAL_LOW_WIDTH),
-        .D_SIZE (GENERAL_D_SIZE)
+        .D_SIZE (GENERAL_D_SIZE),
+        .SYMBOL_WIDTH (GENERAL_SYMBOL_WIDTH)
         ) state_pipeline_2 (
             // inputs from stage 1
             .lut_u (reg_lut_u),
@@ -103,6 +112,9 @@ module arithmetic_encoder #(
             .UU (reg_UU),
             .VV (reg_VV),
             .COMP_mux_1 (reg_COMP_mux_1),
+            // bool
+            .bool (reg_bool),
+            .symbol (reg_symbol),
             // inputs from stage 3
             .in_range (reg_Range_s3),
             .in_low (reg_Low_s3),
