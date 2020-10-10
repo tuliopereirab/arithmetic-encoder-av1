@@ -57,11 +57,11 @@ Stage 2:
     // ----------------------------------------------------------------------------------------
     // former stage 3
     // One-round normalization
-        D = LZC(in_range)
+        D = LZC(range)
         
         out_range[16] = RANGE << D
         
-        low_1[24] = LOW << D
+        low_1[32] = LOW << D
         
         s_internal = in_s + d                    //low_m[16] = low_1[23:8] OR M
         
@@ -70,9 +70,10 @@ Stage 2:
         MUX_2_s[5] (COMP_MUX_2)
             1: 5'd1     // reset for S
             0: s_internal
+                
         
         MUX_2_normalization[8] (COMP_mux_2)
-            1: 0000 0000        // normalization to reduce data
+            1: 0000 0000 + low_1[31:24]         // normalization to reduce data
             0: 1111 1111
             
         most_signification_low = low_1[23:16] AND MUX_2

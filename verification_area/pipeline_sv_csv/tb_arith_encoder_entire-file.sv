@@ -5,7 +5,7 @@ module tb_arith_encoder_entire_file #(
     parameter TB_LUT_ADDR_WIDTH = 8,
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 4,
-    parameter SELECT_VIDEO = 3,         // 0- Miss America 150frames 176x144 (Only 100 rows)
+    parameter SELECT_VIDEO = 1,         // 0- Miss America 150frames 176x144 (Only 100 rows)
                                         // 1- Miss America 150frames 176x144 (Entire Video)
                                         // 2- Akiyo 300frames 176x144 (Entire Video)
                                         // 3- Akiyo 300frames 176x144 (Only 100 rows)
@@ -169,5 +169,7 @@ module tb_arith_encoder_entire_file #(
             $display("-------------------\n");
             $display("Low: \n\tMatches: %d\n\tMisses: %d\n", match_counter_low, miss_counter_low);
             $display("==============\nStatistics completed\n=============\n");
+            // $finish;     // closes ModelSim
+            $stop;
         end
 endmodule
