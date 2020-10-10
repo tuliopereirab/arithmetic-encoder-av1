@@ -5,10 +5,11 @@ module tb_arith_encoder_entire_file #(
     parameter TB_LUT_ADDR_WIDTH = 8,
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 4,
-    parameter SELECT_VIDEO = 0,         // 0- Miss America 150frames 176x144 (Only 100 rows)
+    parameter SELECT_VIDEO = 3,         // 0- Miss America 150frames 176x144 (Only 100 rows)
                                         // 1- Miss America 150frames 176x144 (Entire Video)
                                         // 2- Akiyo 300frames 176x144 (Entire Video)
-    parameter RUN_UNTIL_FIRST_MISS = 0  // With this option in 1, the simulation will stop as soon as it gets the first miss
+                                        // 3- Akiyo 300frames 176x144 (Only 100 rows)
+    parameter RUN_UNTIL_FIRST_MISS = 1  // With this option in 1, the simulation will stop as soon as it gets the first miss
                                         // It doesn't matter if the miss is with Range or low
                                         // 0- Run until the end of the simulation and count misses and matches
                                         // 1- Stop when find the first miss
@@ -69,16 +70,24 @@ module tb_arith_encoder_entire_file #(
         initial begin
             $display("Start to read the file.\n");
             tb_clk <= 1'b0;
-            if(SELECT_VIDEO == 0) begin
-                $display("Simulating video: Miss America 150frames 176x144 (Only 100 rows)\n");
-                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/full_data/new-data-miss-video_100-rows.csv", "r");
-            end else if(SELECT_VIDEO == 1) begin
-                $display("Simulating video: Miss America 150frames 176x144 (Entire Video)\n");
-                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/full_data/miss-america_150frames_176x144-entire-video.csv", "r");
-            end else if(SELECT_VIDEO == 2) begin
-                $display("Simulating video: Akiyo 300frames 176x144 (Entire Video)\n");
-                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/full_data/akiyo_300frames_176x144-entire-video.csv", "r");
-            end
+            case(SELECT_VIDEO)
+                0 : begin
+                    $display("Simulating video: Miss America 150 frames 176x144 (Only 100 rows)\n");
+                    fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/full_data/new-data-miss-video_100-rows.csv", "r");
+                end
+                1 : begin
+                    $display("Simulating video: Miss America 150 frames 176x144 (Entire Video)\n");
+                    fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/full_data/miss-america_150frames_176x144-entire-video.csv", "r");
+                end
+                2 : begin
+                    $display("Simulating video: Akiyo 300 frames 176x144 (Entire Video)\n");
+                    fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/full_data/akiyo_300frames_176x144-entire-video.csv", "r");
+                end
+                3 : begin
+                    $display("Simulating video: Akiyo 300 frames 176x144 (Only 100 rows)\n");
+                    fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/full_data/akiyo_300frames_176x144_100-rows.csv", "r");
+                end
+            endcase
             $display("Starting simulation...\n");
             status = $fscanf (fd, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;\n", temp_bool, temp_init_range, temp_init_low, temp_fl, temp_fh, temp_symbol, temp_nsyms, temp_norm_in_rng, temp_norm_in_low, temp_range, temp_low);
             tb_bool = temp_bool;
@@ -156,9 +165,9 @@ module tb_arith_encoder_entire_file #(
             $display("Statistics:\n");
             $display("Total simulations: %d\nTotal matches: %d\nTotal misses: %d\n", counter, match_counter_low+match_counter_range, miss_counter_low+miss_counter_range);
             $display("-------------------\n");
-            $display("Range: \nMisses: %d\nMatches: %d\n", miss_counter_range, match_counter_range);
+            $display("Range: \n\tMatches: %d\n\tMisses: %d\n", match_counter_range, miss_counter_range);
             $display("-------------------\n");
-            $display("Low: \nMisses: %d\nMatches: %d\n", miss_counter_low, match_counter_low);
+            $display("Low: \n\tMatches: %d\n\tMisses: %d\n", match_counter_low, miss_counter_low);
             $display("==============\nStatistics completed\n=============\n");
         end
 endmodule

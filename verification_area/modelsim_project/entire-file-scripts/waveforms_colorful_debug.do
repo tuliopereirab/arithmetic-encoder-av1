@@ -1,5 +1,9 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
+add wave -noupdate -divider {TB - Info}
+add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/counter
+add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/miss_counter_low
+add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/miss_counter_range
 add wave -noupdate -divider General
 add wave -noupdate -color {Cornflower Blue} -radix decimal /tb_arith_encoder_entire_file/arith_encoder/control/state
 add wave -noupdate -color {Cornflower Blue} /tb_arith_encoder_entire_file/arith_encoder/control/clk
@@ -46,7 +50,7 @@ add wave -noupdate -divider {General - Output}
 add wave -noupdate -color Magenta -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/RANGE_OUTPUT
 add wave -noupdate -color Magenta -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/LOW_OUTPUT
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {18 ns} 0}
+WaveRestoreCursors {{Cursor 1} {2742000 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 406
 configure wave -valuecolwidth 100
@@ -62,4 +66,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ns} {100 ns}
+WaveRestoreZoom {2694840 ps} {2891716 ps}
