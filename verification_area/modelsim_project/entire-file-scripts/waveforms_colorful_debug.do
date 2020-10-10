@@ -31,6 +31,7 @@ add wave -noupdate -color {Cornflower Blue} -radix unsigned /tb_arith_encoder_en
 add wave -noupdate -color {Cornflower Blue} -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/lut_v
 add wave -noupdate -color {Cornflower Blue} -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/in_low
 add wave -noupdate -color {Cornflower Blue} -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/in_range
+add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/in_s
 add wave -noupdate -divider {Stage 2 - Inside}
 add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/RR
 add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/range_1
@@ -42,16 +43,19 @@ add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/ari
 add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/low_not_bool
 add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/range
 add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/low
+add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/d
+add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/s_internal_1
+add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/s_internal_2
 add wave -noupdate -divider {Stage 2 - Outputs}
-add wave -noupdate /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/out_s
-add wave -noupdate /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/out_range
-add wave -noupdate /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/out_low
+add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/out_s
+add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/out_range
+add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/out_low
 add wave -noupdate -divider {General - Output}
 add wave -noupdate -color Magenta -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/RANGE_OUTPUT
 add wave -noupdate -color Magenta -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/LOW_OUTPUT
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {2742000 ps} 0}
-quietly wave cursor active 1
+WaveRestoreCursors {{Cursor 1} {2034000 ps} 1} {{Cursor 2} {2026817 ps} 0} {{Cursor 3} {2021940 ps} 1}
+quietly wave cursor active 2
 configure wave -namecolwidth 406
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -66,4 +70,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {2694840 ps} {2891716 ps}
+WaveRestoreZoom {1981675 ps} {2055918 ps}
