@@ -4,7 +4,7 @@ module tb_arith_encoder_entire_file #(
     parameter TB_SYMBOL_WIDTH = 4,
     parameter TB_LUT_ADDR_WIDTH = 8,
     parameter TB_LUT_DATA_WIDTH = 16,
-    parameter TB_D_SIZE = 4,
+    parameter TB_D_SIZE = 5,
     parameter SELECT_VIDEO = 1,         // 0- Miss America 150frames 176x144 (Only 100 rows)
                                         // 1- Miss America 150frames 176x144 (Entire Video)
                                         // 2- Akiyo 300frames 176x144 (Entire Video)

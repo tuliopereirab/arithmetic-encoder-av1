@@ -41,11 +41,21 @@ add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/ari
 add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/low_1
 add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/low_bool
 add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/low_not_bool
-add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/range
-add wave -noupdate -color Gold -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/low
-add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/d
-add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/s_internal_1
-add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/s_internal_2
+add wave -noupdate -divider {Stage 2 - Normalize}
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/in_s
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/range
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/low
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/d
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/low_s0
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/low_s8
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/m_s8
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/m_s0
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/c_internal_s0
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/c_internal_s8
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/c_norm_s0
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/s_s0
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/s_s8
+add wave -noupdate -color Coral -radix decimal /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/s_comp
 add wave -noupdate -divider {Stage 2 - Outputs}
 add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/out_s
 add wave -noupdate -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/state_pipeline_2/out_range
@@ -54,8 +64,8 @@ add wave -noupdate -divider {General - Output}
 add wave -noupdate -color Magenta -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/RANGE_OUTPUT
 add wave -noupdate -color Magenta -radix unsigned /tb_arith_encoder_entire_file/arith_encoder/LOW_OUTPUT
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {2034000 ps} 1} {{Cursor 2} {2026817 ps} 0} {{Cursor 3} {2021940 ps} 1}
-quietly wave cursor active 2
+WaveRestoreCursors {{Cursor 1} {243114 ns} 1} {{Cursor 2} {243126 ns} 1} {{Cursor 3} {243120 ns} 0}
+quietly wave cursor active 3
 configure wave -namecolwidth 406
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -70,4 +80,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {1981675 ps} {2055918 ps}
+WaveRestoreZoom {243074 ns} {243148 ns}
