@@ -53,6 +53,9 @@ Stage 2:
         mux_bool_range (bool):
             1: range_bool
             0: RANGE_not_bool
+        mux_bool_low (bool):
+            1: low_bool
+            0: low_not_bool
         
     // ----------------------------------------------------------------------------------------
     // former stage 3
