@@ -38,7 +38,7 @@ module leading_zero #(
     assign g4_2 = (in_range[11] | in_range[10]) | (in_range[9] | in_range[8]);
     assign g3_2 = in_range[11] | ((!in_range[10]) & in_range[9]);
     assign g2_2 = (!in_range[10]) & (!in_range[8]);
-    assign g1_2 = !(in_range[13] | in_range[12]);
+    assign g1_2 = !(in_range[9] | in_range[8]);
 
     assign g4_3 = (in_range[7] | in_range[6]) | (in_range[5] | in_range[4]);
     assign g3_3 = in_range[7] | ((!in_range[6]) & in_range[5]);
@@ -52,7 +52,7 @@ module leading_zero #(
     // Q
     assign q1_1 = g4_1 | g4_2;
     assign q2_1 = g3_1 | (g2_1 & g3_2);
-    assign q3_1 = g3_1 & g2_2;
+    assign q3_1 = g2_1 & g2_2;
     assign q4_1 = (in_range[15] | in_range[14]) | (g1_1 & (in_range[11] | in_range[10]));
     assign q5_1 = g1_1 & g1_2;
     assign q6_1 = !g4_2;

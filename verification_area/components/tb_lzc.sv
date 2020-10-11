@@ -1,6 +1,7 @@
 module tb_lzc #(
     parameter TB_RANGE_WIDTH = 16,
-    parameter TB_D_SIZE = 4
+    parameter TB_D_SIZE = 4,
+    parameter MAX_TEST = 1000000
     ) ();
 
     reg [(TB_RANGE_WIDTH-1):0] tb_range_input;
@@ -32,14 +33,15 @@ module tb_lzc #(
         counter = 0;
         match = 0;
         miss = 0;
-        while(1) begin
+        while(counter < MAX_TEST) begin
             current_value = $urandom_range(0,65535);
             check_value = leading_zero_function(current_value);
             tb_range_input = current_value;
             #10ns;
-            if(tb_lzc_out != check_value) begin
+            if((tb_lzc_out != check_value) && (current_value != 0)) begin
                 $display("Value %d:\tExpected: %d\tGot: %d\nCounter: %d\n", current_value, check_value, tb_lzc_out, counter);
                 miss = miss + 1;
+                //#1ns;
                 $stop;
             end else begin
                 //$display("Right!\n");
@@ -49,5 +51,6 @@ module tb_lzc #(
             #5ns;
         end
         $display("Total Executed: %d\nTotal Matches: %d\nTotal Misses: %d\n", counter, match, miss);
+        $stop;
     end
 endmodule
