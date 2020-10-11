@@ -68,5 +68,6 @@ module leading_zero #(
     assign lzc_out[1] = !(q4_1 | (q5_1 & q3_2));
     assign lzc_out[2] = !(g4_1 | (q6_1 & g4_3));
     assign lzc_out[3] = !q1_1;
+    assign lzc_out[4] = 1'b0;
 
 endmodule

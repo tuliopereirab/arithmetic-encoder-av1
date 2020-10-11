@@ -1,6 +1,6 @@
 module control_unit (
     input clk, reset_ctrl,
-    output reg pipeline_reg_1_2, pipeline_reg_final, mux_reset
+    output reg pipeline_reg_1_2, pipeline_reg_2_3, pipeline_reg_final
     );
 
 
@@ -21,7 +21,8 @@ module control_unit (
             state <= start_1;
         else begin
             case (state)
-                start_1  : state <= main;
+                start_1  : state <= start_2;
+                start_2  : state <= main;
                 main     : state <= main;
             endcase
         end
@@ -31,10 +32,17 @@ module control_unit (
         case (state)
             start_1 : begin
                 pipeline_reg_1_2 <= 1'b1;
+                pipeline_reg_2_3 <= 1'b0;
+                pipeline_reg_final <= 1'b0;
+            end
+            start_2 : begin
+                pipeline_reg_1_2 <= 1'b1;
+                pipeline_reg_2_3 <= 1'b1;
                 pipeline_reg_final <= 1'b0;
             end
             main     : begin
                 pipeline_reg_1_2 <= 1'b1;
+                pipeline_reg_2_3 <= 1'b1;
                 pipeline_reg_final <= 1'b1;
             end
         endcase

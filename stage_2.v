@@ -16,53 +16,49 @@
 
 module stage_2 #(
     parameter RANGE_WIDTH = 16,
-    parameter LOW_WIDTH = 24,
     parameter D_SIZE = 5,
     parameter SYMBOL_WIDTH = 4
     )(
         input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v,
-        input [(LOW_WIDTH-1):0] in_low,
         input COMP_mux_1,
         // bool
         input [(SYMBOL_WIDTH-1):0] symbol,
         input bool,
-        // former stage 3 input
-        input [(D_SIZE-1):0] in_s,
         // former stage 3 outputs
-        output wire [(D_SIZE-1):0] out_s,
-        output wire [(RANGE_WIDTH-1):0] out_range,
-        output wire [(LOW_WIDTH-1):0] out_low
+        output wire [RANGE_WIDTH:0] u, v_bool,
+        output wire [(RANGE_WIDTH-1):0] initial_range, out_range,
+        output wire [(D_SIZE-1):0] out_d,
+        output wire [1:0] bool_symbol,
+        output wire COMP_mux_1_out
     );
     wire [(RANGE_WIDTH-1):0] RR, range_1, range_2, range_bool, range_not_bool;
-    wire [(LOW_WIDTH-1):0] low_1, low_bool, low_not_bool;
+
 
     // former stage 3 input
     wire [(RANGE_WIDTH-1):0] range;
-    wire [(LOW_WIDTH-1):0] low;
+
     // -------------------------------
 
-    wire [(RANGE_WIDTH):0] u, v, v_bool;
+    wire [(RANGE_WIDTH):0] v;
 
     assign RR = in_range >> 8;
 
     assign u = (RR * UU >> 1) + lut_u;
     assign v = (RR * VV >> 1) + lut_v;
 
-    assign low_1 = in_low + (in_range - u[(RANGE_WIDTH-1):0]);
+
     assign range_1 = u[(RANGE_WIDTH-1):0] - v[(RANGE_WIDTH-1):0];
     assign range_2 = in_range - v[(RANGE_WIDTH-1):0];
 
 
     // muxes
-    assign low_not_bool = (COMP_mux_1 == 1'b1) ? low_1 :
-                 in_low;
+
     assign range_not_bool = (COMP_mux_1 == 1'b1) ? range_1 :
                     range_2;
 
     // bool
     assign v_bool = (RR * VV >> 1) + 16'd4;
-    assign low_bool = (symbol[0] == 1'b1) ? (in_low + (in_range - v_bool[(RANGE_WIDTH-1):0])) :
-                        in_low;
+
     assign range_bool = (symbol[0] == 1'b1) ? v_bool[(RANGE_WIDTH-1):0] :
                         in_range - v_bool[(RANGE_WIDTH-1):0];
     // -------------------
@@ -71,17 +67,15 @@ module stage_2 #(
     // this part define which function results will be used:
         // Q15 normal
         // Boolean
-    assign low = (bool == 1'b1) ? low_bool :
-                low_not_bool;
+
     assign range = (bool == 1'b1) ? range_bool :
                     range_not_bool;
 
 
     // -------------------------------
     // former stage 3
-
-    wire [((LOW_WIDTH+8)-1):0] low_s0, low_s8, m_s8, m_s0;
-    wire [(D_SIZE-1):0] d, c_internal_s0, c_internal_s8, c_norm_s0, s_s0, s_s8, s_comp;
+    // normalization for range
+    wire [(D_SIZE-1):0] d;
     wire v_lzc;     // this is the bit that shows if lzc is valid or not (I'm not really sure about this)
 
     leading_zero #(
@@ -93,29 +87,15 @@ module stage_2 #(
             .v (v_lzc)
         );
 
-    assign s_comp = in_s + d;
-    // ----------------------
-    assign c_norm_s0 = in_s + 7;
-    assign c_internal_s0 = in_s + 16;
-    assign m_s0 = (1 << c_norm_s0) - 1;
 
-    assign s_s0 = c_internal_s0 + d - 24;
-    assign low_s0 = low & m_s0;
-    // -----------------------
-    assign c_internal_s8 = in_s + 8;
-    assign m_s8 = m_s0 >> 8;
-
-    assign s_s8 = c_internal_s8 + d - 24;
-    assign low_s8 = low_s0 & m_s8;
     // outputs
-    assign out_low = ((s_comp >= 9) && (s_comp < 17)) ? low_s0 << d :
-                        (s_comp >= 17) ? low_s8 << d :
-                        low << d;
-
-    assign out_s = ((s_comp >= 9) && (s_comp < 17)) ? s_s0 :
-                    (s_comp >= 17) ? s_s8 :
-                    s_comp;
-
+    // v_bool is above
+    // u is above
+    assign initial_range = in_range;
+    assign out_d = d;
     assign out_range = range << d;
+    assign bool_symbol = {bool, symbol[0]};         // this input is a mix between the least significant bit of symbol and the bool flag
+                                                    // [1]: bool flag; [0]: symbol[0]
+    assign COMP_mux_1_out = COMP_mux_1;
     //-----------------------------------------
 endmodule

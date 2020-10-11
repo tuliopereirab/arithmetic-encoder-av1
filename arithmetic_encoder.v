@@ -30,6 +30,7 @@ module arithmetic_encoder #(
         .reset_ctrl (reset),
         //outputs
         .pipeline_reg_1_2 (ctrl_reg_1_2),
+        .pipeline_reg_2_3 (ctrl_reg_2_3),
         .pipeline_reg_final (ctrl_reg_final)
         );
 
@@ -44,6 +45,18 @@ module arithmetic_encoder #(
     reg [(GENERAL_SYMBOL_WIDTH-1):0] reg_symbol;
     reg reg_COMP_mux_1, reg_bool;
     // stage 2
+    wire [(GENERAL_RANGE_WIDTH-1):0] initial_range_out, range_ready_out;
+    wire [GENERAL_RANGE_WIDTH:0] u_out, v_out;
+    wire [(GENERAL_D_SIZE-1):0] d_out;
+    wire [1:0] bool_symbol_out;
+    wire COMP_mux_1_out_s2;
+    reg [(GENERAL_RANGE_WIDTH-1):0] reg_initial_range, reg_range_ready;
+    reg [GENERAL_RANGE_WIDTH:0] reg_u, reg_v_bool;
+    reg [(GENERAL_D_SIZE-1):0] reg_d;
+    reg [1:0] reg_bool_symbol;
+    reg reg_COMP_mux_1_s2;
+    // --------------------------------------------------
+    // Stage 3
     wire [(GENERAL_RANGE_WIDTH-1):0] range_out_s3;
     wire [(GENERAL_LOW_WIDTH-1):0] low_out_s3;
     wire [(GENERAL_D_SIZE-1):0] s_out_s3;
@@ -56,7 +69,7 @@ module arithmetic_encoder #(
     always @ (posedge general_clk) begin
         if(reset) begin
             reg_S_s3 <= init_s;
-            reg_Range_s3 <= 16'd32768;
+            reg_Range_s3 = 16'd32768;       // not necessary
             reg_Low_s3 <= 24'd0;
         end
         else if(ctrl_reg_final) begin  // already saving what comes from the Stage [3,4,5]
@@ -102,7 +115,6 @@ module arithmetic_encoder #(
     // ---------------------------------------------------
     stage_2 #(
         .RANGE_WIDTH (GENERAL_RANGE_WIDTH),
-        .LOW_WIDTH (GENERAL_LOW_WIDTH),
         .D_SIZE (GENERAL_D_SIZE),
         .SYMBOL_WIDTH (GENERAL_SYMBOL_WIDTH)
         ) state_pipeline_2 (
@@ -116,14 +128,52 @@ module arithmetic_encoder #(
             .bool (reg_bool),
             .symbol (reg_symbol),
             // inputs from stage 3
-            .in_range (reg_Range_s3),
-            .in_low (reg_Low_s3),
-            .in_s (reg_S_s3),
+            .in_range (reg_range_ready),
             // former stage 3
             // outputs
-            .out_s (s_out_s3),
-            .out_low (low_out_s3),
-            .out_range (range_out_s3)
+            .u (u_out),
+            .v_bool (v_bool_out),
+            .initial_range (initial_range_out),
+            .out_range (range_ready_out),
+            .out_d (d_out),
+            .bool_symbol (bool_symbol_out),
+            .COMP_mux_1_out (COMP_mux_1_out_s2)
         );
+
+        always @ (posedge general_clk) begin
+            if(reset) begin
+                reg_range_ready = 16'd32768;
+            end
+            else if(ctrl_reg_2_3) begin
+                reg_range_ready = range_ready_out;
+            end
+
+            if(ctrl_reg_2_3) begin
+                reg_u = u_out;
+                reg_v_bool = v_bool_out;
+                reg_initial_range = initial_range_out;
+                reg_d = d_out;
+                reg_bool_symbol = bool_symbol_out;
+                reg_COMP_mux_1_s2 = COMP_mux_1_out_s2;
+            end
+        end
     // ---------------------------------------------------
+    stage_3 #(
+        .RANGE_WIDTH (GENERAL_RANGE_WIDTH),
+        .LOW_WIDTH (GENERAL_LOW_WIDTH),
+        .D_SIZE (GENERAL_D_SIZE)
+        ) stage_pipeline_3 (
+            .in_range (reg_initial_range),
+            .range_ready (reg_range_ready),
+            .d (reg_d),
+            .COMP_mux_1 (reg_COMP_mux_1_s2),
+            .u (reg_u),
+            .v_bool (reg_v_bool),
+            .in_s (reg_S_s3),
+            .in_low (reg_Low_s3),
+            // outputs
+            .out_low (low_out_s3),
+            .out_range (range_out_s3),
+            .out_s (s_out_s3)
+        );
 endmodule
