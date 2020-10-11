@@ -56,32 +56,7 @@ Stage 2:
         
     // ----------------------------------------------------------------------------------------
     // former stage 3
-    // One-round normalization
-        D = LZC(range)
-        
-        out_range[16] = RANGE << D
-        
-        low_1[32] = LOW << D
-        
-        s_internal = in_s + d                    //low_m[16] = low_1[23:8] OR M
-        
-        COMP_mux_2[1] = (s >= 5'd9)
-        
-        MUX_2_s[5] (COMP_MUX_2)
-            1: 5'd1     // reset for S
-            0: s_internal
-                
-        
-        MUX_2_normalization[8] (COMP_mux_2)
-            1: 0000 0000 + low_1[31:24]         // normalization to reduce data
-            0: 1111 1111
-            
-        most_signification_low = low_1[23:16] AND MUX_2
-        
-        out_low = {most_signification_low, low_1[15:0]}
-
-    // ---------------------------------------------------------------------------------------------
-    // New Stage 3
+    //
     // Based on the AV1 reference code
         s_comp = cnt + d
         -----------------------
@@ -111,8 +86,6 @@ Stage 2:
                     (s >= 17)    ?   s_s8    :
                     s_comp;
 
-
-
 -----------------------------------------------   
 -----------------------------------------------
 Leading Zero's counter
@@ -138,7 +111,7 @@ Leading Zero's counter
     // Q
     Q1_1 = G4_1 OR G4_2
     Q2_1 = G3_1 OR (G2_1 AND G3_2)
-    Q3_1 = G3_1 AND G2_2
+    Q3_1 = G2_1 AND G2_2
     Q4_1 = (15 OR 14) OR [G1_1 AND (11 OR 10)]
     Q5_1 = G1_1 AND G1_2
     Q6_1 = !G4_2
@@ -173,4 +146,30 @@ c11,r[11] = c10 + m[7]*p[4] + m[6]*p[5] + m[5]*p[6] + m[4]*p[7]
 c12,r[12] = c11 + m[7]*p[5] + m[6]*p[6] + m[5]*p[7]
 c13,r[13] = c12 + m[7]*p[6] + m[6]*p[7]
 c14,r[14] = c13 + m[7]*p[7]
+
+// -------------------------------------------------
+    // This trial didn't work properly and was later changed back to the AV1 reference algorithm inspired architecture
+    // One-round normalization
+        D = LZC(range)
+        
+        out_range[16] = RANGE << D
+        
+        low_1[32] = LOW << D
+        
+        s_internal = in_s + d                    //low_m[16] = low_1[23:8] OR M
+        
+        COMP_mux_2[1] = (s >= 5'd9)
+        
+        MUX_2_s[5] (COMP_MUX_2)
+            1: 5'd1     // reset for S
+            0: s_internal
+                
+        
+        MUX_2_normalization[8] (COMP_mux_2)
+            1: 0000 0000 + low_1[31:24]         // normalization to reduce data
+            0: 1111 1111
+            
+        most_signification_low = low_1[23:16] AND MUX_2
+        
+        out_low = {most_signification_low, low_1[15:0]}
 
