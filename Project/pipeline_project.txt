@@ -80,6 +80,39 @@ Stage 2:
         
         out_low = {most_signification_low, low_1[15:0]}
 
+    // ---------------------------------------------------------------------------------------------
+    // New Stage 3
+    // Based on the AV1 reference code
+        s_comp = cnt + d
+        -----------------------
+        c_norm_s0 = cnt + 7
+        c_internal_s0 = cnt + 16
+
+        m_s0 = (1 << c_norm_s0) - 1
+
+        s_s0 = c_internal_s0 + d - 24
+        low_s0 = in_low AND m_s0
+        -----------------------
+
+        c_internal_s8 = cnt + 8
+
+        m_s8 = m_s0 >> 8
+
+        low_s8 = low_s0 AND m_s8
+        s_s8 = c_internal_s8 + d - 24
+        -----------------------
+        out_low =   ((s_comp >= 9) && (s < 17) ? low_s0 << d    :
+                    (s >= 17) ? low_s8 << d              :
+                    in_low << d;
+
+        out_range = in_range << d
+
+        out_s =     ((s >= 9) && (s < 17))   ? s_s0  :
+                    (s >= 17)    ?   s_s8    :
+                    s_comp;
+
+
+
 -----------------------------------------------   
 -----------------------------------------------
 Leading Zero's counter

@@ -80,9 +80,8 @@ module stage_2 #(
     // -------------------------------
     // former stage 3
 
-    wire [((LOW_WIDTH+8)-1):0] low_1_s3;
-    wire [((RANGE_WIDTH/2)-1):0] mux_2, most_sig_low;
-    wire [(D_SIZE-1):0] d, s_internal_1, s_internal_2;
+    wire [((LOW_WIDTH+8)-1):0] low_s0, low_s8, m_s8, m_s0;
+    wire [(D_SIZE-1):0] d, c_internal_s0, c_internal_s8, c_norm_s0, s_s0, s_s8, s_comp;
     wire v_lzc;     // this is the bit that shows if lzc is valid or not (I'm not really sure about this)
 
     leading_zero #(
@@ -94,21 +93,29 @@ module stage_2 #(
             .v (v_lzc)
         );
 
-    assign low_1_s3 = low << d;
-    assign s_internal_1 = in_s + d;
-    assign s_internal_2 = ((in_s + 5'd16) + d) - 5'd24;
+    assign s_comp = in_s + d;
+    // ----------------------
+    assign c_norm_s0 = in_s + 7;
+    assign c_internal_s0 = in_s + 16;
+    assign m_s0 = (1 << c_norm_s0) - 1;
 
-    assign mux_2 = ((s_internal_1 >= 5'd9) && (low[LOW_WIDTH-1] == 1'b0)) ? (8'd0 + low_1_s3[((LOW_WIDTH+8)-1):LOW_WIDTH]) :
-                    (s_internal_1 >= 5'd9) ? 8'd0 :
-                    8'd255;
+    assign s_s0 = c_internal_s0 + d - 24;
+    assign low_s0 = low & m_s0;
+    // -----------------------
+    assign c_internal_s8 = in_s + 8;
+    assign m_s8 = m_s0 >> 8;
 
-    assign out_s = (s_internal_1 >= 5'd9) ? s_internal_2 :
-                    s_internal_1;
-
-    assign most_sig_low = low_1_s3[(LOW_WIDTH-1):RANGE_WIDTH] & mux_2;
-
+    assign s_s8 = c_internal_s8 + d - 24;
+    assign low_s8 = low_s0 & m_s8;
     // outputs
-    assign out_low = {most_sig_low, low_1_s3[(RANGE_WIDTH-1):0]};
+    assign out_low = ((s_comp >= 9) && (s_comp < 17)) ? low_s0 << d :
+                        (s_comp >= 17) ? low_s8 << d :
+                        low << d;
+
+    assign out_s = ((s_comp >= 9) && (s_comp < 17)) ? s_s0 :
+                    (s_comp >= 17) ? s_s8 :
+                    s_comp;
+
     assign out_range = range << d;
     //-----------------------------------------
 endmodule
