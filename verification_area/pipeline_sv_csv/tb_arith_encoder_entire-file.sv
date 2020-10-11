@@ -29,7 +29,7 @@ module tb_arith_encoder_entire_file #(
     int temp_norm_in_rng, temp_norm_in_low;
     // ----------------------
     // Verification
-    int counter, verify_range[3], verify_low[3];
+    int counter, verify_range[4], verify_low[4];
     int match_counter_range, miss_counter_range;
     int match_counter_low, miss_counter_low;
     int first_error;
@@ -120,7 +120,7 @@ module tb_arith_encoder_entire_file #(
                     tb_nsyms = temp_nsyms;
                     verify_range[verify_save] = temp_range;
                     verify_low[verify_save] = temp_low;
-                    if(counter > 2) begin
+                    if(counter > 4) begin
                         if(verify_range[verify_read] != tb_range) begin
                             if(RUN_UNTIL_FIRST_MISS == 1) begin
                                 $display("%d-> Range doesn't match with expected. \t%d, got %d\n", counter, verify_range[verify_read], tb_range);
@@ -142,14 +142,14 @@ module tb_arith_encoder_entire_file #(
                             match_counter_low = match_counter_low + 1;
                         end
                     end
-                    if(verify_save >= 2) begin
+                    if(verify_save >= 3) begin
                         verify_save = 0;
                     end
                     else begin
                         verify_save = verify_save + 1;
                     end
 
-                    if(verify_read >= 2) begin
+                    if(verify_read >= 3) begin
                         verify_read = 0;
                     end
                     else begin
