@@ -48,6 +48,7 @@ module arithmetic_encoder #(
     wire [(GENERAL_RANGE_WIDTH-1):0] initial_range_out, range_ready_out;
     wire [GENERAL_RANGE_WIDTH:0] u_out, v_out;
     wire [(GENERAL_D_SIZE-1):0] d_out;
+    wire [GENERAL_RANGE_WIDTH:0] v_bool_out;
     wire [1:0] bool_symbol_out;
     wire COMP_mux_1_out_s2;
     reg [(GENERAL_RANGE_WIDTH-1):0] reg_initial_range, reg_range_ready;
@@ -163,6 +164,7 @@ module arithmetic_encoder #(
         .LOW_WIDTH (GENERAL_LOW_WIDTH),
         .D_SIZE (GENERAL_D_SIZE)
         ) stage_pipeline_3 (
+            .bool_symbol (reg_bool_symbol),
             .in_range (reg_initial_range),
             .range_ready (reg_range_ready),
             .d (reg_d),
