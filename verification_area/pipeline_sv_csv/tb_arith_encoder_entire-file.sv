@@ -104,8 +104,8 @@ module tb_arith_encoder_entire_file #(
             match_counter_range = 0;
             miss_counter_low = 0;
             match_counter_low = 0;
-            verify_read = 1;
-            verify_save = 0;
+            verify_read = 1;            // this variable you point in the arrays verify_range and verify_low the position to compare
+            verify_save = 0;        // this variable will point in the arrays verify_range and verify_low the position to save the next value to compare
             first_error = 0;
             while((!$feof(fd)) && (first_error != 1)) begin
                 status = $fscanf (fd, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;\n", temp_bool, temp_init_range, temp_init_low, temp_fl, temp_fh, temp_symbol, temp_nsyms, temp_norm_in_rng, temp_norm_in_low, temp_range, temp_low);
