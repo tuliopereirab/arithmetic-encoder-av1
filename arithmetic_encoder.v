@@ -148,7 +148,8 @@ module arithmetic_encoder #(
             else if(ctrl_reg_2_3) begin
                 reg_range_ready = range_ready_out;
             end
-
+        end
+        always @ (posedge general_clk) begin        
             if(ctrl_reg_2_3) begin
                 reg_u = u_out;
                 reg_v_bool = v_bool_out;
@@ -158,6 +159,7 @@ module arithmetic_encoder #(
                 reg_COMP_mux_1_s2 = COMP_mux_1_out_s2;
             end
         end
+
     // ---------------------------------------------------
     stage_3 #(
         .RANGE_WIDTH (GENERAL_RANGE_WIDTH),
