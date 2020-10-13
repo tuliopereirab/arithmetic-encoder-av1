@@ -58,7 +58,7 @@ module vedic_16x16 (
 
     // final
     assign r[7:0] = vedic_4_out[7:0];
-    assign r[24:8] = adder_out[15:0];
+    assign r[23:8] = adder_out[15:0];
     assign r[31:24] = vedic_1_out[15:8] + adder_out[19:16];
     //assign r[7] = carry_ripple_3;
 endmodule
