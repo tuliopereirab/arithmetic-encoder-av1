@@ -1,4 +1,4 @@
-module tb_arith_encoder #(
+module tb_arith_encoder_simple #(
     parameter TB_RANGE_WIDTH = 16,
     parameter TB_LOW_WIDTH = 24,
     parameter TB_SYMBOL_WIDTH = 4,
