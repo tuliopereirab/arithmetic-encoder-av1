@@ -5,7 +5,7 @@ module tb_arith_encoder_full #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 1,         // 0- Miss America 150frames 176x144 (Only 100 rows)
+    parameter SELECT_VIDEO = 2,         // 0- Miss America 150frames 176x144 (Only 100 rows)
                                         // 1- Miss America 150frames 176x144 (Entire Video)
                                         // 2- Akiyo 300frames 176x144 (Entire Video)
                                         // 3- Akiyo 300frames 176x144 (Only 100 rows)
@@ -36,7 +36,10 @@ module tb_arith_encoder_full #(
     int verify_read, verify_save;
     int match_counter_range, miss_counter_range;        // variables to keep track of how many matches and misses were detected regarding the range value
     int match_counter_low, miss_counter_low;            // variables to keep track of how many matches and misses were detected regading the low value
-    int first_error;    // With the parameter option RUN_UNTIL_FIRST_MISS activated, this variable will be set to 1 and finishes the testbench as soon as the first miss is found
+    int previous_range_out, previous_low_out;   // these variable are part of the reset detection
+                                                // It is defined a reset when:
+                                                    // 1- Low_input = 0 AND Range_input = 32768
+                                                    // 2- Low_input != Previous_low_output AND Range_input != Previous_range_output
     // ---------------------------------
     // Architecture "conversation" variables
     // Here are declared all variables representing the inputs and outputs of the architecture.
@@ -108,11 +111,10 @@ module tb_arith_encoder_full #(
             miss_counter_range = 0;
             match_counter_range = 0;
         end
-        $display("\t\t-> Resetting verification arrays\n");
+        //$display("\t\t-> Resetting verification arrays\n");
         frame_counter = 0;
         verify_read = 1;
         verify_save = 0;
-        first_error = 0;
         if(start_flag) begin
             $display("\t-> Reading first line of the file\n");
             status = $fscanf (fd, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;\n", temp_bool, temp_init_range, temp_init_low, temp_fl, temp_fh, temp_symbol, temp_nsyms, temp_norm_in_rng, temp_norm_in_low, temp_range, temp_low);
@@ -149,7 +151,6 @@ module tb_arith_encoder_full #(
         end
     endfunction
     function void update_array_pointers;
-        general_counter = general_counter + 1;
         frame_counter = frame_counter + 1;
         if(verify_save >= PIPELINE_STAGES)
             verify_save = 0;
@@ -206,15 +207,21 @@ module tb_arith_encoder_full #(
     endfunction
     function int run_simulation;
         status = $fscanf (fd, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;\n", temp_bool, temp_init_range, temp_init_low, temp_fl, temp_fh, temp_symbol, temp_nsyms, temp_norm_in_rng, temp_norm_in_low, temp_range, temp_low);
+        general_counter = general_counter + 1;
         if(status != 11) begin
             $display("\t-> Problem reading file: %d\n", general_counter);
             statistic(3);
         end
         else begin
-            if((temp_init_low == 0) && (temp_init_range == 32768)) begin
-                $display("\t-> %d: Reset detected...\n", general_counter);
+            if((temp_init_low == 0) && (temp_init_range == 32768) && (temp_init_low != previous_low_out) && (temp_init_range != previous_range_out)) begin
+                reset_counter = reset_counter + 1;
+                $display("\t-> %d: Reset detected -> %d\n", general_counter, reset_counter);
                 return 1;       // found a reset
             end else begin
+                // reset detection: set the previous low and range to be used in the next execution
+                previous_range_out = temp_range;
+                previous_low_out = temp_low;
+                // -----------------------------
                 tb_bool = temp_bool;
                 tb_fl = temp_fl;
                 tb_fh = temp_fh;
@@ -266,19 +273,18 @@ module tb_arith_encoder_full #(
         #12ns;
         $display("\t-> Reset procedure completed\n");
         $display("\t-> Starting simulation loop\n");
-        while((!$feof(fd)) && (first_error != 1)) begin
+        while(!$feof(fd)) begin
             reset_sign_return = run_simulation();
             if(reset_sign_return) begin
-                reset_counter = reset_counter + 1;
-                $display("\t\t-> Finish previous simulation\n");
+                //$display("\t\t-> Finish previous simulation\n");
                 for(i=0; i<2; i = i+1) begin
                     finish_execution();
                     #12ns;
                 end
-                $display("\t\t-> Architecture empty\n");
+                //$display("\t\t-> Architecture empty\n");
                 reset_function(0);      // set the flag to zero avoiding an entire reset
                 #12ns;
-                $display("\t\t-> Setting the reset sign to 0\n");
+                //$display("\t\t-> Setting the reset sign to 0\n");
                 tb_reset <= 1'b0;
             end
             #12ns;
