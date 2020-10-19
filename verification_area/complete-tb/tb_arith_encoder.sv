@@ -5,10 +5,13 @@ module tb_arith_encoder_full #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 1,         // 0- Miss America 150frames 176x144 (Only 100 rows)
+    parameter SELECT_VIDEO = 5,         // 0- Miss America 150frames 176x144 (Only 100 rows)
                                         // 1- Miss America 150frames 176x144 (Entire Video)
                                         // 2- Akiyo 300frames 176x144 (Entire Video)
                                         // 3- Akiyo 300frames 176x144 (Only 100 rows)
+                                        // 4- Bowing 300frames (Entire Video)
+                                        // 5- Carphone 382frames 176x144 (Entire Video)
+                                        // 6- Bus 150frames 352x288 (Entire Video)
     parameter RUN_UNTIL_FIRST_MISS = 1, // With this option in 1, the simulation will stop as soon as it gets the first miss
                                         // It doesn't matter if the miss is with Range or low
                                         // 0- Run until the end of the simulation and count misses and matches
@@ -84,15 +87,27 @@ module tb_arith_encoder_full #(
             end
             1 : begin
                 $display("\t-> Video selected: Miss America 150 frames 176x144 (Entire Video)\n");
-                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/full_data/miss-america_150frames_176x144-entire-video.csv", "r");
+                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/videos/miss-america_150frames_176x144.csv", "r");
             end
             2 : begin
                 $display("\t-> Video selected: Akiyo 300 frames 176x144 (Entire Video)\n");
-                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/full_data/akiyo_300frames_176x144-entire-video.csv", "r");
+                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/videos/akiyo_300frames_176x144.csv", "r");
             end
             3 : begin
                 $display("\t-> Video selected: Akiyo 300 frames 176x144 (Only 100 rows)\n");
                 fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/full_data/akiyo_300frames_176x144_100-rows.csv", "r");
+            end
+            4 : begin
+                $display("\t-> Video selected: Bowing 300frames (Entire Video)\n");
+                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/videos/bowing_300frames.csv", "r");
+            end
+            5 : begin
+                $display("\t-> Video selected: Carphone 382frames 176x144 (Entire Video)\n");
+                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/videos/carphone_382frames_176x144.csv", "r");
+            end
+            6 : begin
+                $display("\t-> Video selected: Bus 150frames 352x288 (Entire Video)\n");
+                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/videos/bus_150frames_352x288.csv", "r");
             end
         endcase
     endfunction

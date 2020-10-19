@@ -86,7 +86,6 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <wire from="(230,340)" to="(250,340)"/>
     <wire from="(470,590)" to="(470,630)"/>
     <wire from="(470,390)" to="(470,430)"/>
-    <wire from="(220,450)" to="(240,450)"/>
     <wire from="(320,480)" to="(330,480)"/>
     <wire from="(210,410)" to="(220,410)"/>
     <wire from="(220,290)" to="(220,410)"/>
@@ -134,6 +133,7 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <wire from="(320,480)" to="(320,630)"/>
     <wire from="(130,560)" to="(170,560)"/>
     <wire from="(210,440)" to="(250,440)"/>
+    <wire from="(210,450)" to="(240,450)"/>
     <wire from="(380,540)" to="(410,540)"/>
     <wire from="(490,410)" to="(520,410)"/>
     <wire from="(630,360)" to="(650,360)"/>
@@ -181,24 +181,17 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="4" loc="(280,390)" name="Register">
       <a name="width" val="4"/>
     </comp>
-    <comp lib="0" loc="(130,510)" name="Pin">
-      <a name="width" val="5"/>
-      <a name="label" val="nsyms"/>
-      <a name="labelloc" val="north"/>
-    </comp>
     <comp lib="4" loc="(280,590)" name="Register">
       <a name="width" val="1"/>
     </comp>
-    <comp lib="0" loc="(130,460)" name="Pin">
-      <a name="width" val="4"/>
-      <a name="label" val="Symbol"/>
-      <a name="labelloc" val="north"/>
+    <comp lib="6" loc="(531,553)" name="Text">
+      <a name="text" val="Low"/>
     </comp>
-    <comp lib="4" loc="(440,440)" name="Register">
+    <comp lib="4" loc="(440,290)" name="Register">
+      <a name="width" val="1"/>
+    </comp>
+    <comp lib="4" loc="(440,590)" name="Register">
       <a name="width" val="16"/>
-    </comp>
-    <comp lib="4" loc="(440,390)" name="Register">
-      <a name="width" val="5"/>
     </comp>
     <comp lib="4" loc="(280,440)" name="Register">
       <a name="width" val="16"/>
@@ -206,14 +199,16 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="4" loc="(280,290)" name="Register">
       <a name="width" val="16"/>
     </comp>
+    <comp lib="4" loc="(280,340)" name="Register">
+      <a name="width" val="16"/>
+    </comp>
     <comp lib="4" loc="(280,540)" name="Register">
       <a name="width" val="1"/>
     </comp>
-    <comp lib="4" loc="(440,340)" name="Register">
-      <a name="width" val="2"/>
-    </comp>
-    <comp lib="4" loc="(280,340)" name="Register">
-      <a name="width" val="16"/>
+    <comp lib="0" loc="(130,460)" name="Pin">
+      <a name="width" val="4"/>
+      <a name="label" val="Symbol"/>
+      <a name="labelloc" val="north"/>
     </comp>
     <comp lib="0" loc="(650,440)" name="Pin">
       <a name="facing" val="west"/>
@@ -221,6 +216,45 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="width" val="16"/>
       <a name="label" val="RANGE"/>
       <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="4" loc="(630,360)" name="Register">
+      <a name="width" val="5"/>
+    </comp>
+    <comp loc="(210,410)" name="stage-1"/>
+    <comp lib="0" loc="(130,560)" name="Pin">
+      <a name="label" val="Bool Flag"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(650,520)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="width" val="24"/>
+      <a name="label" val="LOW"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp loc="(550,430)" name="stage-3"/>
+    <comp lib="4" loc="(440,340)" name="Register">
+      <a name="width" val="2"/>
+    </comp>
+    <comp lib="0" loc="(130,510)" name="Pin">
+      <a name="width" val="5"/>
+      <a name="label" val="nsyms"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="4" loc="(440,490)" name="Register">
+      <a name="width" val="16"/>
+    </comp>
+    <comp loc="(360,410)" name="stage-2"/>
+    <comp lib="4" loc="(440,540)" name="Register">
+      <a name="width" val="16"/>
+    </comp>
+    <comp lib="0" loc="(130,330)" name="Pin">
+      <a name="width" val="16"/>
+      <a name="label" val="FL"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="6" loc="(553,309)" name="Text">
+      <a name="text" val="counter"/>
     </comp>
     <comp lib="4" loc="(630,440)" name="Register">
       <a name="width" val="16"/>
@@ -230,10 +264,10 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="label" val="FH"/>
       <a name="labelloc" val="north"/>
     </comp>
-    <comp lib="6" loc="(531,553)" name="Text">
-      <a name="text" val="Low"/>
+    <comp lib="4" loc="(440,390)" name="Register">
+      <a name="width" val="5"/>
     </comp>
-    <comp lib="4" loc="(440,490)" name="Register">
+    <comp lib="4" loc="(440,440)" name="Register">
       <a name="width" val="16"/>
     </comp>
     <comp lib="4" loc="(280,490)" name="Register">
@@ -242,42 +276,8 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <comp lib="6" loc="(386,623)" name="Text">
       <a name="text" val="range ready"/>
     </comp>
-    <comp loc="(360,410)" name="stage-2"/>
-    <comp loc="(550,430)" name="stage-3"/>
-    <comp lib="4" loc="(440,540)" name="Register">
-      <a name="width" val="16"/>
-    </comp>
-    <comp lib="0" loc="(130,560)" name="Pin">
-      <a name="label" val="Bool Flag"/>
-      <a name="labelloc" val="north"/>
-    </comp>
     <comp lib="4" loc="(630,520)" name="Register">
       <a name="width" val="24"/>
-    </comp>
-    <comp lib="4" loc="(630,360)" name="Register">
-      <a name="width" val="5"/>
-    </comp>
-    <comp lib="6" loc="(553,309)" name="Text">
-      <a name="text" val="counter"/>
-    </comp>
-    <comp lib="0" loc="(650,520)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="width" val="24"/>
-      <a name="label" val="LOW"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="4" loc="(440,590)" name="Register">
-      <a name="width" val="16"/>
-    </comp>
-    <comp loc="(210,410)" name="stage-1"/>
-    <comp lib="0" loc="(130,330)" name="Pin">
-      <a name="width" val="16"/>
-      <a name="label" val="FL"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="4" loc="(440,290)" name="Register">
-      <a name="width" val="1"/>
     </comp>
   </circuit>
   <circuit name="stage-1">
@@ -285,22 +285,9 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <a name="clabel" val="Stage 1"/>
     <a name="clabelup" val="east"/>
     <a name="clabelfont" val="SansSerif plain 12"/>
-    <comp lib="0" loc="(1290,500)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="COMP Mux 1"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(110,340)" name="Pin">
-      <a name="width" val="4"/>
-      <a name="label" val="Symbol"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(1280,110)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
+    <comp lib="0" loc="(110,260)" name="Pin">
       <a name="width" val="16"/>
-      <a name="label" val="LUT U"/>
+      <a name="label" val="FH"/>
       <a name="labelloc" val="north"/>
     </comp>
     <comp lib="0" loc="(1280,340)" name="Pin">
@@ -310,9 +297,24 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="label" val="UU"/>
       <a name="labelloc" val="north"/>
     </comp>
-    <comp lib="0" loc="(110,180)" name="Pin">
+    <comp lib="0" loc="(1280,420)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
       <a name="width" val="16"/>
-      <a name="label" val="FL"/>
+      <a name="label" val="VV"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(1280,110)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="width" val="16"/>
+      <a name="label" val="LUT U"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(1290,550)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="Bool Flag"/>
       <a name="labelloc" val="north"/>
     </comp>
     <comp lib="0" loc="(110,400)" name="Pin">
@@ -320,8 +322,15 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="label" val="Number of symbols (nsyms)"/>
       <a name="labelloc" val="north"/>
     </comp>
-    <comp lib="0" loc="(110,460)" name="Pin">
-      <a name="label" val="Bool Flag"/>
+    <comp lib="0" loc="(1290,500)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="COMP Mux 1"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(110,180)" name="Pin">
+      <a name="width" val="16"/>
+      <a name="label" val="FL"/>
       <a name="labelloc" val="north"/>
     </comp>
     <comp lib="0" loc="(1280,190)" name="Pin">
@@ -338,22 +347,13 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="label" val="Symbol"/>
       <a name="labelloc" val="north"/>
     </comp>
-    <comp lib="0" loc="(1290,550)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
+    <comp lib="0" loc="(110,340)" name="Pin">
+      <a name="width" val="4"/>
+      <a name="label" val="Symbol"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(110,460)" name="Pin">
       <a name="label" val="Bool Flag"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(1280,420)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="width" val="16"/>
-      <a name="label" val="VV"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(110,260)" name="Pin">
-      <a name="width" val="16"/>
-      <a name="label" val="FH"/>
       <a name="labelloc" val="north"/>
     </comp>
   </circuit>
@@ -362,8 +362,11 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <a name="clabel" val="Stage 2"/>
     <a name="clabelup" val="east"/>
     <a name="clabelfont" val="SansSerif plain 12"/>
-    <comp lib="0" loc="(150,470)" name="Pin">
-      <a name="label" val="Comp Mux 1"/>
+    <comp lib="0" loc="(1280,380)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="width" val="5"/>
+      <a name="label" val="D"/>
       <a name="labelloc" val="north"/>
     </comp>
     <comp lib="0" loc="(1280,520)" name="Pin">
@@ -371,10 +374,6 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="output" val="true"/>
       <a name="width" val="16"/>
       <a name="label" val="V Bool"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(150,540)" name="Pin">
-      <a name="label" val="Bool Flag"/>
       <a name="labelloc" val="north"/>
     </comp>
     <comp lib="0" loc="(150,340)" name="Pin">
@@ -389,16 +388,28 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="label" val="U"/>
       <a name="labelloc" val="north"/>
     </comp>
-    <comp lib="0" loc="(150,220)" name="Pin">
-      <a name="width" val="16"/>
-      <a name="label" val="LUT V"/>
-      <a name="labelloc" val="north"/>
-    </comp>
     <comp lib="0" loc="(1280,680)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="width" val="16"/>
       <a name="label" val="Range Ready"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(1280,330)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="width" val="2"/>
+      <a name="label" val="Bool Symbol"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(150,540)" name="Pin">
+      <a name="label" val="Bool Flag"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(1280,280)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="Comp Mux 1"/>
       <a name="labelloc" val="north"/>
     </comp>
     <comp lib="0" loc="(1280,600)" name="Pin">
@@ -413,15 +424,13 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="label" val="Symbol"/>
       <a name="labelloc" val="north"/>
     </comp>
-    <comp lib="0" loc="(1280,280)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
+    <comp lib="0" loc="(150,470)" name="Pin">
       <a name="label" val="Comp Mux 1"/>
       <a name="labelloc" val="north"/>
     </comp>
-    <comp lib="0" loc="(150,410)" name="Pin">
+    <comp lib="0" loc="(150,220)" name="Pin">
       <a name="width" val="16"/>
-      <a name="label" val="VV"/>
+      <a name="label" val="LUT V"/>
       <a name="labelloc" val="north"/>
     </comp>
     <comp lib="0" loc="(160,600)" name="Pin">
@@ -429,23 +438,14 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="label" val="Range"/>
       <a name="labelloc" val="north"/>
     </comp>
+    <comp lib="0" loc="(150,410)" name="Pin">
+      <a name="width" val="16"/>
+      <a name="label" val="VV"/>
+      <a name="labelloc" val="north"/>
+    </comp>
     <comp lib="0" loc="(150,150)" name="Pin">
       <a name="width" val="16"/>
       <a name="label" val="LUT U"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(1280,380)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="width" val="5"/>
-      <a name="label" val="D"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(1280,330)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="width" val="2"/>
-      <a name="label" val="Bool Symbol"/>
       <a name="labelloc" val="north"/>
     </comp>
   </circuit>
@@ -454,18 +454,57 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
     <a name="clabel" val="Stage 3"/>
     <a name="clabelup" val="east"/>
     <a name="clabelfont" val="SansSerif plain 12"/>
-    <comp lib="0" loc="(110,510)" name="Pin">
-      <a name="width" val="16"/>
-      <a name="label" val="Range Ready"/>
-      <a name="labelloc" val="north"/>
-    </comp>
     <comp lib="0" loc="(110,440)" name="Pin">
       <a name="width" val="16"/>
       <a name="label" val="Initial Range"/>
       <a name="labelloc" val="north"/>
     </comp>
+    <comp lib="0" loc="(1050,400)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="width" val="16"/>
+      <a name="label" val="Range"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(110,240)" name="Pin">
+      <a name="width" val="5"/>
+      <a name="label" val="D"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(110,70)" name="Pin">
+      <a name="width" val="5"/>
+      <a name="label" val="CNT"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(110,510)" name="Pin">
+      <a name="width" val="16"/>
+      <a name="label" val="Range Ready"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(1050,330)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="width" val="5"/>
+      <a name="label" val="CNT"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(110,590)" name="Pin">
+      <a name="width" val="24"/>
+      <a name="label" val="Low"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(110,180)" name="Pin">
+      <a name="width" val="2"/>
+      <a name="label" val="Bool Symbol"/>
+      <a name="labelloc" val="north"/>
+    </comp>
     <comp lib="0" loc="(110,130)" name="Pin">
       <a name="label" val="Comp Mux 1"/>
+      <a name="labelloc" val="north"/>
+    </comp>
+    <comp lib="0" loc="(110,300)" name="Pin">
+      <a name="width" val="16"/>
+      <a name="label" val="U"/>
       <a name="labelloc" val="north"/>
     </comp>
     <comp lib="0" loc="(110,370)" name="Pin">
@@ -478,45 +517,6 @@ This file is intended to be loaded by Logisim (http://www.cburch.com/logisim/).
       <a name="output" val="true"/>
       <a name="width" val="24"/>
       <a name="label" val="Low"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(1050,400)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="width" val="16"/>
-      <a name="label" val="Range"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(110,590)" name="Pin">
-      <a name="width" val="24"/>
-      <a name="label" val="Low"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(110,300)" name="Pin">
-      <a name="width" val="16"/>
-      <a name="label" val="U"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(110,70)" name="Pin">
-      <a name="width" val="5"/>
-      <a name="label" val="CNT"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(110,180)" name="Pin">
-      <a name="width" val="2"/>
-      <a name="label" val="Bool Symbol"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(1050,330)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="width" val="5"/>
-      <a name="label" val="CNT"/>
-      <a name="labelloc" val="north"/>
-    </comp>
-    <comp lib="0" loc="(110,240)" name="Pin">
-      <a name="width" val="5"/>
-      <a name="label" val="D"/>
       <a name="labelloc" val="north"/>
     </comp>
   </circuit>
