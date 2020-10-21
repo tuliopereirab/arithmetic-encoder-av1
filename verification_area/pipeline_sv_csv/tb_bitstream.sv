@@ -7,7 +7,7 @@ module tb_bitstream #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 0,         // This parameter selects the video to be simulated according with the following list:
+    parameter SELECT_VIDEO = 2,         // This parameter selects the video to be simulated according with the following list:
                                         // 0- Miss America 150 frames 176x144
                                         // 1- Akiyo 300 frames 176x144
                                         // 2- Carphone 382 frames 176x144
@@ -21,16 +21,18 @@ module tb_bitstream #(
     )();
 
     // File read variables
-    int main_file, bitstream_file;
-    int temp_bit_1, temp_bit_2;
+    int main_file, bitstream_file, done_file;
+    int temp_low_done, temp_cnt_done, temp_offs_done;       // variable filled with the data from the Done file
+    int temp_bit_1, temp_bit_2;                             // variables filled with the data from the bitstream file
     int temp_fl, temp_fh, temp_symbol, temp_nsyms, temp_bool;   // inputs
     int temp_range, temp_low;               // verification variables (final numbers for low and range)
     int temp_init_range, temp_init_low;     // reset variables (verify is these variables are 32768 and 0, respectively)
-    int status_main_file, status_bitstream_file;     // check if the file was correctly read
+    int status_main_file, status_bitstream_file, status_done_file;     // check if the file was correctly read
     // Extra variables that comes from the file
     int temp_norm_in_rng, temp_norm_in_low; // these variables are contained in the file as the input for the normalization function
     // ---------------------------------
     // Verification variables
+    int number_increase_offs, temp_s_done;      // used to set the correct number to check the OFFS value
     int offs_previous, num_offs_greater;     // this variable will count the number of OFFS that are greater that the previous one
     int i, reset_sign_return, video;   // variable use for control
     int frame_counter, general_counter, reset_counter;       // the General counter will be responsible to keep track of the architecture in general while the counter frame will count only the execution while in a frame
@@ -43,6 +45,9 @@ module tb_bitstream #(
     int match_counter_low, miss_counter_low;            // variables to keep track of how many matches and misses were detected regading the low value
     int match_bit_1, miss_bit_1;
     int match_bit_2, miss_bit_2;
+    int match_offs_done, miss_offs_done;
+    int match_cnt_done, miss_cnt_done;
+    int match_low_done, miss_low_done;
     int flag_zero;
     int previous_range_out, previous_low_out;   // these variable are part of the reset detection
                                                 // It is defined a reset when:
@@ -60,6 +65,7 @@ module tb_bitstream #(
     wire [(TB_RANGE_WIDTH-1):0] tb_range, tb_offs;
     wire [(TB_LOW_WIDTH-1):0] tb_low;
     wire [(TB_RANGE_WIDTH-1):0] tb_bit_1, tb_bit_2;
+    wire [(TB_D_SIZE-1):0] tb_cnt;
     wire [1:0] tb_flag_bitstream;
     // ---------------------------------
     // Architecture declaration
@@ -85,7 +91,8 @@ module tb_bitstream #(
             .OUT_BIT_2 (tb_bit_2),
             // outputs
             .RANGE_OUTPUT (tb_range),
-            .LOW_OUTPUT (tb_low)
+            .LOW_OUTPUT (tb_low),
+            .CNT_OUTPUT (tb_cnt)
         );
     // ---------------------------------
 
@@ -97,16 +104,19 @@ module tb_bitstream #(
                 $display("\t-> Video selected: Miss America 150 frames 176x144 (Bitstream testbench)\n");
                 main_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/miss_video_main_data.csv", "r");
                 bitstream_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/miss_video_bitstream.csv", "r");
+                done_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/miss_video_done.csv", "r");
             end
             1 : begin
                 $display("\t-> Video selected: Akiyo 300 frames 176x144 (Bitstream testbench)\n");
                 main_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/akiyo_video_main_data.csv", "r");
                 bitstream_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/akiyo_video_bitstream.csv", "r");
+                done_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/akiyo_video_done.csv", "r");
             end
             2 : begin
                 $display("\t-> Video selected: Carphone 382 frames 176x144 (Bitstream testbench)\n");
                 main_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/carphone_video_main_data.csv", "r");
                 bitstream_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/carphone_video_bitstream.csv", "r");
+                done_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/carphone_video_done.csv", "r");
             end
         endcase
     endfunction
@@ -131,6 +141,12 @@ module tb_bitstream #(
             flag_zero = 0;
             num_offs_greater = 0;
             offs_previous = 99999999;
+            match_offs_done = 0;
+            match_cnt_done = 0;
+            match_low_done = 0;
+            miss_offs_done = 0;
+            miss_cnt_done = 0;
+            miss_low_done = 0;
         end
         //$display("\t\t-> Resetting verification arrays\n");
         frame_counter = 0;
@@ -191,6 +207,48 @@ module tb_bitstream #(
             verify_read = 0;
         else
             verify_read = verify_read + 1;
+    endfunction
+    function void check_with_done_file;
+        status_done_file = $fscanf(done_file, "%d;%d;%d;\n", temp_low_done, temp_cnt_done, temp_offs_done);
+        number_increase_offs = 1;
+        temp_s_done = temp_cnt_done+2;      // (cnt + 10) - 8
+        while(temp_s_done > 0) begin
+            number_increase_offs = number_increase_offs + 1;
+            temp_s_done = temp_s_done - 8;
+        end
+        if(status_done_file != 3) begin
+            $display("\t-> Problem reading the done file\n-> Closing testbench\n");
+            $stop;
+        end
+        if(tb_low != temp_low_done) begin
+            miss_low_done = miss_low_done + 1;
+            if(RUN_UNTIL_FIRST_MISS) begin
+                $display("%d-> Low Done doesn't match with expected. \t%d, got %d\n", general_counter, temp_low_done, tb_low);
+                statistic(1);
+            end
+        end else begin
+            match_low_done = match_low_done + 1;
+        end
+
+        if(tb_cnt != (temp_cnt_done+9)) begin
+            miss_cnt_done = miss_cnt_done + 1;
+            if(RUN_UNTIL_FIRST_MISS) begin
+                $display("%d-> CNT Done doesn't match with expected. \t%d, got %d\n", general_counter, (temp_cnt_done+9), tb_cnt);
+                statistic(1);
+            end
+        end else begin
+            match_cnt_done = match_cnt_done + 1;
+        end
+
+        if(tb_offs != (temp_offs_done-number_increase_offs)) begin
+            miss_offs_done = miss_offs_done + 1;
+            if(RUN_UNTIL_FIRST_MISS) begin
+                $display("%d-> OFFS Done doesn't match with expected. \t%d, got %d\n", general_counter, (temp_offs_done-number_increase_offs), tb_offs);
+                statistic(1);
+            end
+        end else begin
+            match_offs_done = match_offs_done + 1;
+        end
     endfunction
     function void check_bitstream;
         case(tb_flag_bitstream)
@@ -275,6 +333,10 @@ module tb_bitstream #(
         $display("\t-> Flags zero: %d\n\t\t-> Bit 1 matches: %d\n\t\t-> Bit 2 matches: %d\n", flag_zero, match_bit_1, match_bit_2);
         $display("\t\t-> Bit 1 misses: %d\n\t\t-> Bit 2 misses: %d\n", miss_bit_1, miss_bit_2);
         $display("\t-> Number of offs bigger than the previous: %d\n", num_offs_greater);
+        $display("\tDone inputs:\n\t\t-> Offs matches: %d\n\t\t-> Offs misses: %d\n", match_offs_done, miss_offs_done);
+        $display("\t\t\t-> CNT matches: %d\n\t\t\t-> CNT Misses: %d\n", match_cnt_done, miss_cnt_done);
+        $display("\t\t-> Low matches: %d\n\t\t-> Low misses: %d\n", match_low_done, miss_low_done);
+        $display("-------------------\n");
         $timeformat(-9, 7, " s", 32);
         $display("Execution time: %t\n", $time);
         $display("==============\nStatistics completed\n=============\n");
@@ -371,6 +433,7 @@ module tb_bitstream #(
                 if(offs_previous < tb_offs)
                     num_offs_greater = num_offs_greater + 1;
                 offs_previous = tb_offs;
+                check_with_done_file();
                 $display("\t\t-> Low: %d\n\t\t-> Offs: %d\n", tb_low, tb_offs);
                 reset_function(0);      // set the flag to zero avoiding an entire reset
                 #12ns;

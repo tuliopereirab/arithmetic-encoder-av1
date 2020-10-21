@@ -13,6 +13,7 @@ module arithmetic_encoder #(
         input general_bool,
         output wire [(GENERAL_RANGE_WIDTH-1):0] RANGE_OUTPUT, OUT_OFFS,
         output wire [(GENERAL_LOW_WIDTH-1):0] LOW_OUTPUT,
+        output wire [(GENERAL_D_SIZE-1):0] CNT_OUTPUT,
         output wire [(GENERAL_RANGE_WIDTH-1):0] OUT_BIT_1, OUT_BIT_2,
         output wire [1:0] OUT_FLAG_BITSTREAM
     );
@@ -30,6 +31,7 @@ module arithmetic_encoder #(
     assign OUT_BIT_1 = reg_pre_bitstream_1;
     assign OUT_BIT_2 = reg_pre_bitstream_2;
     assign OUT_FLAG_BITSTREAM = reg_flag_bitstream;
+    assign CNT_OUTPUT = reg_S_s3;
 
     // control unit
     wire ctrl_reg_1_2, ctrl_reg_2_3, ctrl_reg_final, ctrl_mux_reset;
