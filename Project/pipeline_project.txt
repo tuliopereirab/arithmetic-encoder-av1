@@ -93,13 +93,17 @@ Stage 2:
         ----------------------
     // Bitstream generation
         c_bit_s0 = cnt + 7
-        c_bit_s8 = c_bit_s0 - 8
+        c_bit_s8 = cnt - 1
+        
+        flag_bitstream = ((s_comp >= 9) && (s_comp < 17)) ? 2'd1 :
+                            (s_comp >= 17) ? 2'd3 :
+                            2'd0;
+        
         
         bitstream_s0 = in_low >> c_bit_s0
         bitstream_s8 = low_s0 >> c_bit_s8
         
-        output_bit_1 = ((s_comp >= 9) && (s < 17)) ? bitstream_s0 :
-                        (s >= 17) ? bitstream_s0 :
+        output_bit_1 = (s_comp >= 9) ? bitstream_s0 :
                         16'd0;
         output_bit_2 = (s_comp >= 17) ? bitstream_s8 :
                         16'd0;
