@@ -4,51 +4,51 @@ Reset:
     Reg_S_Final = 0
 ------------------------------------------------
 Stage 1:
-    Inputs (fl[16], fh[16], symb[4], nsyms[5], LUT[addr:8,data:16, bool[1])     
-    Outputs (UU[16], COMP_mux_1[1], VV[16], LUT_U_OUT[16], LUT_V_OUT[16], out_bool[1], symbol_out[4]) 
+    Inputs (fl[16], fh[16], symb[4], nsyms[5], LUT[addr:8,data:16, bool[1])
+    Outputs (UU[16], COMP_mux_1[1], VV[16], LUT_U_OUT[16], LUT_V_OUT[16], out_bool[1], symbol_out[4])
 
-        UU = (fl >> EC_PROB_SHIFT)    
+        UU = (fl >> EC_PROB_SHIFT)
 
-        VV = (fh >> EC_PROB_SHIFT)       
-        
+        VV = (fh >> EC_PROB_SHIFT)
+
         LUT_U_OUT = LUT[{nsyms-1, symb}]        // [EC_MIN_PROB*((nsyms-1)-(symb-1))]
         LUT_V_OUT = LUT[{nsyms-1, symb}]        // [EC_MIN_PROB*((nsyms-1)-(symb+0))]
 
         out_bool = !bool
         symbol_out = symb
-        
+
         COMP_mux_1 (fl < CDF_PROB_TOP)
 
 ------------------------------------------------
 Stage 2:
     Inputs (UU[16], COMP_mux_1[1], in_range[16], in_low[16], LUT_U[16], LUT_V[16], UU[16], VV[16], in_s[5], bool[1], symbol[4])
     Outputs (out_low[16], out_range[16], out_s[5])
-    
+
         RR = in_range >> 8
-    
+
         u = (RR * UU >> 1) + LUT_U
         v = (RR * VV >> 1) + LUT_V
-        
+
         // -------------------------------
         v_bool = (RR * VV >> 1) + 4
         low_bool = symbol[0] ? (in_low + (in_range - v_bool)) : in_low
         range_bool = symbol[0] ? v_bool : (in_range - v_bool)
         // -------------------------------
-        
+
         LOW_1 = in_low + (in_range - u))
         LOW_2 = in_low
-        
+
         RANGE_1 = u - v
         RANGE_2 = in_range - v
 
         mux_1_range (COMP_mux_1)        -> RANGE_not_bool
             1: RANGE_1
             0: RANGE_2
-            
+
         mux_1_low (COMP_mux_1)          -> LOW_not_bool
             1: LOW_1
-            0: in_low        
-    
+            0: in_low
+
     // final part
         mux_bool_range (bool):
             1: range_bool
@@ -56,7 +56,7 @@ Stage 2:
         mux_bool_low (bool):
             1: low_bool
             0: low_not_bool
-        
+
     // ----------------------------------------------------------------------------------------
     // former stage 3
     //
@@ -88,30 +88,30 @@ Stage 2:
         out_s =     ((s >= 9) && (s < 17))   ? s_s0  :
                     (s >= 17)    ?   s_s8    :
                     s_comp;
-                    
-                    
+
+
         ----------------------
     // Bitstream generation
         c_bit_s0 = cnt + 7
         c_bit_s8 = cnt - 1
-        
+
         flag_bitstream = ((s_comp >= 9) && (s_comp < 17)) ? 2'd1 :
                             (s_comp >= 17) ? 2'd3 :
                             2'd0;
-        
-        
-        bitstream_s0 = in_low >> c_bit_s0
+
+
+        bitstream_s0 = low >> c_bit_s0
         bitstream_s8 = low_s0 >> c_bit_s8
-        
+
         output_bit_1 = (s_comp >= 9) ? bitstream_s0 :
                         16'd0;
         output_bit_2 = (s_comp >= 17) ? bitstream_s8 :
                         16'd0;
-        
+
         output_offs = ((s_comp >= 9) && (s < 17)) ? in_offs + 1 :
                         (s_comp >= 17) ? in_offs + 2 :
                         in_offs;
------------------------------------------------   
+-----------------------------------------------
 -----------------------------------------------
 Leading Zero's counter
 
@@ -119,20 +119,20 @@ Leading Zero's counter
     G3_1 = 15 OR (!14 AND 13)
     G2_1 = !14 AND !12
     G1_1 = !(13 OR 12)
-    
+
     G4_2 = (11 OR 10) OR (9 OR 8)
     G3_2 = 11 OR (!10 AND 9)
     G2_2 = !10 AND !8
     G1_2 = !(9 OR 8)
-    
+
     G4_3 = (7 OR 6) OR (5 OR 4)
     G3_3 = 7 OR (!6 AND 5)
     G2_3 = !6 AND !4
     G1_3 = !(5 OR 4)
-    
+
     G4_4 = (3 OR 2) OR (1 OR 0)
     G3_4 = 3 OR (!2 AND 1)
-    
+
     // Q
     Q1_1 = G4_1 OR G4_2
     Q2_1 = G3_1 OR (G2_1 AND G3_2)
@@ -140,17 +140,17 @@ Leading Zero's counter
     Q4_1 = (15 OR 14) OR [G1_1 AND (11 OR 10)]
     Q5_1 = G1_1 AND G1_2
     Q6_1 = !G4_2
-    
+
     Q1_2 = G4_3 OR G4_4
     Q2_2 = G3_3 OR (G2_3 AND G3_4)
     Q3_2 = (7 OR 6) OR [G1_3 AND (3 OR 2)]
-    
+
     V = !(Q1_1 OR Q1_2)
     Z0 = ![Q2_1 OR (Q3_1 AND Q2_2)]
     Z1 = ![Q4_1 OR (Q5_1 AND Q3_2)]
     Z2 = ![G4_1 OR (Q6_1 AND G4_3)]
     Z3 = !Q1_1
-        
+
 -----------------------------------------------
 8-bit multiplication
 Urdhva-tiryakbyham Vedic Sutra
@@ -176,25 +176,24 @@ c14,r[14] = c13 + m[7]*p[7]
     // This trial didn't work properly and was later changed back to the AV1 reference algorithm inspired architecture
     // One-round normalization
         D = LZC(range)
-        
+
         out_range[16] = RANGE << D
-        
+
         low_1[32] = LOW << D
-        
+
         s_internal = in_s + d                    //low_m[16] = low_1[23:8] OR M
-        
+
         COMP_mux_2[1] = (s >= 5'd9)
-        
+
         MUX_2_s[5] (COMP_MUX_2)
             1: 5'd1     // reset for S
             0: s_internal
-                
-        
+
+
         MUX_2_normalization[8] (COMP_mux_2)
             1: 0000 0000 + low_1[31:24]         // normalization to reduce data
             0: 1111 1111
-            
-        most_signification_low = low_1[23:16] AND MUX_2
-        
-        out_low = {most_signification_low, low_1[15:0]}
 
+        most_signification_low = low_1[23:16] AND MUX_2
+
+        out_low = {most_signification_low, low_1[15:0]}

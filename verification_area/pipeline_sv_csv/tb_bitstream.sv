@@ -5,6 +5,10 @@ module tb_bitstream #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
+    parameter SELECT_VIDEO = 1,         // This parameter selects the video to be simulated according with the following list:
+                                        // 0- Miss America 150 frames 176x144
+                                        // 1- Akiyo 300 frames 176x144
+                                        // 2- Carphone 382 frames 176x144
     parameter RUN_UNTIL_FIRST_MISS = 1, // With this option in 1, the simulation will stop as soon as it gets the first miss
                                         // It doesn't matter if the miss is with Range or low
                                         // 0- Run until the end of the simulation and count misses and matches
@@ -25,7 +29,8 @@ module tb_bitstream #(
     int temp_norm_in_rng, temp_norm_in_low; // these variables are contained in the file as the input for the normalization function
     // ---------------------------------
     // Verification variables
-    int i, reset_sign_return;   // variable use for control
+    int offs_previous, num_offs_greater;     // this variable will count the number of OFFS that are greater that the previous one
+    int i, reset_sign_return, video;   // variable use for control
     int frame_counter, general_counter, reset_counter;       // the General counter will be responsible to keep track of the architecture in general while the counter frame will count only the execution while in a frame
     int verify_range[PIPELINE_STAGES+1], verify_low[PIPELINE_STAGES+1];    // general counter and low/range arrays to verify the value PIPELINE_STAGES later
                                                                                     // As this TB doesn't save all the numbers from the input file and the current input won't result in an imidiate result
@@ -85,9 +90,23 @@ module tb_bitstream #(
     always #6ns tb_clk <= ~tb_clk;      // Here is the Clock (clk) generator
                                         // It is set to execute in a 12ns period
     function void open_file;
-        $display("\t-> Video selected: Miss America 150 frames 176x144 (Bitstream testbench)\n");
-        main_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/bitstream_tb/miss_video_tb_bitstream.csv", "r");
-        bitstream_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/bitstream_tb/bitstream_miss_video.csv", "r");
+        case(SELECT_VIDEO)
+            0 : begin
+                $display("\t-> Video selected: Miss America 150 frames 176x144 (Bitstream testbench)\n");
+                main_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/miss_video_main_data.csv", "r");
+                bitstream_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/miss_video_bitstream.csv", "r");
+            end
+            1 : begin
+                $display("\t-> Video selected: Akiyo 300 frames 176x144 (Bitstream testbench)\n");
+                main_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/akiyo_video_main_data.csv", "r");
+                bitstream_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/akiyo_video_bitstream.csv", "r");
+            end
+            2 : begin
+                $display("\t-> Video selected: Carphone 382 frames 176x144 (Bitstream testbench)\n");
+                main_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/carphone_video_main_data.csv", "r");
+                bitstream_file = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/Bitstream_TB_Data/carphone_video_bitstream.csv", "r");
+            end
+        endcase
     endfunction
     function void reset_function;
         input int start_flag;     // start flag will define if the testbench variable will or won't be resetted
@@ -108,6 +127,8 @@ module tb_bitstream #(
             miss_bit_1 = 0;
             miss_bit_2 = 0;
             flag_zero = 0;
+            num_offs_greater = 0;
+            offs_previous = 99999999;
         end
         //$display("\t\t-> Resetting verification arrays\n");
         frame_counter = 0;
@@ -251,6 +272,7 @@ module tb_bitstream #(
         $display("Bitstream Statistics\n");
         $display("\t-> Flags zero: %d\n\t\t-> Bit 1 matches: %d\n\t\t-> Bit 2 matches: %d\n", flag_zero, match_bit_1, match_bit_2);
         $display("\t\t-> Bit 1 misses: %d\n\t\t-> Bit 2 misses: %d\n", miss_bit_1, miss_bit_2);
+        $display("\t-> Number of offs bigger than the previous: %d\n", num_offs_greater);
         $display("==============\nStatistics completed\n=============\n");
         $fclose(main_file);
         $stop;
@@ -342,6 +364,9 @@ module tb_bitstream #(
                     #12ns;
                 end
                 //$display("\t\t-> Architecture empty\n");
+                if(offs_previous < tb_offs)
+                    num_offs_greater = num_offs_greater + 1;
+                offs_previous = tb_offs;
                 $display("\t\t-> Low: %d\n\t\t-> Offs: %d\n", tb_low, tb_offs);
                 reset_function(0);      // set the flag to zero avoiding an entire reset
                 #12ns;

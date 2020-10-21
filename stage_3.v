@@ -67,7 +67,7 @@ module stage_3 #(
     assign c_bit_s0 = in_s + 5'd7;
     assign c_bit_s8 = in_s - 5'd1;
 
-    assign out_bit_1 = (s_comp >= 9) ? in_low >> c_bit_s0 :                 // Bit_1 will always be saved in the position addr in the buffer
+    assign out_bit_1 = (s_comp >= 9) ? low >> c_bit_s0 :                 // Bit_1 will always be saved in the position addr in the buffer
                         16'd0;
     assign out_bit_2 = (s_comp >= 17) ? low_s0 >> c_bit_s8 :                // Bit_2 will be saved in the position addr+1 in the buffer
                         16'd0;
