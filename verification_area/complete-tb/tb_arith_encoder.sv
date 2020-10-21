@@ -216,6 +216,8 @@ module tb_arith_encoder_full #(
         $display("Range: \n\tMatches: %d\n\tMisses: %d\n", match_counter_range, miss_counter_range);
         $display("-------------------\n");
         $display("Low: \n\tMatches: %d\n\tMisses: %d\n", match_counter_low, miss_counter_low);
+        $timeformat(-9, 7, " s", 32);
+        $display("Execution time: %t\n", $time);
         $display("==============\nStatistics completed\n=============\n");
         $fclose(fd);
         $stop;
