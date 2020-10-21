@@ -88,7 +88,25 @@ Stage 2:
         out_s =     ((s >= 9) && (s < 17))   ? s_s0  :
                     (s >= 17)    ?   s_s8    :
                     s_comp;
-
+                    
+                    
+        ----------------------
+    // Bitstream generation
+        c_bit_s0 = cnt + 7
+        c_bit_s8 = c_bit_s0 - 8
+        
+        bitstream_s0 = in_low >> c_bit_s0
+        bitstream_s8 = low_s0 >> c_bit_s8
+        
+        output_bit_1 = ((s_comp >= 9) && (s < 17)) ? bitstream_s0 :
+                        (s >= 17) ? bitstream_s0 :
+                        16'd0;
+        output_bit_2 = (s_comp >= 17) ? bitstream_s8 :
+                        16'd0;
+        
+        output_offs = ((s_comp >= 9) && (s < 17)) ? in_offs + 1 :
+                        (s_comp >= 17) ? in_offs + 2 :
+                        in_offs;
 -----------------------------------------------   
 -----------------------------------------------
 Leading Zero's counter

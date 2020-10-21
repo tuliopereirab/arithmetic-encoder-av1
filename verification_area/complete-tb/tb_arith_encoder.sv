@@ -5,7 +5,7 @@ module tb_arith_encoder_full #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 5,         // 0- Miss America 150frames 176x144 (Only 100 rows)
+    parameter SELECT_VIDEO = 1,         // 0- Miss America 150frames 176x144 (Only 100 rows)
                                         // 1- Miss America 150frames 176x144 (Entire Video)
                                         // 2- Akiyo 300frames 176x144 (Entire Video)
                                         // 3- Akiyo 300frames 176x144 (Only 100 rows)
@@ -299,6 +299,7 @@ module tb_arith_encoder_full #(
                     #12ns;
                 end
                 //$display("\t\t-> Architecture empty\n");
+                $display("\t\t-> Low: %d\n", tb_low);
                 reset_function(0);      // set the flag to zero avoiding an entire reset
                 #12ns;
                 //$display("\t\t-> Setting the reset sign to 0\n");
