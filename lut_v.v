@@ -11,10 +11,10 @@ module lut_v #(
 
     reg [DATA_WIDTH-1:0] rom[2**ADDR_WIDTH-1:0];
 
-	initial
-	begin
-        $readmemh("lut/lut_v.mem", rom);
-	end
+// 	initial
+// 	begin
+//         $readmemh("lut/lut_v.mem", rom);
+// 	end
 
 	assign q = rom[addr];
 

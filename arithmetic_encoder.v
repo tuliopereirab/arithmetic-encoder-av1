@@ -80,7 +80,7 @@ module arithmetic_encoder #(
     always @ (posedge general_clk) begin
         if(reset) begin
             reg_S_s3 <= 5'd0;
-            reg_Range_s3 = 16'd32768;       // not necessary
+            reg_Range_s3 <= 16'd32768;       // not necessary
             reg_Low_s3 <= 24'd0;
             reg_offs <= 16'd0;
         end
