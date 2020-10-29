@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <time.h>
 
 
 #define EC_PROB_SHIFT 6
@@ -19,6 +20,10 @@ int16_t cnt;
 uint16_t range;
 uint32_t low;
 int offs = 0;
+
+// -------------------
+clock_t total_time = 0;
+// -------------------
 
 uint32_t get_Low();
 uint16_t get_Range();
@@ -46,6 +51,7 @@ int main(){
      FILE *arq_input, *arq_output;
      int temp_range, temp_low;
      int i, status, reset;
+     clock_t begin, end;
      // init
      cnt = -9;
      range = 32768;
@@ -73,12 +79,15 @@ int main(){
                     printf("\nReset Detected!\n");
                     reset = 1;
                }else{
+                    begin = clock();
                     printf("\rLine: %i; Low: expected %"PRIu32 ", got %"PRIu32"; Range: expected %"PRIu16", got %"PRIu16"", i, file_input_low, low, file_input_range, range);
                     if(bool){
                          od_ec_encode_q15(fl, fh, s, nsyms);
                     }else{
                          od_ec_encode_bool_q15(s, fh);
                     }
+                    end = clock();
+                    total_time = total_time + (end - begin);
                     if((file_output_range != range) || (file_output_low != low)){
                          status = 0;
                     }
@@ -100,7 +109,15 @@ int main(){
           printf("Unable to open the input file.\n");
           return 0;
      }
+     begin = clock();
      carry_propagation();
+     end = clock();
+     double total_time_print, carry_propagation_time_print, coding_time_print;
+     coding_time_print = (double)(total_time * 1000 / CLOCKS_PER_SEC);
+     carry_propagation_time_print = (double)((end-begin) * 1000 / CLOCKS_PER_SEC);
+     total_time_print = coding_time_print + carry_propagation_time_print;
+     printf("\t-> Coding time: %.2lf ms\n\t-> Carry Propagation time: %.2lf ms\n\t-> Total System Time: %.2lf ms\n---------------------------------------\n", coding_time_print, carry_propagation_time_print, total_time_print);
+
      return 0;
 }
 
@@ -276,5 +293,6 @@ void carry_propagation(){
           printf("Unable to open the final bitstream file.\n");
           exit(EXIT_FAILURE);
      }
+
 
 }
