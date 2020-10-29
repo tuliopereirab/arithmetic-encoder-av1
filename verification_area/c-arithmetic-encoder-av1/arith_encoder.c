@@ -9,6 +9,7 @@
 #include <time.h>
 
 
+
 #define EC_PROB_SHIFT 6
 #define CDF_SHIFT 0
 #define EC_MIN_PROB 4
@@ -21,9 +22,19 @@ uint16_t range;
 uint32_t low;
 int offs = 0;
 
+int ob_flag;
+
 // -------------------
 clock_t total_time = 0;
 // -------------------
+
+// ob_bitstream
+void write_line_break();
+void ob_reset();
+void write_bits(int bit);
+void put_bit(int bit);
+void renormalization_ob(uint32_t low, uint16_t range);
+// --------------------------------
 
 uint32_t get_Low();
 uint16_t get_Range();
@@ -46,7 +57,21 @@ int16_t get_cnt(){
      return cnt;
 }
 
-int main(){
+int main(int argc, char *argv[]){
+     if(argc <= 0){
+          printf("Config: Not using OB (no argument)\n");
+          ob_flag = 0;
+     }else{
+          if(strcmp(argv[0], "1")){
+               ob_flag = 1;
+               printf("Config: Using OB\n");
+               ob_reset();
+          }else{
+               ob_flag = 0;
+               printf("Config: Not using OB\n");
+          }
+     }
+     printf("=========================\n");
      //printf("\n===================================================\n");
      FILE *arq_input, *arq_output;
      int temp_range, temp_low;
@@ -142,6 +167,8 @@ void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
           r -= ((r >> 8) * (uint32_t)(fh >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s + 0));
      }
 
+     if(ob_flag)
+         renormalization_ob(l, r);
      od_ec_enc_normalize(l, r);
 }
 
@@ -159,6 +186,8 @@ void od_ec_encode_bool_q15(int val, unsigned f) {
     if (val)
         l += r - v;
     r = val ? v : r - v;
+    if(ob_flag)
+         renormalization_ob(l, r);
     od_ec_enc_normalize(l, r);
 }
 
@@ -209,6 +238,8 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
           s = c + d - 24;
           low_norm &= m;
           // enc->offs = offs;
+          // if(ob_flag)
+          //      write_line_break();
      }
      low = low_norm << d;
      range = rng << d;
