@@ -34,6 +34,8 @@ void ob_reset();
 void write_bits(int bit);
 void put_bit(int bit);
 void renormalization_ob(uint32_t low, uint16_t range);
+uint32_t get_Low_ob();
+uint16_t get_Range_ob();
 // --------------------------------
 
 uint32_t get_Low();
@@ -57,12 +59,12 @@ int16_t get_cnt(){
      return cnt;
 }
 
-int main(int argc, char *argv[]){
+int main(int argc, char **argv){
      if(argc <= 0){
           printf("Config: Not using OB (no argument)\n");
           ob_flag = 0;
      }else{
-          if(strcmp(argv[0], "1")){
+          if((strcmp(argv[1], "1")) == 0){
                ob_flag = 1;
                printf("Config: Using OB\n");
                ob_reset();
@@ -84,6 +86,7 @@ int main(int argc, char *argv[]){
      arq_output = fopen("output-files/pre_bitstream.csv", "w+");
      fclose(arq_output);
      // -----
+     double total_time_print, carry_propagation_time_print, coding_time_print;
      unsigned fl, fh;
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
@@ -113,8 +116,10 @@ int main(int argc, char *argv[]){
                     }
                     end = clock();
                     total_time = total_time + (end - begin);
-                    if((file_output_range != range) || (file_output_low != low)){
-                         status = 0;
+                    if(!ob_flag){
+                         if((file_output_range != range) || (file_output_low != low)){
+                              status = 0;
+                         }
                     }
                }
                //printf("Output:\nLow = %" PRIu32 "\tRange = %" PRIu16 "\tCnt = %" PRId16 "\n----------------------\n", low, range, cnt);
@@ -134,12 +139,15 @@ int main(int argc, char *argv[]){
           printf("Unable to open the input file.\n");
           return 0;
      }
-     begin = clock();
-     carry_propagation();
-     end = clock();
-     double total_time_print, carry_propagation_time_print, coding_time_print;
+     if(!ob_flag){
+          begin = clock();
+          carry_propagation();
+          end = clock();
+          carry_propagation_time_print = (double)((end-begin) * 1000 / CLOCKS_PER_SEC);
+     }else{
+          carry_propagation_time_print = 0;
+     }
      coding_time_print = (double)(total_time * 1000 / CLOCKS_PER_SEC);
-     carry_propagation_time_print = (double)((end-begin) * 1000 / CLOCKS_PER_SEC);
      total_time_print = coding_time_print + carry_propagation_time_print;
      printf("\t-> Coding time: %.2lf ms\n\t-> Carry Propagation time: %.2lf ms\n\t-> Total System Time: %.2lf ms\n---------------------------------------\n", coding_time_print, carry_propagation_time_print, total_time_print);
 
@@ -167,9 +175,13 @@ void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
           r -= ((r >> 8) * (uint32_t)(fh >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s + 0));
      }
 
-     if(ob_flag)
+     if(ob_flag){
          renormalization_ob(l, r);
-     od_ec_enc_normalize(l, r);
+         range = get_Range_ob();
+         low = get_Low_ob();
+    }else{
+         od_ec_enc_normalize(l, r);
+    }
 }
 
 void od_ec_encode_bool_q15(int val, unsigned f) {
@@ -186,9 +198,13 @@ void od_ec_encode_bool_q15(int val, unsigned f) {
     if (val)
         l += r - v;
     r = val ? v : r - v;
-    if(ob_flag)
+    if(ob_flag){
          renormalization_ob(l, r);
-    od_ec_enc_normalize(l, r);
+         range = get_Range_ob();
+         low = get_Low_ob();
+    }else{
+         od_ec_enc_normalize(l, r);
+    }
 }
 
 void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {

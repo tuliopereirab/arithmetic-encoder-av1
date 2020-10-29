@@ -10,6 +10,8 @@ void ob_reset();
 void write_bits(int bit);
 void put_bit(int bit);
 void renormalization_ob(uint32_t low, uint16_t range);
+uint32_t get_Low_ob();
+uint16_t get_Range_ob();
 
 
 // arith_encoder
