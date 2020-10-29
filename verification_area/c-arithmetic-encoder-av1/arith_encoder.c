@@ -286,7 +286,7 @@ void carry_propagation(){
 
      if((arq = fopen("output-files/final_bitstream.csv", "w+")) != NULL){
           for(i=0; i<out_size; i++){
-               fprintf(arq, "%u\n", out[i]);
+               fprintf(arq, "%u;\n", out[i]);
           }
           fclose(arq);
      }else{
