@@ -7,7 +7,8 @@
 // ob_bitstream
 void write_line_break();
 void ob_reset();
-void write_bits(int bit);
+void write_bits(int bit, int n_bits);
+int get_OB_value();
 void put_bit(int bit);
 void renormalization_ob(uint32_t low, uint16_t range);
 uint32_t get_Low_ob();

@@ -15,7 +15,7 @@
 #define EC_MIN_PROB 4
 #define CDF_PROB_TOP 32768
 
-#define MAX_INPUTS 2000000000
+#define MAX_INPUTS 20000000000000
 
 int16_t cnt;
 uint16_t range;
@@ -31,7 +31,7 @@ clock_t total_time = 0;
 // ob_bitstream
 void write_line_break();
 void ob_reset();
-void write_bits(int bit);
+void write_bits(int bit, int n_bits);
 void put_bit(int bit);
 void renormalization_ob(uint32_t low, uint16_t range);
 uint32_t get_Low_ob();
@@ -175,13 +175,10 @@ void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
           r -= ((r >> 8) * (uint32_t)(fh >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s + 0));
      }
 
-     if(ob_flag){
-         renormalization_ob(l, r);
-         range = get_Range_ob();
-         low = get_Low_ob();
-    }else{
-         od_ec_enc_normalize(l, r);
-    }
+     if(ob_flag)
+          renormalization_ob(l, r);
+     od_ec_enc_normalize(l, r);
+
 }
 
 void od_ec_encode_bool_q15(int val, unsigned f) {
@@ -198,13 +195,10 @@ void od_ec_encode_bool_q15(int val, unsigned f) {
     if (val)
         l += r - v;
     r = val ? v : r - v;
-    if(ob_flag){
+
+    if(ob_flag)
          renormalization_ob(l, r);
-         range = get_Range_ob();
-         low = get_Low_ob();
-    }else{
-         od_ec_enc_normalize(l, r);
-    }
+    od_ec_enc_normalize(l, r);
 }
 
 void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
