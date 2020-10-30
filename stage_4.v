@@ -1,3 +1,17 @@
+// This is the Carry Propagation stage.
+
+// The main idea behind this architecture is to hold the a bitstream until the next comes
+// By doing that it's possible to ensure that the carry propagation will be done properly
+
+
+// POSSIBLE PROBLEM
+    // This architecture, however, has a problem:
+        // Everytime the architecture receive the following numbers, in the exact order shown below, the output will have an error
+            // 255
+            // 300 (or any number >= 256)
+        // This happens because, usually, it's necessary to add the bits [23:16] from the second number into the first one
+        // Most of the times, only the bit number 16 is on, which means that it's going to happen an overflow and the first output will be misrepresented.
+
 module stage_4 #(
     parameter OUTPUT_DATA_WIDTH = 8,
     parameter INPUT_DATA_WIDTH = 16,
