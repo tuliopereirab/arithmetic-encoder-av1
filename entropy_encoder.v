@@ -14,9 +14,9 @@ module entropy_encoder #(
         input [(TOP_SYMBOL_WIDTH-1):0] top_symbol,
         input [TOP_SYMBOL_WIDTH:0] top_nsyms,
         input top_bool,
-        output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1, OUT_BIT_2, OUT_LAST_BIT,
-        output wire [1:0] OUT_FLAG_BITSTREAM,
-        output wire OUT_FLAG_LAST
+        output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1, OUT_BIT_2, OUT_BIT_3, OUT_LAST_BIT,
+        output wire [2:0] OUT_FLAG_BITSTREAM,
+        output wire OUT_FLAG_LAST, ERROR_INDICATION         // The error indication will only be activated when two bitstream 255 in a row followed by a >255 bitstream;
     );
 
 
@@ -53,18 +53,20 @@ module entropy_encoder #(
 
     // CARRY PROPAGATION OUTPUT CONNECTIONS
     wire [(TOP_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1, out_carry_bitstream_2, out_carry_bitstream_3, out_carry_previous_bitstream, out_carry_standby_bitstream;
-    wire [1:0] out_carry_flag;
-    wire out_carry_flag_last, out_carry_flag_standby;
-    reg reg_flag_last_output, reg_flag_standby;
-    reg [1:0] reg_carry_flag;
+    wire [2:0] out_carry_flag;
+    wire out_carry_flag_last, out_carry_flag_standby, out_carry_flag_possible_error, out_carry_confirmed_error;
+    reg reg_flag_last_output, reg_flag_standby, reg_possible_error, reg_confirmed_error;
+    reg [2:0] reg_carry_flag;
     reg [(TOP_BITSTREAM_WIDTH-1):0] reg_previous_bitstream, reg_out_bitstream_1, reg_out_bitstream_2, reg_out_bitstream_3, reg_standby_bitstream;
 
     // Output assignments
     assign OUT_BIT_1 = reg_out_bitstream_1;
     assign OUT_BIT_2 = reg_out_bitstream_2;
+    assign OUT_BIT_3 = reg_out_bitstream_3;
+    assign ERROR_INDICATION = reg_confirmed_error;
     assign OUT_LAST_BIT = reg_previous_bitstream;
     assign OUT_FLAG_BITSTREAM = reg_carry_flag;
-    assign OUT_FLAG_LAST = reg_out_bitstream_3;
+    assign OUT_FLAG_LAST = reg_flag_last_output;
 
     arithmetic_encoder #(
         .GENERAL_RANGE_WIDTH (TOP_RANGE_WIDTH),
@@ -109,17 +111,20 @@ module entropy_encoder #(
         ) carry_propagation (
             .flag (mux_flag_final),
             .flag_final_bits (reg_final_exec_3_4),
+            .flag_possible_error_in (reg_possible_error),
             .in_new_bitstream_1 (mux_bitstream_1),
             .in_new_bitstream_2 (mux_bitstream_2),
             .in_previous_bitstream (reg_previous_bitstream),
             .in_flag_standby (reg_flag_standby),
             .in_standby_bitstream (reg_standby_bitstream),
             // outputs
+            .flag_possible_error_out (out_carry_flag_possible_error),
+            .confirmed_error (out_carry_confirmed_error),
             .out_bitstream_1 (out_carry_bitstream_1),
             .out_bitstream_2 (out_carry_bitstream_2),
             .out_bitstream_3 (out_carry_bitstream_3),
             .bitstream_hold (out_carry_previous_bitstream),
-            .out_standby_bitstream (out_carry_standby_bitstream)
+            .out_standby_bitstream (out_carry_standby_bitstream),
             .out_flag (out_carry_flag),
             .out_flag_last (out_carry_flag_last)
         );
@@ -138,6 +143,8 @@ module entropy_encoder #(
         reg_flag_last_output <= out_carry_flag_last;
         reg_standby_bitstream <= out_carry_standby_bitstream;
         reg_flag_standby <= out_carry_flag_standby;
+        reg_possible_error <= out_carry_flag_possible_error;
+        reg_confirmed_error <= out_carry_confirmed_error;
     end
 
     always @ (posedge top_clk) begin

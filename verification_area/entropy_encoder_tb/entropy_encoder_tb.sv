@@ -25,7 +25,7 @@ module entropy_encoder_tb #(
     int temp_fl, temp_fh, temp_symbol, temp_nsyms, temp_bool;   // inputs
     int temp_range, temp_low;               // verification variables (final numbers for low and range)
     int temp_init_range, temp_init_low;     // reset variables (verify is these variables are 32768 and 0, respectively)
-    int temp_bitstream_1, temp_bitstream_2, temp_bitstream_3;
+    int temp_bitstream_1, temp_bitstream_2, temp_bitstream_3, temp_bitstream_4;
     int temp_norm_in_rng, temp_norm_in_low;
     int status;     // check if the file was correctly read
     // ---------------------------------
@@ -45,8 +45,9 @@ module entropy_encoder_tb #(
     reg [(TB_RANGE_WIDTH-1):0] tb_fl, tb_fh;
     reg [(TB_SYMBOL_WIDTH-1):0] tb_symbol;
     reg [TB_SYMBOL_WIDTH:0] tb_nsyms;
-    wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_1, tb_out_bit_2, tb_out_last_bit;
-    wire [1:0] tb_out_flag_bitstream;
+    wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_1, tb_out_bit_2, tb_out_last_bit, tb_out_bit_3;
+    wire [2:0] tb_out_flag_bitstream;
+    wire tb_error_detection;
 
     // Architecture declaration
     entropy_encoder #(
@@ -69,9 +70,11 @@ module entropy_encoder_tb #(
             // outputs
             .OUT_BIT_1 (tb_out_bit_1),
             .OUT_BIT_2 (tb_out_bit_2),
+            .OUT_BIT_3 (tb_out_bit_3),
             .OUT_LAST_BIT (tb_out_last_bit),
             .OUT_FLAG_BITSTREAM (tb_out_flag_bitstream),
-            .OUT_FLAG_LAST (tb_out_flag_last)
+            .OUT_FLAG_LAST (tb_out_flag_last),
+            .ERROR_INDICATION (tb_error_detection)
         );
 
     always #6ns tb_clk <= ~tb_clk;      // Here is the Clock (clk) generator
@@ -122,6 +125,7 @@ module entropy_encoder_tb #(
             1 : $display("==============\nSimulation Stopped: mismatch in the main execution\n=============\n");
             2 : $display("==============\nSimulation stopped: problem with finish_execution function\n=============\n");
             3 : $display("==============\nSimulation stopped: problem reading the file\n=============\n");
+            4 : $display("==============\nSimulation stopped: Error detected by the Architecture\n=============");
         endcase
         $display("Statistics:\n");
         $display("Total simulations: %d\n\t-> Bitstream matches: %d\n\t-> Bitstream misses: %d\n\t-> Total resets: %d\n", general_counter, match_bitstream, miss_bitstream, reset_counter);
@@ -248,6 +252,48 @@ module entropy_encoder_tb #(
                         match_bitstream = match_bitstream + 1;
                     end
                 end
+                4 : begin           // 3 bitstreams are going to be tested
+                    status = $fscanf (file_bitstream, "%d;\n%d;\n%d;\n%d;\n", temp_bitstream_1, temp_bitstream_2, temp_bitstream_3, temp_bitstream_4);
+                    if(temp_bitstream_1 != tb_out_bit_1) begin
+                        miss_bitstream = miss_bitstream + 1;
+                        if(RUN_UNTIL_FIRST_MISS) begin
+                            $display("%d -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
+                            statistic(2);
+                        end
+                    end else begin
+                        match_bitstream = match_bitstream + 1;
+                    end
+
+                    if(temp_bitstream_2 != tb_out_bit_2) begin
+                        miss_bitstream = miss_bitstream + 1;
+                        if(RUN_UNTIL_FIRST_MISS) begin
+                            $display("%d - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_2, tb_out_bit_2);
+                            statistic(2);
+                        end
+                    end else begin
+                        match_bitstream = match_bitstream + 1;
+                    end
+
+                    if(temp_bitstream_3 != tb_out_bit_3) begin
+                        miss_bitstream = miss_bitstream + 1;
+                        if(RUN_UNTIL_FIRST_MISS) begin
+                            $display("%d - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_3, tb_out_bit_3);
+                            statistic(2);
+                        end
+                    end else begin
+                        match_bitstream = match_bitstream + 1;
+                    end
+
+                    if(temp_bitstream_4 != tb_out_last_bit) begin
+                        miss_bitstream = miss_bitstream + 1;
+                        if(RUN_UNTIL_FIRST_MISS) begin
+                            $display("%d - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_4, tb_out_last_bit);
+                            statistic(2);
+                        end
+                    end else begin
+                        match_bitstream = match_bitstream + 1;
+                    end
+                end
             endcase
         end
     endfunction
@@ -306,6 +352,9 @@ module entropy_encoder_tb #(
                 while(!tb_out_flag_last) begin
                     if(tb_out_flag_bitstream != 0) begin
                         check_bitstream();
+                        if(tb_error_detection) begin
+                            statistic(4);
+                        end
                     end
                     #12ns;
                 end
@@ -317,6 +366,9 @@ module entropy_encoder_tb #(
             end
             if(tb_out_flag_bitstream != 0) begin
                 check_bitstream();
+            end
+            if(tb_error_detection) begin
+                statistic(4);
             end
             #12ns;
         end
