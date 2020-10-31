@@ -15,14 +15,10 @@ module entropy_encoder #(
         input [TOP_SYMBOL_WIDTH:0] top_nsyms,
         input top_bool,
         output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1, OUT_BIT_2, OUT_LAST_BIT,
-        output wire [1:0] OUT_FLAG_BITSTREAM
+        output wire [1:0] OUT_FLAG_BITSTREAM,
+        output wire OUT_FLAG_LAST
     );
 
-    // Output assignments
-    assign OUT_BIT_1 = reg_out_bitstream_1;
-    assign OUT_BIT_2 = reg_out_bitstream_2;
-    assign OUT_LAST_BIT = reg_previous_bitstream;
-    assign OUT_FLAG_BITSTREAM = reg_carry_flag;
 
     // The 3 following registers will be used to keep the final 1 flag
     reg reg_final_exec_1_2, reg_final_exec_2_3, reg_final_exec_3_4;
@@ -34,13 +30,6 @@ module entropy_encoder #(
 
     reg [1:0] reg_flag_final;
     reg [(TOP_RANGE_WIDTH-1):0] reg_final_bit_1, reg_final_bit_2;
-    always @ (posedge top_clk) begin
-        if(reg_final_exec_2_3) begin
-            reg_flag_final <= out_final_bits_flag;
-            reg_final_bit_1 <= out_final_bits_1;
-            reg_final_bit_2 <= out_final_bits_2;
-        end
-    end
     // ARITHMETIC ENCODER OUTPUT CONNECTIONS
         // ALl arithmetic encoder outputs come from registers
         // Therefore, it isn't necessary to create more registers here
@@ -65,8 +54,17 @@ module entropy_encoder #(
     // CARRY PROPAGATION OUTPUT CONNECTIONS
     wire [(TOP_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1, out_carry_bitstream_2, out_carry_previous_bitstream;
     wire [1:0] out_carry_flag;
+    wire out_carry_flag_last;
+    reg reg_flag_last_output;
     reg [1:0] reg_carry_flag;
     reg [(TOP_BITSTREAM_WIDTH-1):0] reg_previous_bitstream, reg_out_bitstream_1, reg_out_bitstream_2;
+
+    // Output assignments
+    assign OUT_BIT_1 = reg_out_bitstream_1;
+    assign OUT_BIT_2 = reg_out_bitstream_2;
+    assign OUT_LAST_BIT = reg_previous_bitstream;
+    assign OUT_FLAG_BITSTREAM = reg_carry_flag;
+    assign OUT_FLAG_LAST = reg_flag_last_output;
 
     arithmetic_encoder #(
         .GENERAL_RANGE_WIDTH (TOP_RANGE_WIDTH),
@@ -89,7 +87,8 @@ module entropy_encoder #(
             .CNT_OUTPUT (out_arith_cnt),
             .OUT_BIT_1 (out_arith_bitstream_1),
             .OUT_BIT_2 (out_arith_bitstream_2),
-            .OUT_FLAG_BITSTREAM (out_arith_flag)
+            .OUT_FLAG_BITSTREAM (out_arith_flag),
+            .OUT_OFFS (out_arith_offs)
         );
 
     final_bits_generator #(
@@ -116,7 +115,8 @@ module entropy_encoder #(
             .out_bitstream_1 (out_carry_bitstream_1),
             .out_bitstream_2 (out_carry_bitstream_2),
             .bitstream_hold (out_carry_previous_bitstream),
-            .out_flag (out_carry_flag)
+            .out_flag (out_carry_flag),
+            .out_flag_last (out_carry_flag_last)
         );
 
     assign mux_bitstream_1 = (reg_final_exec_3_4) ? reg_final_bit_1 :
@@ -124,12 +124,13 @@ module entropy_encoder #(
     assign mux_bitstream_2 = (reg_final_exec_3_4) ? reg_final_bit_2 :
                             out_arith_bitstream_2;
     assign mux_flag_final = (reg_final_exec_3_4) ? reg_flag_final :
-                            reg_final_exec_3_4;
+                            out_arith_flag;
 
     always @ (posedge top_clk) begin
         reg_carry_flag <= out_carry_flag;
         reg_out_bitstream_1 <= out_carry_bitstream_1;
         reg_out_bitstream_2 <= out_carry_bitstream_2;
+        reg_flag_last_output <= out_carry_flag_last;
     end
 
     always @ (posedge top_clk) begin
@@ -137,6 +138,13 @@ module entropy_encoder #(
             reg_previous_bitstream <= 8'd0;
         end else begin
             reg_previous_bitstream <= out_carry_previous_bitstream;
+        end
+    end
+    always @ (posedge top_clk) begin
+        if(reg_final_exec_2_3) begin
+            reg_flag_final <= out_final_bits_flag;
+            reg_final_bit_1 <= out_final_bits_1;
+            reg_final_bit_2 <= out_final_bits_2;
         end
     end
 
