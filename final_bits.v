@@ -15,19 +15,21 @@ module final_bits_generator #(
 
     assign m = 24'h3FFF;
 
-    assign n = (1 << (in_cnt + 7)) - 1;
+    assign n = (5'd1 << (in_cnt + 5'd7)) - 5'd1;
 
-    assign e_1 = ((in_low + m) & ~m) | (m + 1);
-    assign e_2 = (((in_low + m) & ~m) | (m + 1)) & n;
+    assign e_1 = ((in_low + m) & ~m) | (m + 24'd1);
+    assign e_2 = e_1 & n;
 
-    assign c_1 = in_cnt + 7;
-    assign c_2 = in_cnt - 1;
+    assign c_1 = in_cnt + 5'd7;
+    assign c_2 = in_cnt - 5'd1;
 
-    assign s = in_cnt + 1;
+    assign s = in_cnt + 5'd10;
 
     // outputs
-    assign flag = (s > 18) ? 2'b11 :
-                    2'b01;
+    assign flag =   ((s > 9) && (s <= 17)) ? 2'b01 :
+                    (s > 17) ? 2'b11 :
+                    2'b00;
+
     assign out_bit_1 = e_1 >> c_1;
     assign out_bit_2 = e_2 >> c_2;
 

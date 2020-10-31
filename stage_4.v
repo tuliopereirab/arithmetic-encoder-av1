@@ -14,22 +14,26 @@
 
 module stage_4 #(
     parameter OUTPUT_DATA_WIDTH = 8,
-    parameter INPUT_DATA_WIDTH = 16,
+    parameter INPUT_DATA_WIDTH = 16
     ) (
         input [1:0] flag,             // 01: save only bit_1; 11: save both
+        input flag_final_bits,
         input [(INPUT_DATA_WIDTH-1):0] in_new_bitstream_1, in_new_bitstream_2,          // 1- first (sometimes the only) to be generated, 2- only used when 2 bitstreams are being generated
         input [(OUTPUT_DATA_WIDTH-1):0] in_previous_bitstream,
         output wire [(OUTPUT_DATA_WIDTH-1):0] out_bitstream_1, out_bitstream_2, bitstream_hold,
-        output wire out_flag
+        output wire [1:0] out_flag
     );
-    assign out_flag = flag;
+    assign out_flag =   ((flag_final_bits) && (flag == 2'b00)) ? 2'b01 :            // 1 output
+                        ((flag_final_bits) && (flag == 2'b01)) ? 2'b11 :            // 2 outputs
+                        ((flag_final_bits) && (flag == 2'b11)) ? 2'b10 :            // 3 outputs!
+                        flag;
 
     assign out_bitstream_1 = in_previous_bitstream + in_new_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH];
 
     assign out_bitstream_2 = (flag == 2'b11) ? in_new_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] +  in_new_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH]:
                             8'd0;
 
-    assign bitstream_hold = (flag == 2'b11) ? in_new_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
+    assign bitstream_hold = ((flag == 2'b11) || (flag_final_bits)) ? in_new_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
                             (flag == 2'b10) ? in_new_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                             in_previous_bitstream;
 
