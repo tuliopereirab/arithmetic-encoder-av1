@@ -131,7 +131,7 @@ module stage_4 #(
                                 8'd0;
 
     assign out_bitstream_2 =    ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
-                                ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? in_new_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                                ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? in_new_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 != 16'd255)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? in_previous_bitstream + in_new_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
@@ -145,22 +145,23 @@ module stage_4 #(
                                 8'd0;
 
     assign out_bitstream_3 =    ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? in_new_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
-                                ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? out_3[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                                ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 != 16'd255)) ? out_3[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                                ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 == 16'd255)) ? out_3[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                                ((in_flag_standby) && (flag_final_bits) && (flag == 2'b01)) ? in_new_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                                ((in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? out_3[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                                ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
+                                ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 != 16'd255)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
+                                ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 == 16'd255)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
+                                ((in_flag_standby) && (flag_final_bits) && (flag == 2'b01)) ? in_new_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
+                                ((in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
                                 8'd0;
 
 
-    assign bitstream_hold =     ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? in_new_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
+    assign bitstream_hold =     (flag_first) ? 8'd0 :
+                                ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? in_new_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? in_new_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b00)) ? 8'd0 :
                                 ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 8'd0 :
                                 ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? 8'd0 :
                                 ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 == 16'd255)) ? in_new_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 != 16'd255)) ? in_new_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
-                                ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 == 16'd255)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
+                                ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 == 16'd255)) ? in_new_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 == 16'd255)) ? in_new_bitstream_2[(OUTPUT_DATA_WIDTH-1):0]:
                                 ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? in_new_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? in_new_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
@@ -173,14 +174,15 @@ module stage_4 #(
                                 ((in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? in_new_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
                                 in_previous_bitstream;
 
-    assign out_standby_bitstream =  ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 8'd0 :
+    assign out_standby_bitstream =  (flag_first) ? 8'd0 :
+                                    ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 8'd0 :
                                     ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? 8'd0 :
                                     ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b00)) ? 8'd0 :
                                     ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 8'd0 :
                                     ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? 8'd0 :
                                     ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 == 16'd255)) ? in_previous_bitstream :
                                     ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 != 16'd255)) ? 8'd0 :
-                                    ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 == 16'd255)) ? in_new_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
+                                    ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 == 16'd255)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
                                     ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 == 16'd255)) ? in_new_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                                     ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 8'd0 :
                                     ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? 8'd0 :

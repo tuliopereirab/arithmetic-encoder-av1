@@ -68,6 +68,10 @@ module entropy_encoder #(
     wire [(TOP_RANGE_WIDTH-1):0] out_final_bits_1, out_final_bits_2;
     wire [1:0] out_final_bits_flag;           // follows the same patterns as the other flag
 
+    // The only control required to the TOP ENTITY is the output reg controller
+    // It is required because some trash coming from the Arith_Encoder while the reset is still propagating can cause problems with the bitstream output
+    wire ctrl_carry_reg;
+
     // CARRY PROPAGATION OUTPUT CONNECTIONS
     wire [(TOP_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1, out_carry_bitstream_2, out_carry_bitstream_3, out_carry_previous_bitstream, out_carry_standby_bitstream;
     wire [2:0] out_carry_flag;
@@ -108,6 +112,12 @@ module entropy_encoder #(
             .OUT_BIT_2 (out_arith_bitstream_2),
             .OUT_FLAG_BITSTREAM (out_arith_flag),
             .OUT_OFFS (out_arith_offs)
+        );
+
+    top_control control_top (
+        .clk (top_clk),
+        .reset_ctrl (top_reset),
+        .carry_ctrl (ctrl_carry_reg)
         );
 
     final_bits_generator #(
@@ -156,13 +166,15 @@ module entropy_encoder #(
                             out_arith_flag;
 
     always @ (posedge top_clk) begin
-        reg_out_bitstream_1 <= out_carry_bitstream_1;
-        reg_out_bitstream_2 <= out_carry_bitstream_2;
-        reg_out_bitstream_3 <= out_carry_bitstream_3;
-        reg_flag_last_output <= out_carry_flag_last;
-        reg_standby_bitstream <= out_carry_standby_bitstream;
-        reg_possible_error <= out_carry_flag_possible_error;
-        reg_confirmed_error <= out_carry_confirmed_error;
+        if(ctrl_carry_reg) begin
+            reg_out_bitstream_1 <= out_carry_bitstream_1;
+            reg_out_bitstream_2 <= out_carry_bitstream_2;
+            reg_out_bitstream_3 <= out_carry_bitstream_3;
+            reg_flag_last_output <= out_carry_flag_last;
+            reg_standby_bitstream <= out_carry_standby_bitstream;
+            reg_possible_error <= out_carry_flag_possible_error;
+            reg_confirmed_error <= out_carry_confirmed_error;
+        end
     end
 
     always @ (posedge top_clk) begin
@@ -170,7 +182,7 @@ module entropy_encoder #(
             reg_previous_bitstream <= 8'd0;
             reg_flag_standby <= 1'b0;
             reg_carry_flag <= 3'b000;
-        end else begin
+        end else if(ctrl_carry_reg) begin
             reg_previous_bitstream <= out_carry_previous_bitstream;
             reg_flag_standby <= out_carry_flag_standby;
             reg_carry_flag <= out_carry_flag;

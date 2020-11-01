@@ -6,7 +6,7 @@ module entropy_encoder_tb #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 0,         // 0- Miss America 150frames 176x144 (Entire Video)
+    parameter SELECT_VIDEO = 1,         // 0- Miss America 150frames 176x144 (Entire Video)
                                         // 1- Akiyo 300frames 176x144 (Entire Video)
                                         // 2- Bowing 300frames (Entire Video)                   - Not available
                                         // 3- Carphone 382frames 176x144 (Entire Video)         - Not available
@@ -194,7 +194,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
+                            $display("%d - %d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -206,7 +206,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
+                            $display("%d - %d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -216,7 +216,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_2, tb_out_bit_2);
+                            $display("%d - %d - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_2, tb_out_bit_2);
                             statistic(2);
                         end
                     end else begin
@@ -228,7 +228,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
+                            $display("%d - %d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -238,7 +238,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_2, tb_out_bit_2);
+                            $display("%d - %d - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_2, tb_out_bit_2);
                             statistic(2);
                         end
                     end else begin
@@ -248,7 +248,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_3 != tb_out_bit_3) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_3, tb_out_last_bit);
+                            $display("%d - %d - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_3, tb_out_bit_3);
                             statistic(2);
                         end
                     end else begin
@@ -260,7 +260,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d -> - 1 Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
+                            $display("%d - %d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -270,7 +270,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_2, tb_out_bit_2);
+                            $display("%d - %d - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_2, tb_out_bit_2);
                             statistic(2);
                         end
                     end else begin
@@ -280,7 +280,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_3 != tb_out_bit_3) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_3, tb_out_bit_3);
+                            $display("%d - %d - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_3, tb_out_bit_3);
                             statistic(2);
                         end
                     end else begin
@@ -290,7 +290,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_4 != tb_out_last_bit) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - LAST -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_4, tb_out_last_bit);
+                            $display("%d - %d - LAST -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_4, tb_out_last_bit);
                             statistic(2);
                         end
                     end else begin
