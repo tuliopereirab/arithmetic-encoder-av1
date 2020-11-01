@@ -33,7 +33,7 @@ add wave -noupdate -color {Cornflower Blue} -radix unsigned /entropy_encoder_tb/
 add wave -noupdate -color {Cornflower Blue} -radix unsigned /entropy_encoder_tb/ent_enc/arith_encoder/OUT_BIT_2
 add wave -noupdate -color {Cornflower Blue} -radix unsigned /entropy_encoder_tb/ent_enc/arith_encoder/OUT_FLAG_BITSTREAM
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {511490 ns} 0}
+WaveRestoreCursors {{Cursor 1} {121 ns} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 342
 configure wave -valuecolwidth 192
@@ -49,4 +49,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {511490 ns} {511700 ns}
+WaveRestoreZoom {0 ns} {366 ns}

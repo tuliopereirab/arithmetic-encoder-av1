@@ -40,7 +40,7 @@ module entropy_encoder_tb #(
     // Architecture "conversation" variables
     // Here are declared all variables representing the inputs and outputs of the architecture.
     // Setting the REG variables here will automatically set the architecture's input pins
-    reg tb_clk, tb_reset, tb_input_flag_last, tb_out_flag_last;
+    reg tb_clk, tb_reset, tb_input_flag_last, tb_out_flag_last, tb_flag_first;
     reg tb_bool;
     reg [(TB_RANGE_WIDTH-1):0] tb_fl, tb_fh;
     reg [(TB_SYMBOL_WIDTH-1):0] tb_symbol;
@@ -61,6 +61,7 @@ module entropy_encoder_tb #(
         ) ent_enc (
             .top_clk (tb_clk),
             .top_reset (tb_reset),
+            .top_flag_first (tb_flag_first),
             .top_final_flag (tb_input_flag_last),
             .top_fl (tb_fl),
             .top_fh (tb_fh),
@@ -166,6 +167,7 @@ module entropy_encoder_tb #(
                 tb_symbol = temp_symbol;
                 tb_nsyms = temp_nsyms;
                 tb_input_flag_last = 0;
+                tb_flag_first = 1;
                 tb_reset <= 1'b1;
                 $display("\t\t-> Saving verification arrays\n");
                 $display("\t\t-> Updating pointers' values\n");
@@ -177,6 +179,7 @@ module entropy_encoder_tb #(
             tb_fh = temp_fh;
             tb_symbol = temp_symbol;
             tb_nsyms = temp_nsyms;
+            tb_flag_first = 1;
             tb_reset <= 1'b1;
         end
     endfunction
@@ -191,7 +194,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
+                            $display("%d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -203,7 +206,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
+                            $display("%d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -225,7 +228,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
+                            $display("%d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -242,7 +245,7 @@ module entropy_encoder_tb #(
                         match_bitstream = match_bitstream + 1;
                     end
 
-                    if(temp_bitstream_3 != tb_out_last_bit) begin
+                    if(temp_bitstream_3 != tb_out_bit_3) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
                             $display("%d - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_3, tb_out_last_bit);
@@ -257,7 +260,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
+                            $display("%d -> - 1 Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -287,7 +290,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_4 != tb_out_last_bit) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_4, tb_out_last_bit);
+                            $display("%d - LAST -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, temp_bitstream_4, tb_out_last_bit);
                             statistic(2);
                         end
                     end else begin
@@ -316,6 +319,7 @@ module entropy_encoder_tb #(
                 previous_low_out = temp_low;
                 // -----------------------------
                 tb_input_flag_last = 0;
+                tb_flag_first = 0;
                 tb_bool = temp_bool;
                 tb_fl = temp_fl;
                 tb_fh = temp_fh;
@@ -358,8 +362,16 @@ module entropy_encoder_tb #(
                     end
                     #12ns;
                 end
+                if(tb_out_flag_bitstream != 0) begin            // When it finds the LAST FLAG, there's still one set of bitstream to come out
+                    check_bitstream();                          // This if is able to get this last set of bitstream
+                    if(tb_error_detection) begin                // Analyze it, as always, and more forward to the reset
+                        statistic(4);
+                    end
+                end
+                #12ns;      // It is necessary to give time for the check_bitstream function to properly verify the output
                 //$display("\t\t-> Architecture empty\n");
                 reset_function(0);      // set the flag to zero avoiding an entire reset
+                tb_flag_first_bitstream = 1;        // Tells the TB to don't consider the first bitstream after the reset.
                 #12ns;
                 //$display("\t\t-> Setting the reset sign to 0\n");
                 tb_reset <= 1'b0;

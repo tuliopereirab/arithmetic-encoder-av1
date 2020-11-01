@@ -10,8 +10,8 @@ module final_bits_generator #(
         output wire [1:0] flag,
         output wire [(OUTPUT_BITSTREAM_WIDTH-1):0] out_bit_1, out_bit_2
     );
-    wire [(LOW_WIDTH-1):0] e_1, e_2, m;
-    wire [(D_SIZE-1):0] c_1, c_2, n, s;
+    wire [(LOW_WIDTH-1):0] e_1, e_2, m, n;
+    wire [(D_SIZE-1):0] c_1, c_2, s;
 
     assign m = 24'h3FFF;
 

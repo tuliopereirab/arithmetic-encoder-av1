@@ -9,6 +9,7 @@ module entropy_encoder #(
     )(
         input top_clk,
         input top_reset,
+        input top_flag_first,
         input top_final_flag,           // This flag will be sended in 1 exactly in the next clock cycle after the last input
         input [(TOP_RANGE_WIDTH-1):0] top_fl, top_fh,
         input [(TOP_SYMBOL_WIDTH-1):0] top_symbol,
@@ -19,13 +20,29 @@ module entropy_encoder #(
         output wire OUT_FLAG_LAST, ERROR_INDICATION         // The error indication will only be activated when two bitstream 255 in a row followed by a >255 bitstream;
     );
 
+    // In order to ensure that all the necessary flags in the Carry propagation block will be correctly initiated,
+    // I will propagate a flag called flag_first able to set all flags to zero without requiring any other flag
+    // This is a temporary way to ensure that all flags are correctly defined when the first bitstream comes through
+        // The following lines will just propagate this signal between the blocks
+    reg reg_first_1_2, reg_first_2_3, reg_first_3_4;
+    always @ (posedge top_clk) begin
+        reg_first_1_2 <= top_flag_first;
+        reg_first_2_3 <= reg_first_1_2;
+        reg_first_3_4 <= reg_first_2_3;     // This last register is also the input for the Stage_4
+    end
 
     // The 3 following registers will be used to keep the final 1 flag
     reg reg_final_exec_1_2, reg_final_exec_2_3, reg_final_exec_3_4;
     always @ (posedge top_clk) begin
-        reg_final_exec_1_2 <= top_final_flag;
-        reg_final_exec_2_3 <= reg_final_exec_1_2;
-        reg_final_exec_3_4 <= reg_final_exec_2_3;
+        if(top_reset) begin
+            reg_final_exec_1_2 <= 1'b0;
+            reg_final_exec_2_3 <= 1'b0;
+            reg_final_exec_3_4 <= 1'b0;
+        end else begin
+            reg_final_exec_1_2 <= top_final_flag;
+            reg_final_exec_2_3 <= reg_final_exec_1_2;
+            reg_final_exec_3_4 <= reg_final_exec_2_3;
+        end
     end
 
     reg [1:0] reg_flag_final;
@@ -110,6 +127,7 @@ module entropy_encoder #(
         .INPUT_DATA_WIDTH (TOP_RANGE_WIDTH)
         ) carry_propagation (
             .flag (mux_flag_final),
+            .flag_first (reg_first_3_4),
             .flag_final_bits (reg_final_exec_3_4),
             .flag_possible_error_in (reg_possible_error),
             .in_new_bitstream_1 (mux_bitstream_1),
@@ -126,7 +144,8 @@ module entropy_encoder #(
             .bitstream_hold (out_carry_previous_bitstream),
             .out_standby_bitstream (out_carry_standby_bitstream),
             .out_flag (out_carry_flag),
-            .out_flag_last (out_carry_flag_last)
+            .out_flag_last (out_carry_flag_last),
+            .out_flag_standby (out_carry_flag_standby)
         );
 
     assign mux_bitstream_1 = (reg_final_exec_3_4) ? reg_final_bit_1 :
@@ -137,12 +156,11 @@ module entropy_encoder #(
                             out_arith_flag;
 
     always @ (posedge top_clk) begin
-        reg_carry_flag <= out_carry_flag;
         reg_out_bitstream_1 <= out_carry_bitstream_1;
         reg_out_bitstream_2 <= out_carry_bitstream_2;
+        reg_out_bitstream_3 <= out_carry_bitstream_3;
         reg_flag_last_output <= out_carry_flag_last;
         reg_standby_bitstream <= out_carry_standby_bitstream;
-        reg_flag_standby <= out_carry_flag_standby;
         reg_possible_error <= out_carry_flag_possible_error;
         reg_confirmed_error <= out_carry_confirmed_error;
     end
@@ -150,8 +168,12 @@ module entropy_encoder #(
     always @ (posedge top_clk) begin
         if(top_reset) begin
             reg_previous_bitstream <= 8'd0;
+            reg_flag_standby <= 1'b0;
+            reg_carry_flag <= 3'b000;
         end else begin
             reg_previous_bitstream <= out_carry_previous_bitstream;
+            reg_flag_standby <= out_carry_flag_standby;
+            reg_carry_flag <= out_carry_flag;
         end
     end
     always @ (posedge top_clk) begin

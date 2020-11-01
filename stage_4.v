@@ -32,7 +32,7 @@ module stage_4 #(
     parameter INPUT_DATA_WIDTH = 16
     ) (
         input [1:0] flag,             // 01: save only bit_1; 11: save both
-        input flag_final_bits, in_flag_standby, flag_possible_error_in,
+        input flag_final_bits, in_flag_standby, flag_possible_error_in, flag_first,
         input [(INPUT_DATA_WIDTH-1):0] in_new_bitstream_1, in_new_bitstream_2,          // 1- first (sometimes the only) to be generated, 2- only used when 2 bitstreams are being generated
         input [(OUTPUT_DATA_WIDTH-1):0] in_previous_bitstream, in_standby_bitstream,
         output wire [(OUTPUT_DATA_WIDTH-1):0] out_bitstream_1, out_bitstream_2, out_bitstream_3, bitstream_hold, out_standby_bitstream,
@@ -56,10 +56,12 @@ module stage_4 #(
         // Stand-by flag = 1;
         // in_flag = 11
         // Final flag = 1
-    assign out_flag[2] =    ((in_flag_standby) && (flag_final_bits) && (flag == 2'b11))   ? 1'b1 :
+    assign out_flag[2] =    (flag_first) ? 1'b0 :
+                            ((in_flag_standby) && (flag_final_bits) && (flag == 2'b11))   ? 1'b1 :
                             1'b0;
 
-    assign out_flag[1:0] =  ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 2'b01 :
+    assign out_flag[1:0] =  (flag_first) ? 2'b00 :
+                            ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 2'b01 :
                             ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? 2'b11 :
                             ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b00)) ? 2'b01 :
                             ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 2'b11 :
@@ -78,7 +80,8 @@ module stage_4 #(
                             ((in_flag_standby) && (flag_final_bits) && (flag == 2'b01)) ? 2'b10 :
                             2'b00;
 
-    assign out_flag_standby =   ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 1'b0 :
+    assign out_flag_standby =   (flag_first) ? 1'b0 :       // This is the solution to ensure that Standby output will be zero when the first input reaches this block
+                                ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 1'b0 :
                                 ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? 1'b0 :
                                 ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b00)) ? 1'b0 :
                                 ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 1'b0 :
@@ -96,7 +99,8 @@ module stage_4 #(
                                 ((in_flag_standby) && (flag_final_bits) && (flag == 2'b00)) ? 1'b0 :
                                 ((in_flag_standby) && (flag_final_bits) && (flag == 2'b01)) ? 1'b0 :
                                 ((in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? 1'b0 :
-                                in_flag_standby;
+                                ((!flag_final_bits) && (flag == 2'b00)) ? in_flag_standby :
+                                1'b0;
 
     // Bitstreams
     assign out_3 = in_new_bitstream_1 + in_new_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH];
@@ -140,7 +144,7 @@ module stage_4 #(
                                 ((in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? in_previous_bitstream + out_3[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 8'd0;
 
-    assign out_bitstream_3 =    ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? in_new_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+    assign out_bitstream_3 =    ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? in_new_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? out_3[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 != 16'd255)) ? out_3[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 == 16'd255)) ? out_3[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
