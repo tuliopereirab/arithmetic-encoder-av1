@@ -170,7 +170,7 @@ module auxiliar_carry_propagation #(
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+2) < reg_addr_write)) ? reg_addr_read + 4'd3 :
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+1) < reg_addr_write)) ? reg_addr_read + 4'd2 :
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && (reg_addr_read < reg_addr_write)) ? reg_addr_read + 4'd1 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && (reg_addr_read >= (reg_addr_write-1))) ? 4'd0 :
+                        ((reg_addr_read >= (reg_addr_write-1)) || (flag_final == 2'b11) || (flag_final == 2'b00)) ? 4'd0 :
                         reg_addr_read;
 
     // ===========================================================================
@@ -196,6 +196,7 @@ module auxiliar_carry_propagation #(
     assign out_flag =   ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+2) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b010 :
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+1) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b011 :
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && (reg_addr_read < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b001 :
+                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+3) < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b010 :
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+2) < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b011 :
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+1) < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b001 :
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && (reg_addr_read < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b000 :

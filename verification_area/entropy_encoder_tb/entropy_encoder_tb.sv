@@ -311,7 +311,7 @@ module entropy_encoder_tb #(
         else begin
             if((temp_init_low == 0) && (temp_init_range == 32768) && (temp_init_low != previous_low_out) && (temp_init_range != previous_range_out)) begin
                 reset_counter = reset_counter + 1;
-                $display("\r\t-> %d: Reset detected -> %d\n", general_counter, reset_counter);
+                $display("\t-> %d: Reset detected -> %d\n", general_counter, reset_counter);
                 return 1;       // found a reset
             end else begin
                 // reset detection: set the previous low and range to be used in the next execution

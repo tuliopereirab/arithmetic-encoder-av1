@@ -25,15 +25,27 @@ add wave -noupdate -color {Orange Red} -radix unsigned /entropy_encoder_tb/ent_e
 add wave -noupdate -color {Orange Red} -radix unsigned /entropy_encoder_tb/ent_enc/carry_propagation/in_previous_bitstream
 add wave -noupdate -color {Orange Red} -radix unsigned /entropy_encoder_tb/ent_enc/carry_propagation/in_standby_bitstream
 add wave -noupdate -divider -height 20 {NEW AUXILIAR}
+add wave -noupdate -divider {Inputs Aux}
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_standby_flag
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_flag
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_bitstream_1
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_bitstream_2
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_previous_bitstream
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_standby_bitstream
+add wave -noupdate -divider Inside
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/reg_flag_final
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/reg_addr_write
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/reg_addr_read
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/flag_final
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/flag_start
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/flag_second_time
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/reg_flag_second_time_reading
+add wave -noupdate -divider {Out Auxiliar}
 add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/out_bit_1
 add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/out_bit_2
 add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/out_bit_3
 add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/out_flag
 add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/ctrl_mux_final
-add wave -noupdate -divider Inside
-add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/reg_flag_final
-add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/reg_addr_write
-add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/reg_addr_read
 add wave -noupdate -divider {GENERAL OUTPUTS}
 add wave -noupdate -color Gold -radix unsigned /entropy_encoder_tb/ent_enc/OUT_BIT_1
 add wave -noupdate -color Gold -radix unsigned /entropy_encoder_tb/ent_enc/OUT_BIT_2
@@ -43,8 +55,8 @@ add wave -noupdate -color Gold -radix unsigned /entropy_encoder_tb/ent_enc/OUT_F
 add wave -noupdate -color Gold -radix unsigned /entropy_encoder_tb/ent_enc/OUT_FLAG_LAST
 add wave -noupdate -color Gold -radix unsigned /entropy_encoder_tb/ent_enc/ERROR_INDICATION
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {1026834 ns} 1} {{Cursor 2} {619272 ns} 0}
-quietly wave cursor active 2
+WaveRestoreCursors {{Cursor 1} {9690505 ns} 0} {{Cursor 2} {619362 ns} 1}
+quietly wave cursor active 1
 configure wave -namecolwidth 310
 configure wave -valuecolwidth 83
 configure wave -justifyvalue left
@@ -59,4 +71,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {619187 ns} {619475 ns}
+WaveRestoreZoom {9690502 ns} {9690618 ns}
