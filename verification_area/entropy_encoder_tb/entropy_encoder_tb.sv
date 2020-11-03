@@ -6,7 +6,7 @@ module entropy_encoder_tb #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 0,         // 0- Miss America 150frames 176x144 (Entire Video)
+    parameter SELECT_VIDEO = 1,         // 0- Miss America 150frames 176x144 (Entire Video)
                                         // 1- Akiyo 300frames 176x144 (Entire Video)
                                         // 2- Bowing 300frames (Entire Video)                   - Not available
                                         // 3- Carphone 382frames 176x144 (Entire Video)         - Not available
@@ -311,7 +311,7 @@ module entropy_encoder_tb #(
         else begin
             if((temp_init_low == 0) && (temp_init_range == 32768) && (temp_init_low != previous_low_out) && (temp_init_range != previous_range_out)) begin
                 reset_counter = reset_counter + 1;
-                $display("\t-> %d: Reset detected -> %d\n", general_counter, reset_counter);
+                $display("\r\t-> %d: Reset detected -> %d\n", general_counter, reset_counter);
                 return 1;       // found a reset
             end else begin
                 // reset detection: set the previous low and range to be used in the next execution
