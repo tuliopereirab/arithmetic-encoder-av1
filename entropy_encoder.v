@@ -5,7 +5,8 @@ module entropy_encoder #(
     parameter TOP_LUT_ADDR_WIDTH = 8,
     parameter TOP_LUT_DATA_WIDTH = 16,
     parameter TOP_BITSTREAM_WIDTH = 8,
-    parameter TOP_D_SIZE = 5
+    parameter TOP_D_SIZE = 5,
+    parameter TOP_ADDR_CARRY_WIDTH = 4
     )(
         input top_clk,
         input top_reset,
@@ -158,6 +159,47 @@ module entropy_encoder #(
             .out_flag_standby (out_carry_flag_standby)
         );
 
+    // auxiliar carry propagation
+    wire mux_output_ctrl;
+    wire [(TOP_BITSTREAM_WIDTH-1):0] out_bit_1_aux, out_bit_2_aux, out_bit_3_aux;
+    wire [(TOP_BITSTREAM_WIDTH-1):0] mux_output_bit_1, mux_output_bit_2, mux_output_bit_3;
+    wire [2:0] out_flag_aux, mux_output_flag;
+
+    auxiliar_carry_propagation #(
+        .INPUT_WIDTH (TOP_RANGE_WIDTH),
+        .OUTPUT_WIDTH (TOP_BITSTREAM_WIDTH),
+        .ADDR_WIDTH (TOP_ADDR_CARRY_WIDTH)
+        ) aux_carry_propagation (
+            .clk (top_clk),
+            .reset (top_reset),
+            .flag_first (reg_first_3_4),
+            .in_standby_flag (reg_flag_standby),
+            .ctrl_mux_final (mux_output_ctrl),
+            .in_flag (out_arith_flag),
+            .in_bitstream_1 (out_arith_bitstream_1),
+            .in_bitstream_2 (out_arith_bitstream_2),
+            .in_previous_bitstream (reg_previous_bitstream),
+            .in_standby_bitstream (reg_standby_bitstream),
+            // out
+            .out_bit_1 (out_bit_1_aux),
+            .out_bit_2 (out_bit_2_aux),
+            .out_bit_3 (out_bit_3_aux),
+            .out_flag (out_flag_aux)
+        );
+
+
+    // =============================================================
+
+    assign mux_output_bit_1 =   (mux_output_ctrl) ? out_bit_1_aux :
+                                out_carry_bitstream_1;
+    assign mux_output_bit_2 =   (mux_output_ctrl) ? out_bit_2_aux :
+                                out_carry_bitstream_2;
+    assign mux_output_bit_3 =   (mux_output_ctrl) ? out_bit_3_aux :
+                                out_carry_bitstream_3;
+    assign mux_output_flag =    (mux_output_ctrl) ? out_flag_aux :
+                                out_carry_flag;
+
+
     assign mux_bitstream_1 = (reg_final_exec_3_4) ? reg_final_bit_1 :
                             out_arith_bitstream_1;
     assign mux_bitstream_2 = (reg_final_exec_3_4) ? reg_final_bit_2 :
@@ -167,9 +209,9 @@ module entropy_encoder #(
 
     always @ (posedge top_clk) begin
         if(ctrl_carry_reg) begin
-            reg_out_bitstream_1 <= out_carry_bitstream_1;
-            reg_out_bitstream_2 <= out_carry_bitstream_2;
-            reg_out_bitstream_3 <= out_carry_bitstream_3;
+            reg_out_bitstream_1 <= mux_output_bit_1;
+            reg_out_bitstream_2 <= mux_output_bit_2;
+            reg_out_bitstream_3 <= mux_output_bit_3;
             reg_flag_last_output <= out_carry_flag_last;
             reg_standby_bitstream <= out_carry_standby_bitstream;
             reg_possible_error <= out_carry_flag_possible_error;
@@ -185,7 +227,7 @@ module entropy_encoder #(
         end else if(ctrl_carry_reg) begin
             reg_previous_bitstream <= out_carry_previous_bitstream;
             reg_flag_standby <= out_carry_flag_standby;
-            reg_carry_flag <= out_carry_flag;
+            reg_carry_flag <= mux_output_flag;
         end
     end
     always @ (posedge top_clk) begin
