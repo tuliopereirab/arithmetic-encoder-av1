@@ -6,10 +6,10 @@ module entropy_encoder_tb #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 1,         // 0- Miss America 150frames 176x144 (Entire Video)
+    parameter SELECT_VIDEO = 2,         // 0- Miss America 150frames 176x144 (Entire Video)
                                         // 1- Akiyo 300frames 176x144 (Entire Video)
-                                        // 2- Bowing 300frames (Entire Video)                   - Not available
-                                        // 3- Carphone 382frames 176x144 (Entire Video)         - Not available
+                                        // 2- Bowing 300frames (Entire Video)
+                                        // 3- Carphone 382frames 176x144 (Entire Video)         
                                         // 4- Bus 150frames 352x288 (Entire Video)
     parameter RUN_UNTIL_FIRST_MISS = 1, // With this option in 1, the simulation will stop as soon as it gets the first miss
                                         // It doesn't matter if the miss is with Range or low
@@ -95,17 +95,13 @@ module entropy_encoder_tb #(
             end
             2 : begin
                 $display("\t-> Video selected: Bowing 300frames (Entire Video)\n");
-                $display("\t\t-> Video is currently not available.");
-                $stop;
-                // file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/.csv", "r");
-                // file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/.csv", "r");
+                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/bowing_300frames_main_data.csv", "r");
+                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/bowing_300frames_final_bitstream.csv", "r");
             end
             3 : begin
                 $display("\t-> Video selected: Carphone 382frames 176x144 (Entire Video)\n");
-                $display("\t\t-> Video is currently not available.");
-                $stop;
-                //file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/.csv", "r");
-                //file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/.csv", "r");
+                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/carphone_382frames_176x144_main_data.csv", "r");
+                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/carphone_382frames_176x144_final_bitstream.csv", "r");
             end
             4 : begin
                 $display("\t-> Video selected: Bus 150frames 352x288 (Entire Video)\n");
