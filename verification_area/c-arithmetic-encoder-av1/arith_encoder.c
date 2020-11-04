@@ -120,15 +120,15 @@ int run_simulation(){
           status = 1;
           reset = 0;
           while((i <= MAX_INPUTS) && (status != 0) && (reset != 1)){
+               printf("\rInput # %d, Reset # %d, Range: %d, Low: %d, cnt: %d ", i, reset_counter, range, low, cnt);
                fscanf(arq_input, "%i;%i;%i;%i;%i;%i;%i;%" SCNd16 ";%" SCNd32 ";%" SCNd16 ";%" SCNd32 ";\n",
                          &bool, &temp_range, &temp_low, &fl, &fh, &s, &nsyms, &file_in_norm_range, &file_in_norm_low, &file_output_range, &file_output_low);
-               printf("\rInput # %d, Reset # %d, Range: %d, Low: %d, cnt: %d ", i, reset_counter, range, low, cnt);
                file_input_low = (uint32_t)temp_low;
                file_input_range = (uint16_t)temp_range;
                fflush(stdin);
                //printf("Input %i:\n\t-> FL = %"PRIu16"\n\t-> FH = %"PRIu16"\n\t-> s = %i\n\t-> nsyms = %i\n", i, fl, fh, s, nsyms);
                //printf("\t-> Input Range: %"PRIu16"\n\t-> Input Low: %"PRIu32"\n\t-> In Norm Range: %"PRIu16"\n\t-> In Norm Low: %"PRIu32"\n\t-> Final Range: %"PRIu16"\n\t-> Final Low: %"PRIu32"\n-----------\n", file_input_range, file_input_low, file_in_norm_range, file_in_norm_low, file_output_range, file_output_low);
-               if((i>1) && (temp_low == 0) && (temp_range == 32768)){            // reset detection
+               if((i>1) && (temp_low == 0) && (temp_range == 32768) && (temp_range != range) && (temp_low != low)){            // reset detection
                     reset_counter++;
                     begin = clock();
                     carry_propagation();
@@ -139,12 +139,11 @@ int run_simulation(){
                          reset = 1;
                }
                begin = clock();
-               //printf("\rLine: %i; Low: expected %"PRIu32 ", got %"PRIu32"; Range: expected %"PRIu16", got %"PRIu16"", i, file_input_low, low, file_input_range, range);
-               if(bool){
+               if(bool)
                     od_ec_encode_q15(fl, fh, s, nsyms);
-               }else{
+               else
                     od_ec_encode_bool_q15(s, fh);
-               }
+
                end = clock();
                total_time = total_time + (end - begin);
 
