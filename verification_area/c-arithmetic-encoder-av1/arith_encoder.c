@@ -22,7 +22,7 @@ uint16_t range;
 uint32_t low;
 int offs = 0;
 int stop_after_reset_flag;
-int reset_counter;
+int reset_counter, bitstream_counter;
 
 
 // -------------------
@@ -57,6 +57,7 @@ int16_t get_cnt(){
 
 void setup(){
      FILE *arq;
+     bitstream_counter = 0;
      reset_function();
      arq = fopen("output-files/final_bitstream.csv", "w+");
      fclose(arq);
@@ -115,12 +116,12 @@ int run_simulation(){
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
      int s, nsyms, bool;
-     if((arq_input = fopen("input-files/entire_videos/carphone_382frames_176x144_main_data.csv", "r")) != NULL){
+     if((arq_input = fopen("/media/tulio/HD/simulation_data_bitstream/Bosphorus_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r")) != NULL){
           i = 0;
           status = 1;
           reset = 0;
           while((i <= MAX_INPUTS) && (status != 0) && (reset != 1)){
-               printf("\rInput # %d, Reset # %d, Range: %d, Low: %d, cnt: %d ", i, reset_counter, range, low, cnt);
+               printf("\rInput # %d, Reset # %d, Bitstream # %d, Range: %d, Low: %d, cnt: %d ", i, reset_counter, bitstream_counter, range, low, cnt);
                fscanf(arq_input, "%i;%i;%i;%i;%i;%i;%i;%" SCNd16 ";%" SCNd32 ";%" SCNd16 ";%" SCNd32 ";\n",
                          &bool, &temp_range, &temp_low, &fl, &fh, &s, &nsyms, &file_in_norm_range, &file_in_norm_low, &file_output_range, &file_output_low);
                file_input_low = (uint32_t)temp_low;
@@ -131,7 +132,7 @@ int run_simulation(){
                if((i>1) && (temp_low == 0) && (temp_range == 32768) && (temp_range != range) && (temp_low != low)){            // reset detection
                     reset_counter++;
                     begin = clock();
-                    carry_propagation();
+                    //carry_propagation();
                     end = clock();
                     reset_function();
                     total_time_carry = total_time_carry + (end-begin);
@@ -231,6 +232,7 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
                // buf[offs++] = (uint16_t)(low >> c);
                offs++;
                add_bitstream_file((uint16_t)(low_norm >> c));
+               bitstream_counter++;
                low_norm &= m;
                c -= 8;
                m >>= 8;
@@ -239,6 +241,7 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
           // buf[offs++] = (uint16_t)(low >> c);
           offs++;
           add_bitstream_file((uint16_t)(low_norm >> c));
+          bitstream_counter++;
           s = c + d - 24;
           low_norm &= m;
      }
@@ -315,13 +318,13 @@ void carry_propagation(){
           c >>= 8;
      }
 
-     if((arq = fopen("output-files/final_bitstream.csv", "a")) != NULL){
-          for(i=0; i<out_size; i++){
-               fprintf(arq, "%u;\n", out[i]);
-          }
-          fclose(arq);
-     }else{
-          printf("Unable to open the final bitstream file.\n");
-          exit(EXIT_FAILURE);
-     }
+     // if((arq = fopen("output-files/final_bitstream.csv", "a")) != NULL){
+     //      for(i=0; i<out_size; i++){
+     //           fprintf(arq, "%u;\n", out[i]);
+     //      }
+     //      fclose(arq);
+     // }else{
+     //      printf("Unable to open the final bitstream file.\n");
+     //      exit(EXIT_FAILURE);
+     // }
 }
