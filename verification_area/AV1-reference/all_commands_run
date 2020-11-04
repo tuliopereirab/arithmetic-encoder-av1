@@ -1,0 +1,35 @@
+sudo cmake aom/ -DAOM_TARGET_CPU=generic -DCMAKE_C_FLAGS="-O3 -pg" -DCMAKE_CXX_FLAGS="-O3 -pg" 
+&& sudo make 
+&& sudo ./aomenc -v --threads=1 --good --cpu-used=4 --width=176 --height=144 -o ../videos-test-av1/created/test_6.ivf ../videos-test-av1/miss-america_150frames_176x144.yuv
+&& sync
+&& mv arith_analysis/main_data.csv ../../../../media/tulio/HD/simulation_data_bitstream/miss-america_150frames_176x144_main_data.csv
+&& sync
+&& mv arith_analysis/complete_final_bitstream.csv ../../../../media/tulio/HD/simulation_data_bitstream/miss-america_150frames_176x144_final_bitstream.csv
+&& sync
+
+&& sudo ./aomenc -v --threads=1 --good --cpu-used=4 --width=176 --height=144 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/akiyo_300frames_176x144.yuv
+&& sync
+&& mv arith_analysis/main_data.csv ../../../../media/tulio/HD/simulation_data_bitstream/akiyo_300frames_176x144_main_data.csv
+&& sync
+&& mv arith_analysis/complete_final_bitstream.csv ../../../../media/tulio/HD/simulation_data_bitstream/akiyo_300frames_176x144_final_bitstream.csv
+
+&& sudo ./aomenc -v --threads=1 --good --cpu-used=4 --width=352 --height=288 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/bus_150frames_352x288.y4m
+&& sync
+&& mv arith_analysis/main_data.csv ../../../../media/tulio/HD/simulation_data_bitstream/bus_150frames_352x288_main_data.csv
+&& sync
+&& mv arith_analysis/complete_final_bitstream.csv ../../../../media/tulio/HD/simulation_data_bitstream/bus_150frames_352x288_final_bitstream.csv
+
+&& sudo ./aomenc -v --threads=1 --good --cpu-used=4 --width=176 --height=144 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/bowing_300frames.y4m
+&& sync
+&& mv arith_analysis/main_data.csv ../../../../media/tulio/HD/simulation_data_bitstream/bowing_300frames_main_data.csv
+&& sync
+&& mv arith_analysis/complete_final_bitstream.csv ../../../../media/tulio/HD/simulation_data_bitstream/bowing_300frames_final_bitstream.csv
+
+&& sudo ./aomenc -v --threads=1 --good --cpu-used=4 --width=176 --height=144 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/carphone_382frames_176x144.yuv
+&& sync
+&& mv arith_analysis/main_data.csv ../../../../media/tulio/HD/simulation_data_bitstream/carphone_382frames_176x144_main_data.csv
+&& sync
+&& mv arith_analysis/complete_final_bitstream.csv ../../../../media/tulio/HD/simulation_data_bitstream/carphone_382frames_176x144_final_bitstream.csv
+
+&& sync
+

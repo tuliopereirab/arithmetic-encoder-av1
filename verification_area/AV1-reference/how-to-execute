@@ -1,0 +1,69 @@
+# execute the following commands from the folder Desktop/av1-test
+
+sudo cmake aom/ -DAOM_TARGET_CPU=generic -DCMAKE_C_FLAGS="-03 -pg" -DCMAKE_CXX_FLAGS="-03 -pg"
+sudo make
+sudo ./aomenc -v --good --cpu-used=8 --width=3 --height=4 -o ../videos-test-av1/test.ivf ../videos-test-av1/akiyo_qcif.yuv
+
+
+
+sudo cmake aom/ -DAOM_TARGET_CPU=generic -DCMAKE_C_FLAGS="-O3 -pg" -DCMAKE_CXX_FLAGS="-O3 -pg" && sudo make && sudo ./aomenc -v --good --cpu-used=8 --width=176 --height=144 -o ../videos-test-av1/created/test_4.ivf ../videos-test-av1/akiyo_300frames_176x144.yuv
+
+-------------------------------------------
+
+sudo cmake aom/ -DAOM_TARGET_CPU=generic -DCMAKE_C_FLAGS="-O3 -pg" -DCMAKE_CXX_FLAGS="-O3 -pg" && sudo make && sudo ./aomenc -v --threads=4 --good --cpu-used=8 --width=352 --height=288 -o ../videos-test-av1/created/test_3.ivf ../videos-test-av1/stefan_90frames_352x288.yuv
+
+-------------------------------------------
+
+
+// compile & execute miss-america_150frames_176x144.yuv
+
+sudo cmake aom/ -DAOM_TARGET_CPU=generic -DCMAKE_C_FLAGS="-O3 -pg" -DCMAKE_CXX_FLAGS="-O3 -pg" && sudo make && sudo ./aomenc -v --threads=1 --good --cpu-used=4 --width=176 --height=144 -o ../videos-test-av1/created/test_6.ivf ../videos-test-av1/miss-america_150frames_176x144.yuv
+
+// --------------------------
+// Just Execute miss-america_150frames_176x144.yuv
+// output file name: miss-america_150frames_176x144.csv
+
+sudo ./aomenc -v --threads=1 --good --cpu-used=8 --width=176 --height=144 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/miss-america_150frames_176x144.yuv
+
+// --------------------------
+// Just Execute akiyo_300frames_176x144
+// output file name: akiyo_300frames_176x144.csv
+
+sudo ./aomenc -v --threads=1 --good --cpu-used=8 --width=176 --height=144 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/akiyo_300frames_176x144.yuv
+&& sync && mv arith_analysis/main_data.csv arith_analysis/akiyo_300frames_176x144.csv
+
+// --------------------------
+// Just Execute bus_150frames_352x288.y4m
+// output file name: bus_150frames_352x288.csv
+
+sudo ./aomenc -v --threads=1 --good --cpu-used=8 --width=352 --height=288 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/bus_150frames_352x288.y4m && sync && mv arith_analysis/main_data.csv arith_analysis/bus_150frames_352x288.csv
+
+// --------------------------
+// Just Execute bowing_300frames.y4m
+// output file name: bowing_300frames.csv
+
+sudo ./aomenc -v --threads=1 --good --cpu-used=8 --width=176 --height=144 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/bowing_300frames.y4m
+
+// --------------------------
+// Just Execute carphone_382frames_176x144.yuv
+// output file name: carphone_382frames_176x144.csv
+
+sudo ./aomenc -v --threads=1 --good --cpu-used=8 --width=176 --height=144 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/carphone_382frames_176x144.yuv
+
+-------------------------------------------
+
+// ======================================
+// Running all
+
+sudo ./aomenc -v --threads=1 --good --cpu-used=8 --width=352 --height=288 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/bus_150frames_352x288.y4m && sync && mv arith_analysis/main_data.csv arith_analysis/bus_150frames_352x288.csv && sync && sudo ./aomenc -v --threads=1 --good --cpu-used=8 --width=176 --height=144 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/bowing_300frames.y4m && sync && mv arith_analysis/main_data.csv arith_analysis/bowing_300frames.csv && sync && sudo ./aomenc -v --threads=1 --good --cpu-used=8 --width=176 --height=144 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/carphone_382frames_176x144.yuv && sync && mv arith_analysis/main_data.csv arith_analysis/carphone_382frames_176x144.csv
+
+
+// =======================================
+// Running all the videos and saving into the HD
+
+sudo cmake aom/ -DAOM_TARGET_CPU=generic -DCMAKE_C_FLAGS="-O3 -pg" -DCMAKE_CXX_FLAGS="-O3 -pg" && sudo make && sudo ./aomenc -v --threads=1 --good --cpu-used=4 --width=176 --height=144 -o ../videos-test-av1/created/test_6.ivf ../videos-test-av1/miss-america_150frames_176x144.yuv && sync && mv arith_analysis/main_data.csv ../../../../media/tulio/HD/Bitstream_TB_Data/miss_video_main_data.csv && mv arith_analysis/pre_bitstream.csv ../../../../media/tulio/HD/Bitstream_TB_Data/miss_video_bitstream.csv && sync && mv arith_analysis/done_function/done.csv ../../../../media/tulio/HD/Bitstream_TB_Data/miss_video_done.csv && sync && sudo ./aomenc -v --threads=1 --good --cpu-used=4 --width=176 --height=144 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/akiyo_300frames_176x144.yuv && sync && mv arith_analysis/main_data.csv ../../../../media/tulio/HD/Bitstream_TB_Data/akiyo_video_main_data.csv && mv arith_analysis/pre_bitstream.csv ../../../../media/tulio/HD/Bitstream_TB_Data/akiyo_video_bitstream.csv && sync && mv arith_analysis/done_function/done.csv ../../../../media/tulio/HD/Bitstream_TB_Data/akiyo_video_done.csv && sync && sudo ./aomenc -v --threads=1 --good --cpu-used=4 --width=176 --height=144 -o ../videos-test-av1/created/test_5.ivf ../videos-test-av1/carphone_382frames_176x144.yuv && sync && mv arith_analysis/main_data.csv ../../../../media/tulio/HD/Bitstream_TB_Data/carphone_video_main_data.csv && mv arith_analysis/pre_bitstream.csv ../../../../media/tulio/HD/Bitstream_TB_Data/carphone_video_bitstream.csv && sync && mv arith_analysis/done_function/done.csv ../../../../media/tulio/HD/Bitstream_TB_Data/carphone_video_done.csv && sync && sync
+
+// =========================================
+// Running Miss and saving into the HD
+
+sudo cmake aom/ -DAOM_TARGET_CPU=generic -DCMAKE_C_FLAGS="-O3 -pg" -DCMAKE_CXX_FLAGS="-O3 -pg" && sudo make && sudo ./aomenc -v --threads=1 --good --cpu-used=4 --width=176 --height=144 -o ../videos-test-av1/created/test_6.ivf ../videos-test-av1/miss-america_150frames_176x144.yuv && sync && mv arith_analysis/done.csv ../../../../media/tulio/HD/Carry_TB/miss_video_done.csv && sync && mv arith_analysis/pre_bitstream.csv ../../../../media/tulio/HD/Carry_TB/miss_video_pre_bitstream.csv && sync && mv arith_analysis/main_data.csv ../../../../media/tulio/HD/Carry_TB/miss_video_main_data.csv && sync && mv arith_analysis/final_bitstream.csv ../../../../media/tulio/HD/Carry_TB/miss_video_final_bitstream_first_reset.csv && sync && mv arith_analysis/complete_final_bitstream.csv ../../../../media/tulio/HD/Carry_TB/miss_video_final_bitstream_complete.csv
