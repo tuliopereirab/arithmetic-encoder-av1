@@ -79,14 +79,18 @@ module entropy_encoder #(
     wire out_carry_flag_last, out_carry_flag_standby, out_carry_flag_possible_error, out_carry_confirmed_error;
     reg reg_flag_last_output, reg_flag_standby, reg_possible_error, reg_confirmed_error;
     reg [2:0] reg_carry_flag;
-    reg [(TOP_BITSTREAM_WIDTH-1):0] reg_previous_bitstream, reg_out_bitstream_1, reg_out_bitstream_2, reg_out_bitstream_3, reg_standby_bitstream;
+    reg [(TOP_BITSTREAM_WIDTH-1):0] reg_previous_bitstream, reg_out_bitstream_1, reg_out_bitstream_2, reg_out_bitstream_3, reg_standby_bitstream, alternative_last_bit;
+
+    // Auxiliar Control to use the last bit output differently
+    wire ctrl_mux_use_last_bit;
 
     // Output assignments
     assign OUT_BIT_1 = reg_out_bitstream_1;
     assign OUT_BIT_2 = reg_out_bitstream_2;
     assign OUT_BIT_3 = reg_out_bitstream_3;
     assign ERROR_INDICATION = reg_confirmed_error;
-    assign OUT_LAST_BIT = reg_previous_bitstream;
+    assign OUT_LAST_BIT =   (ctrl_mux_use_last_bit) ? alternative_last_bit :
+                            reg_previous_bitstream;
     assign OUT_FLAG_BITSTREAM = reg_carry_flag;
     assign OUT_FLAG_LAST = reg_flag_last_output;
 
@@ -184,7 +188,8 @@ module entropy_encoder #(
             .out_bit_1 (out_bit_1_aux),
             .out_bit_2 (out_bit_2_aux),
             .out_bit_3 (out_bit_3_aux),
-            .out_flag (out_flag_aux)
+            .out_flag (out_flag_aux),
+            .ctrl_mux_last_bit (ctrl_mux_use_last_bit)
         );
 
 
@@ -209,6 +214,7 @@ module entropy_encoder #(
 
     always @ (posedge top_clk) begin
         if(ctrl_carry_reg) begin
+            alternative_last_bit <= out_carry_bitstream_1;
             reg_out_bitstream_1 <= mux_output_bit_1;
             reg_out_bitstream_2 <= mux_output_bit_2;
             reg_out_bitstream_3 <= mux_output_bit_3;
