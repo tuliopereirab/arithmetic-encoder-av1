@@ -253,9 +253,11 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
 
 void add_bitstream_file(uint16_t bitstream){
     FILE *arq;
+    if(bitstream >= 256)
+          printf("\nCarry!\n");
     if((arq = fopen("output-files/pre_bitstream.csv", "a+")) != NULL){
         //printf("\nAdding bitstream: %" PRIu16 "\n", bitstream);
-        fprintf(arq, "%" PRIu16 "\n", bitstream);
+        fprintf(arq, "%" PRIu16 ";\n", bitstream);
         fclose(arq);
     }else
         printf("Unable to open the bitstream file\n");
@@ -281,7 +283,7 @@ void carry_propagation(){
                do{
                     temp_bitstream = (uint16_t)(e >> (c + 16));
                     offs++;
-                    fprintf(arq, "%" PRIu16 "\n", temp_bitstream);
+                    fprintf(arq, "%" PRIu16 ";\n", temp_bitstream);
                     e &= n;
                     s -= 8;
                     c -= 8;
