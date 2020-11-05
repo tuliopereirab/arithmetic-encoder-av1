@@ -5,13 +5,15 @@ module tb_arith_encoder_full #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 1,         // 0- Miss America 150frames 176x144 (Only 100 rows)
+    parameter SELECT_VIDEO = 7,         // 0- Miss America 150frames 176x144 (Only 100 rows)
                                         // 1- Miss America 150frames 176x144 (Entire Video)
                                         // 2- Akiyo 300frames 176x144 (Entire Video)
                                         // 3- Akiyo 300frames 176x144 (Only 100 rows)
                                         // 4- Bowing 300frames (Entire Video)
                                         // 5- Carphone 382frames 176x144 (Entire Video)
                                         // 6- Bus 150frames 352x288 (Entire Video)
+                                        // 7- Beauty 1920x1080 120fps 420 8bit YUV
+                                        // 8- Bosphorus 1920x1080 120fps 420 8bit YUV
     parameter RUN_UNTIL_FIRST_MISS = 1, // With this option in 1, the simulation will stop as soon as it gets the first miss
                                         // It doesn't matter if the miss is with Range or low
                                         // 0- Run until the end of the simulation and count misses and matches
@@ -54,6 +56,9 @@ module tb_arith_encoder_full #(
     reg tb_bool;
     wire [(TB_RANGE_WIDTH-1):0] tb_range;
     wire [(TB_LOW_WIDTH-1):0] tb_low;
+    wire [(TB_D_SIZE-1):0] tb_cnt_output;
+    wire [(TB_RANGE_WIDTH-1):0] tb_bit_out_1, tb_bit_out_2, tb_out_offs;
+    wire [1:0] tb_flag_out;
     // ---------------------------------
     // Architecture declaration
     arithmetic_encoder #(
@@ -73,7 +78,12 @@ module tb_arith_encoder_full #(
             .general_bool (tb_bool),
             // outputs
             .RANGE_OUTPUT (tb_range),
-            .LOW_OUTPUT (tb_low)
+            .LOW_OUTPUT (tb_low),
+            .CNT_OUTPUT (tb_cnt_output),
+            .OUT_BIT_1 (tb_bit_out_1),
+            .OUT_BIT_2 (tb_bit_out_2),
+            .OUT_FLAG_BITSTREAM (tb_flag_out),
+            .OUT_OFFS (tb_out_offs)
         );
     // ---------------------------------
 
@@ -108,6 +118,14 @@ module tb_arith_encoder_full #(
             6 : begin
                 $display("\t-> Video selected: Bus 150frames 352x288 (Entire Video)\n");
                 fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/videos/bus_150frames_352x288.csv", "r");
+            end
+            7 : begin
+                $display("\t-> Video selected: Beauty 1920x1080 120fps 420 8bit YUV\n");
+                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Beauty_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r");
+            end
+            8 : begin
+                $display("\t-> Video selected: Bosphorus 1920x1080 120fps 420 8bit YUV\n");
+                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Bosphorus_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r");
             end
         endcase
     endfunction
@@ -301,7 +319,7 @@ module tb_arith_encoder_full #(
                     #12ns;
                 end
                 //$display("\t\t-> Architecture empty\n");
-                $display("\t\t-> Low: %d\n", tb_low);
+                //$display("\t\t-> Low: %d\n", tb_low);
                 reset_function(0);      // set the flag to zero avoiding an entire reset
                 #12ns;
                 //$display("\t\t-> Setting the reset sign to 0\n");

@@ -7,7 +7,7 @@ module tb_bitstream #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 0,         // This parameter selects the video to be simulated according with the following list:
+    parameter SELECT_VIDEO = 1,         // This parameter selects the video to be simulated according with the following list:
                                         // 0- Miss America 150 frames 176x144
                                         // 1- Akiyo 300 frames 176x144
                                         // 2- Carphone 382 frames 176x144
