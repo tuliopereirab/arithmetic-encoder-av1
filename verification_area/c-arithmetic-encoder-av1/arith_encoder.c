@@ -42,6 +42,7 @@ void od_ec_encode_bool_q15(int val, unsigned f);
 void od_ec_enc_normalize(uint32_t low_norm, unsigned rng);
 void add_bitstream_file(uint16_t bitstream);
 void carry_propagation();
+double get_total_time();
 
 uint32_t get_Low(){
      return low;
@@ -94,12 +95,21 @@ int main(int argc, char **argv){
      return 0;
 }
 
-void timing_analyzer(){
+double get_total_time(){
      double total_time_print, carry_propagation_time_print, coding_time_print;
 
      carry_propagation_time_print = (double)((total_time_carry) * 1000 / CLOCKS_PER_SEC);
      coding_time_print = (double)(total_time * 1000 / CLOCKS_PER_SEC);
      total_time_print = coding_time_print + carry_propagation_time_print;
+     return total_time_print;
+}
+
+void timing_analyzer(){
+     double total_time_print, carry_propagation_time_print, coding_time_print;
+
+     carry_propagation_time_print = (double)((total_time_carry) * 1000 / CLOCKS_PER_SEC);
+     coding_time_print = (double)(total_time * 1000 / CLOCKS_PER_SEC);
+     total_time_print = get_total_time();
      printf("\t-> Coding time: %.2lf ms\n\t-> Carry Propagation time: %.2lf ms\n\t-> Total System Time: %.2lf ms\n---------------------------------------\n",
                coding_time_print, carry_propagation_time_print, total_time_print);
 }
@@ -110,52 +120,57 @@ int run_simulation(){
      int temp_range, temp_low;
      int i, status, reset;
      clock_t begin, end;
+     int num_input_read_file, final_flag = 0;
      // -----
      double total_time_print, carry_propagation_time_print, coding_time_print;
      unsigned fl, fh;
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
      int s, nsyms, bool;
-     if((arq_input = fopen("/media/tulio/HD/simulation_data_bitstream/Bosphorus_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r")) != NULL){
+     if((arq_input = fopen("/media/tulio/HD/simulation_data_bitstream/carphone_382frames_176x144_main_data.csv", "r")) != NULL){
           i = 0;
           status = 1;
           reset = 0;
-          while((i <= MAX_INPUTS) && (status != 0) && (reset != 1)){
-               printf("\rInput # %d, Reset # %d, Bitstream # %d, Range: %d, Low: %d, cnt: %d ", i, reset_counter, bitstream_counter, range, low, cnt);
-               fscanf(arq_input, "%i;%i;%i;%i;%i;%i;%i;%" SCNd16 ";%" SCNd32 ";%" SCNd16 ";%" SCNd32 ";\n",
-                         &bool, &temp_range, &temp_low, &fl, &fh, &s, &nsyms, &file_in_norm_range, &file_in_norm_low, &file_output_range, &file_output_low);
-               file_input_low = (uint32_t)temp_low;
-               file_input_range = (uint16_t)temp_range;
-               fflush(stdin);
-               //printf("Input %i:\n\t-> FL = %"PRIu16"\n\t-> FH = %"PRIu16"\n\t-> s = %i\n\t-> nsyms = %i\n", i, fl, fh, s, nsyms);
-               //printf("\t-> Input Range: %"PRIu16"\n\t-> Input Low: %"PRIu32"\n\t-> In Norm Range: %"PRIu16"\n\t-> In Norm Low: %"PRIu32"\n\t-> Final Range: %"PRIu16"\n\t-> Final Low: %"PRIu32"\n-----------\n", file_input_range, file_input_low, file_in_norm_range, file_in_norm_low, file_output_range, file_output_low);
-               if((i>1) && (temp_low == 0) && (temp_range == 32768) && (temp_range != range) && (temp_low != low)){            // reset detection
-                    reset_counter++;
+          while((i <= MAX_INPUTS) && (final_flag != 1) && (status != 0) && (reset != 1)){
+               printf("\rInput # %d, Reset # %d, Bitstream # %d, Range: %d, Low: %d, cnt: %d, Time: %.2lf ms ", i, reset_counter, bitstream_counter, range, low, cnt, get_total_time());
+               num_input_read_file = fscanf(arq_input, "%i;%i;%i;%i;%i;%i;%i;%" SCNd16 ";%" SCNd32 ";%" SCNd16 ";%" SCNd32 ";\n",
+                                             &bool, &temp_range, &temp_low, &fl, &fh, &s, &nsyms, &file_in_norm_range, &file_in_norm_low, &file_output_range, &file_output_low);
+               if(num_input_read_file == 11){
+                    file_input_low = (uint32_t)temp_low;
+                    file_input_range = (uint16_t)temp_range;
+                    fflush(stdin);
+                    //printf("Input %i:\n\t-> FL = %"PRIu16"\n\t-> FH = %"PRIu16"\n\t-> s = %i\n\t-> nsyms = %i\n", i, fl, fh, s, nsyms);
+                    //printf("\t-> Input Range: %"PRIu16"\n\t-> Input Low: %"PRIu32"\n\t-> In Norm Range: %"PRIu16"\n\t-> In Norm Low: %"PRIu32"\n\t-> Final Range: %"PRIu16"\n\t-> Final Low: %"PRIu32"\n-----------\n", file_input_range, file_input_low, file_in_norm_range, file_in_norm_low, file_output_range, file_output_low);
+                    if((i>1) && (temp_low == 0) && (temp_range == 32768) && (temp_range != range) && (temp_low != low)){            // reset detection
+                         reset_counter++;
+                         begin = clock();
+                         //carry_propagation();
+                         end = clock();
+                         reset_function();
+                         total_time_carry = total_time_carry + (end-begin);
+                         if(stop_after_reset_flag)
+                              reset = 1;
+                    }
                     begin = clock();
-                    //carry_propagation();
+                    if(bool)
+                         od_ec_encode_q15(fl, fh, s, nsyms);
+                    else
+                         od_ec_encode_bool_q15(s, fh);
+
                     end = clock();
-                    reset_function();
-                    total_time_carry = total_time_carry + (end-begin);
-                    if(stop_after_reset_flag)
-                         reset = 1;
-               }
-               begin = clock();
-               if(bool)
-                    od_ec_encode_q15(fl, fh, s, nsyms);
-               else
-                    od_ec_encode_bool_q15(s, fh);
+                    total_time = total_time + (end - begin);
 
-               end = clock();
-               total_time = total_time + (end - begin);
-
-               if((file_output_range != range) || (file_output_low != low)){
-                    status = 0;
+                    if((file_output_range != range) || (file_output_low != low)){
+                         status = 0;
+                    }
+               }else{
+                    final_flag = 1;
                }
                i++;
           }
           if(status == 0){
                printf("\n=========================\nExecution finished with error\n");
-               printf("Input %i:\n\t-> FL = %"PRIu16"\n\t-> FH = %"PRIu16"\n\t-> s = %i\n\t-> nsyms = %i\n", i-1, fl, fh, s, nsyms);
+               printf("Input %i:\n\t-> In Range: %d\n\t-> In Low: %d\n\t-> FL = %"PRIu16"\n\t-> FH = %"PRIu16"\n\t-> s = %i\n\t-> nsyms = %i\n", i-1, file_input_range, file_input_low, fl, fh, s, nsyms);
                printf("Line: %i\n\t-> Low: expected %" PRIu32 ", got %" PRIu32 "\n\t-> Range: expected %" PRIu16 ", got %" PRIu16 "\n", i-1, file_output_low, low, file_output_range, range);
                printf("--------------------------------------------------\n");
                return -2;
@@ -254,7 +269,7 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
 void add_bitstream_file(uint16_t bitstream){
     FILE *arq;
     if(bitstream >= 256)
-          printf("\nCarry!\n");
+          //printf("\nCarry!\n");
     if((arq = fopen("output-files/pre_bitstream.csv", "a+")) != NULL){
         //printf("\nAdding bitstream: %" PRIu16 "\n", bitstream);
         fprintf(arq, "%" PRIu16 ";\n", bitstream);
