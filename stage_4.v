@@ -64,7 +64,7 @@ module stage_4 #(
                             ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 2'b01 :
                             ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? 2'b11 :
                             ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b00)) ? 2'b01 :
-                            ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? 2'b11 :
+                            ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01)) ? 2'b11 :
                             ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? 2'b10 :
                             ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 == 16'd255)) ? 2'b00 :
                             ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 != 16'd255)) ? 2'b11 :
@@ -113,7 +113,7 @@ module stage_4 #(
     assign out_bitstream_1 =    ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? in_previous_bitstream + in_new_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? in_previous_bitstream + out_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b00)) ? in_previous_bitstream :
-                                ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? in_previous_bitstream + in_new_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                                ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01)) ? in_previous_bitstream + in_new_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? in_previous_bitstream + out_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 == 16'd255)) ? 8'd0 :
                                 ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 != 16'd255)) ? in_previous_bitstream + out_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
@@ -131,7 +131,7 @@ module stage_4 #(
                                 8'd0;
 
     assign out_bitstream_2 =    ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 != 16'd255) && (in_new_bitstream_2 != 16'd255)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
-                                ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? in_new_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
+                                ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b01)) ? in_new_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((!in_flag_standby) && (flag_final_bits) && (flag == 2'b11)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((!in_flag_standby) && (!flag_final_bits) && (flag == 2'b11) && (in_new_bitstream_1 == 16'd255) && (in_new_bitstream_2 != 16'd255)) ? out_3[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((in_flag_standby) && (!flag_final_bits) && (flag == 2'b01) && (in_new_bitstream_1 != 16'd255)) ? in_previous_bitstream + in_new_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :

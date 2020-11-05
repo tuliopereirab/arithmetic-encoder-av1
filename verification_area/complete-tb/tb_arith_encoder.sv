@@ -5,7 +5,7 @@ module tb_arith_encoder_full #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 7,         // 0- Miss America 150frames 176x144 (Only 100 rows)
+    parameter SELECT_VIDEO = 2,         // 0- Miss America 150frames 176x144 (Only 100 rows)
                                         // 1- Miss America 150frames 176x144 (Entire Video)
                                         // 2- Akiyo 300frames 176x144 (Entire Video)
                                         // 3- Akiyo 300frames 176x144 (Only 100 rows)
@@ -101,7 +101,7 @@ module tb_arith_encoder_full #(
             end
             2 : begin
                 $display("\t-> Video selected: Akiyo 300 frames 176x144 (Entire Video)\n");
-                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/videos/akiyo_300frames_176x144.csv", "r");
+                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/akiyo_300frames_176x144_main_data.csv", "r");
             end
             3 : begin
                 $display("\t-> Video selected: Akiyo 300 frames 176x144 (Only 100 rows)\n");
