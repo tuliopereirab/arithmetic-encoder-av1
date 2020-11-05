@@ -6,11 +6,13 @@ module entropy_encoder_tb #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 0,         // 0- Miss America 150frames 176x144 (Entire Video)
+    parameter SELECT_VIDEO = 5,         // 0- Miss America 150frames 176x144 (Entire Video)
                                         // 1- Akiyo 300frames 176x144 (Entire Video)
                                         // 2- Bowing 300frames (Entire Video)
                                         // 3- Carphone 382frames 176x144 (Entire Video)
                                         // 4- Bus 150frames 352x288 (Entire Video)
+                                        // 5- Beauty 1920x1080 120fps 420 8bit YUV
+                                        // 6- Bosphorus 1920x1080 120fps 420 8bit YUV
     parameter RUN_UNTIL_FIRST_MISS = 1, // With this option in 1, the simulation will stop as soon as it gets the first miss
                                         // It doesn't matter if the miss is with Range or low
                                         // 0- Run until the end of the simulation and count misses and matches
@@ -18,8 +20,9 @@ module entropy_encoder_tb #(
     parameter PIPELINE_STAGES = 4,      // This variable defines the number of pipeline stages
                                         // If the pipeline changes, many things will need to change in the testbench
                                         // This variable will make it easier to change things here
-    parameter GENERATE_OUTPUT_FILE = 1  // By setting this parameter to 1, an output file will be generated
+    parameter GENERATE_OUTPUT_FILE = 0  // By setting this parameter to 1, an output file will be generated
                                         // The file will be composed only by the output bitstreams
+                                        // 0- do not generate the file; 1- generate the file
     )();
 
     // File read variables
@@ -80,7 +83,7 @@ module entropy_encoder_tb #(
             .ERROR_INDICATION (tb_error_detection)
         );
 
-    always #6ns tb_clk <= ~tb_clk;      // Here is the Clock (clk) generator
+    always #1ns tb_clk <= ~tb_clk;      // Here is the Clock (clk) generator
                                         // It is set to execute in a 12ns period
 
     function void open_file;
@@ -119,6 +122,20 @@ module entropy_encoder_tb #(
                 file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/bus_150frames_352x288_final_bitstream.csv", "r");
                 if(GENERATE_OUTPUT_FILE)
                     file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/bus_150frames_352x288_output.csv", "w+");
+            end
+            5 : begin
+                $display("\t-> Video selected: Beauty 1920x1080 120fps 420 8bit YUV\n");
+                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Beauty_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r");
+                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Beauty_1920x1080_120fps_420_8bit_YUV_final_bitstream.csv", "r");
+                if(GENERATE_OUTPUT_FILE)
+                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/Beauty_1920x1080_120fps_420_8bit_YUV_output.csv", "w+");
+            end
+            6 : begin
+                $display("\t-> Video selected: Bosphorus 1920x1080 120fps 420 8bit YUV\n");
+                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Bosphorus_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r");
+                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Bosphorus_1920x1080_120fps_420_8bit_YUV_final_bitstream.csv", "r");
+                if(GENERATE_OUTPUT_FILE)
+                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/Bosphorus_1920x1080_120fps_420_8bit_YUV_output.csv", "w+");
             end
         endcase
         if(GENERATE_OUTPUT_FILE)
@@ -450,9 +467,9 @@ module entropy_encoder_tb #(
         $display("-> Configuration completed.\n");
         $display("-> Starting simulation...\n");
         reset_function(1);      // This function is called with 1 because it is the first execution (start_flag)
-        #12ns;
+        #2ns;
         tb_reset <= 1'b0;
-        #12ns;
+        #2ns;
         $display("\t-> Reset procedure completed\n");
         $display("\t-> Starting simulation loop\n");
         while(!$feof(file_inputs)) begin
@@ -467,7 +484,7 @@ module entropy_encoder_tb #(
                             statistic(4);
                         end
                     end
-                    #12ns;
+                    #2ns;
                 end
                 if(tb_out_flag_bitstream != 0) begin            // When it finds the LAST FLAG, there's still one set of bitstream to come out
                     if(GENERATE_OUTPUT_FILE)
@@ -477,11 +494,11 @@ module entropy_encoder_tb #(
                     //     statistic(4);
                     // end
                 end
-                #12ns;      // It is necessary to give time for the check_bitstream function to properly verify the output
+                #2ns;      // It is necessary to give time for the check_bitstream function to properly verify the output
                 //$display("\t\t-> Architecture empty\n");
                 reset_function(0);      // set the flag to zero avoiding an entire reset
                 tb_flag_first_bitstream = 1;        // Tells the TB to don't consider the first bitstream after the reset.
-                #12ns;
+                #2ns;
                 //$display("\t\t-> Setting the reset sign to 0\n");
                 tb_reset <= 1'b0;
             end
@@ -493,7 +510,7 @@ module entropy_encoder_tb #(
             // if(tb_error_detection) begin
             //     statistic(4);
             // end
-            #12ns;
+            #2ns;
         end
         statistic(0);
     end

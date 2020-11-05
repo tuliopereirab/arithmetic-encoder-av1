@@ -96,7 +96,7 @@ module tb_bitstream #(
         );
     // ---------------------------------
 
-    always #6ns tb_clk <= ~tb_clk;      // Here is the Clock (clk) generator
+    always #1ns tb_clk <= ~tb_clk;      // Here is the Clock (clk) generator
                                         // It is set to execute in a 12ns period
     function void open_file;
         case(SELECT_VIDEO)
@@ -416,9 +416,9 @@ module tb_bitstream #(
         $display("-> Configuration completed.\n");
         $display("-> Starting simulation...\n");
         reset_function(1);      // This function is called with 1 because it is the first execution (start_flag)
-        #12ns;
+        #2ns;
         tb_reset <= 1'b0;
-        #12ns;
+        #2ns;
         $display("\t-> Reset procedure completed\n");
         $display("\t-> Starting simulation loop\n");
         while(!$feof(main_file)) begin
@@ -427,7 +427,7 @@ module tb_bitstream #(
                 //$display("\t\t-> Finish previous simulation\n");
                 for(i=0; i<2; i = i+1) begin
                     finish_execution();
-                    #12ns;
+                    #2ns;
                 end
                 //$display("\t\t-> Architecture empty\n");
                 if(offs_previous < tb_offs)
@@ -436,11 +436,11 @@ module tb_bitstream #(
                 check_with_done_file();
                 $display("\t\t-> Low: %d\n\t\t-> Offs: %d\n", tb_low, tb_offs);
                 reset_function(0);      // set the flag to zero avoiding an entire reset
-                #12ns;
+                #2ns;
                 //$display("\t\t-> Setting the reset sign to 0\n");
                 tb_reset <= 1'b0;
             end
-            #12ns;
+            #2ns;
         end
         statistic(0);
     end
