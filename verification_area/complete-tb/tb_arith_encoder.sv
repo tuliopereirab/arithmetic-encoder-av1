@@ -5,7 +5,7 @@ module tb_arith_encoder_full #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 2,         // 0- Miss America 150frames 176x144 (Only 100 rows)
+    parameter SELECT_VIDEO = 9,         // 0- Miss America 150frames 176x144 (Only 100 rows)
                                         // 1- Miss America 150frames 176x144 (Entire Video)
                                         // 2- Akiyo 300frames 176x144 (Entire Video)
                                         // 3- Akiyo 300frames 176x144 (Only 100 rows)
@@ -14,6 +14,7 @@ module tb_arith_encoder_full #(
                                         // 6- Bus 150frames 352x288 (Entire Video)
                                         // 7- Beauty 1920x1080 120fps 420 8bit YUV
                                         // 8- Bosphorus 1920x1080 120fps 420 8bit YUV
+                                        // 9- HoneyBee 1920x1080 120fps 420 8bit YUV
     parameter RUN_UNTIL_FIRST_MISS = 1, // With this option in 1, the simulation will stop as soon as it gets the first miss
                                         // It doesn't matter if the miss is with Range or low
                                         // 0- Run until the end of the simulation and count misses and matches
@@ -87,7 +88,7 @@ module tb_arith_encoder_full #(
         );
     // ---------------------------------
 
-    always #6ns tb_clk <= ~tb_clk;      // Here is the Clock (clk) generator
+    always #1ns tb_clk <= ~tb_clk;      // Here is the Clock (clk) generator
                                         // It is set to execute in a 12ns period
     function void open_file;
         case(SELECT_VIDEO)
@@ -126,6 +127,10 @@ module tb_arith_encoder_full #(
             8 : begin
                 $display("\t-> Video selected: Bosphorus 1920x1080 120fps 420 8bit YUV\n");
                 fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Bosphorus_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r");
+            end
+            9 : begin
+                $display("\t-> Video selected: HoneyBee 1920x1080 120fps 420 8bit YUV\n");
+                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/HoneyBee_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r");
             end
         endcase
     endfunction
@@ -248,7 +253,7 @@ module tb_arith_encoder_full #(
             statistic(3);
         end
         else begin
-            if((temp_init_low == 0) && (temp_init_range == 32768) && (temp_init_low != previous_low_out) && (temp_init_range != previous_range_out)) begin
+            if((temp_init_low == 0) && (temp_init_range == 32768) && ((temp_init_low != previous_low_out) || (temp_init_range != previous_range_out))) begin
                 reset_counter = reset_counter + 1;
                 $display("\t-> %d: Reset detected -> %d\n", general_counter, reset_counter);
                 return 1;       // found a reset
@@ -305,9 +310,9 @@ module tb_arith_encoder_full #(
         $display("-> Configuration completed.\n");
         $display("-> Starting simulation...\n");
         reset_function(1);      // This function is called with 1 because it is the first execution (start_flag)
-        #12ns;
+        #2ns;
         tb_reset <= 1'b0;
-        #12ns;
+        #2ns;
         $display("\t-> Reset procedure completed\n");
         $display("\t-> Starting simulation loop\n");
         while(!$feof(fd)) begin
@@ -316,16 +321,16 @@ module tb_arith_encoder_full #(
                 //$display("\t\t-> Finish previous simulation\n");
                 for(i=0; i<2; i = i+1) begin
                     finish_execution();
-                    #12ns;
+                    #2ns;
                 end
                 //$display("\t\t-> Architecture empty\n");
                 //$display("\t\t-> Low: %d\n", tb_low);
                 reset_function(0);      // set the flag to zero avoiding an entire reset
-                #12ns;
+                #2ns;
                 //$display("\t\t-> Setting the reset sign to 0\n");
                 tb_reset <= 1'b0;
             end
-            #12ns;
+            #2ns;
         end
         statistic(0);
     end

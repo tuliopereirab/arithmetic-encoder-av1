@@ -356,7 +356,7 @@ module tb_bitstream #(
             statistic(3);
         end
         else begin
-            if((temp_init_low == 0) && (temp_init_range == 32768) && (temp_init_low != previous_low_out) && (temp_init_range != previous_range_out)) begin
+            if((temp_init_low == 0) && (temp_init_range == 32768) && ((temp_init_low != previous_low_out) || (temp_init_range != previous_range_out))) begin
                 reset_counter = reset_counter + 1;
                 $display("\t-> %d: Reset detected -> %d\n", general_counter, reset_counter);
                 return 1;       // found a reset

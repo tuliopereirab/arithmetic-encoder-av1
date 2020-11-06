@@ -6,13 +6,14 @@ module entropy_encoder_tb #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 1,         // 0- Miss America 150frames 176x144 (Entire Video)
+    parameter SELECT_VIDEO = 7,         // 0- Miss America 150frames 176x144 (Entire Video)
                                         // 1- Akiyo 300frames 176x144 (Entire Video)
                                         // 2- Bowing 300frames (Entire Video)
                                         // 3- Carphone 382frames 176x144 (Entire Video)
                                         // 4- Bus 150frames 352x288 (Entire Video)
                                         // 5- Beauty 1920x1080 120fps 420 8bit YUV
                                         // 6- Bosphorus 1920x1080 120fps 420 8bit YUV
+                                        // 7- HoneyBee 1920x1080 120fps 420 8bit YUV
     parameter RUN_UNTIL_FIRST_MISS = 1, // With this option in 1, the simulation will stop as soon as it gets the first miss
                                         // It doesn't matter if the miss is with Range or low
                                         // 0- Run until the end of the simulation and count misses and matches
@@ -136,6 +137,13 @@ module entropy_encoder_tb #(
                 file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Bosphorus_1920x1080_120fps_420_8bit_YUV_final_bitstream.csv", "r");
                 if(GENERATE_OUTPUT_FILE)
                     file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/Bosphorus_1920x1080_120fps_420_8bit_YUV_output.csv", "w+");
+            end
+            7 : begin
+                $display("\t-> Video selected: HoneyBee 1920x1080 120fps 420 8bit YUV\n");
+                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/HoneyBee_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r");
+                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/HoneyBee_1920x1080_120fps_420_8bit_YUV_final_bitstream.csv", "r");
+                if(GENERATE_OUTPUT_FILE)
+                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/HoneyBee_1920x1080_120fps_420_8bit_YUV_output.csv", "w+");
             end
         endcase
         if(GENERATE_OUTPUT_FILE)
@@ -433,7 +441,7 @@ module entropy_encoder_tb #(
             statistic(3);
         end
         else begin
-            if((temp_init_low == 0) && (temp_init_range == 32768) && (temp_init_low != previous_low_out) && (temp_init_range != previous_range_out)) begin
+            if((temp_init_low == 0) && (temp_init_range == 32768) && ((temp_init_low != previous_low_out) || (temp_init_range != previous_range_out))) begin
                 reset_counter = reset_counter + 1;
                 $display("\t-> %d: Reset detected -> %d\n", general_counter, reset_counter);
                 return 1;       // found a reset
