@@ -6,7 +6,7 @@ module entropy_encoder_tb #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 7,         // 0- Miss America 150frames 176x144 (Entire Video)
+    parameter SELECT_VIDEO = 5,         // 0- Miss America 150frames 176x144 (Entire Video)
                                         // 1- Akiyo 300frames 176x144 (Entire Video)
                                         // 2- Bowing 300frames (Entire Video)
                                         // 3- Carphone 382frames 176x144 (Entire Video)
@@ -193,7 +193,7 @@ module entropy_encoder_tb #(
         $display("Statistics:\n");
         $display("Total simulations: %d\n\t-> Bitstream matches: %d\n\t-> Bitstream misses: %d\n\t-> Total resets: %d\n", general_counter, match_bitstream, miss_bitstream, reset_counter);
         $display("-------------------\n");
-        $timeformat(-9, 7, " s", 32);
+        $timeformat(-3, 2, " ms", 32);
         $display("Execution time: %t\n", $time);
         $display("==============\nStatistics completed\n=============\n");
         $fclose(file_inputs);
