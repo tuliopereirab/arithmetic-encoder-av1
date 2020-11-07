@@ -127,12 +127,12 @@ int run_simulation(){
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
      int s, nsyms, bool;
-     if((arq_input = fopen("/media/tulio/HD/simulation_data_bitstream/carphone_382frames_176x144_main_data.csv", "r")) != NULL){
+     if((arq_input = fopen("/media/tulio/HD/simulation_data_bitstream/Bosphorus_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r")) != NULL){
           i = 0;
           status = 1;
           reset = 0;
           while((i <= MAX_INPUTS) && (final_flag != 1) && (status != 0) && (reset != 1)){
-               printf("\rInput # %d, Reset # %d, Bitstream # %d, Range: %d, Low: %d, cnt: %d, Time: %.2lf ms ", i, reset_counter, bitstream_counter, range, low, cnt, get_total_time());
+               printf("\rInput # %d, Reset # %d, Bitstream # %d, cnt: %d, Time: %.2lf ms, Range: %d, Low: %d ", i, reset_counter, bitstream_counter, cnt, get_total_time(), range, low);
                num_input_read_file = fscanf(arq_input, "%i;%i;%i;%i;%i;%i;%i;%" SCNd16 ";%" SCNd32 ";%" SCNd16 ";%" SCNd32 ";\n",
                                              &bool, &temp_range, &temp_low, &fl, &fh, &s, &nsyms, &file_in_norm_range, &file_in_norm_low, &file_output_range, &file_output_low);
                if(num_input_read_file == 11){
@@ -141,7 +141,7 @@ int run_simulation(){
                     fflush(stdin);
                     //printf("Input %i:\n\t-> FL = %"PRIu16"\n\t-> FH = %"PRIu16"\n\t-> s = %i\n\t-> nsyms = %i\n", i, fl, fh, s, nsyms);
                     //printf("\t-> Input Range: %"PRIu16"\n\t-> Input Low: %"PRIu32"\n\t-> In Norm Range: %"PRIu16"\n\t-> In Norm Low: %"PRIu32"\n\t-> Final Range: %"PRIu16"\n\t-> Final Low: %"PRIu32"\n-----------\n", file_input_range, file_input_low, file_in_norm_range, file_in_norm_low, file_output_range, file_output_low);
-                    if((i>1) && (temp_low == 0) && (temp_range == 32768) && (temp_range != range) && (temp_low != low)){            // reset detection
+                    if((i>1) && (temp_low == 0) && (temp_range == 32768) && ((temp_range != range) || (temp_low != low))){            // reset detection
                          reset_counter++;
                          begin = clock();
                          //carry_propagation();
