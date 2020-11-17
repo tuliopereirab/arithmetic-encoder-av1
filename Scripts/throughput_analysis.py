@@ -18,14 +18,14 @@ def video_name(option):
     if(option == 1):
         return "HoneyBee 1920x1080 120fps 420 8bit YUV YUV"
     elif(option == 2):
-        return "Miss America 150 frames 176x144"
+        return "Beauty 1920x1080 120fps 420 8bit YUV"
 
 def get_path_file(option):
     print("Analyzing video: " + video_name(option))
     if(option == 1):
         return "/media/tulio/HD/simulation_data_bitstream/HoneyBee_1920x1080_120fps_420_8bit_YUV_YUV_main_data.csv"
     elif(option == 2):
-        return "/media/tulio/HD/simulation_data_bitstream/miss-america_150frames_176x144_main_data.csv"
+        return "/home/tulio/Desktop/y4m_files/generated_files/cq_55/Beauty_1920x1080_120fps_420_8bit_YUV_cq55_main_data.csv"
 
 
 def analyze_input(nsyms, bool):
@@ -53,7 +53,7 @@ with open(path_video_file) as video_file:
     for row in video_reader:
         num_cycles += 1
         num_bits += analyze_input(int(row[6]), int(row[0]))
-        print("Number of cycles: " + str(num_cycles) + "\t\t\tNumber of Bits: " + str(num_bits), end = '\r')
+        print("Number of cycles: " + str(num_cycles) + "\t\t\tNumber of Bits: " + str(num_bits) + "\t\t\tBits/Cycle: " + str(check_final_data(num_bits, num_cycles)), end = '\r')
         if(analyze_input(int(row[6]), int(row[0])) < 0):
             print("Error, system stopped.")
             sys.exit()
