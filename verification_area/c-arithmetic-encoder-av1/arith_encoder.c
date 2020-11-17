@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include <time.h>
+#include <sys/stat.h>
 
 
 
@@ -58,7 +59,10 @@ int16_t get_cnt(){
 
 void setup(){
      FILE *arq;
+     struct stat sb;
      bitstream_counter = 0;
+     if((stat("output-files/", &sb) != 0) || !S_ISDIR(sb.st_mode))
+          mkdir("output-files", 0700);
      reset_function();
      arq = fopen("output-files/final_bitstream.csv", "w+");
      fclose(arq);
@@ -127,7 +131,7 @@ int run_simulation(){
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
      int s, nsyms, bool;
-     if((arq_input = fopen("/media/tulio/HD/simulation_data_bitstream/Bosphorus_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r")) != NULL){
+     if((arq_input = fopen("/home/tulio/Desktop/y4m_files/generated_files/cq_55/Beauty_1920x1080_120fps_420_8bit_YUV_cq55_main_data.csv", "r")) != NULL){
           i = 0;
           status = 1;
           reset = 0;
