@@ -64,7 +64,7 @@ def check_final_data(bits, cycles):
 num_bits = 0
 num_cycles = 0
 for i in range(0,5):
-    path_video_file = "/media/tulio/HD/y4m_files/generated_files/60_frames/cq_20/" + get_path_file(i)
+    path_video_file = "/media/tulio/HDz/y4m_files/generated_files/60_frames/cq_20/" + get_path_file(i)
 
     with open(path_video_file) as video_file:
         video_reader = csv.reader(video_file, delimiter=';')
