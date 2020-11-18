@@ -15,17 +15,33 @@ num_bits = 0
 num_cycles = 0
 
 def video_name(option):
-    if(option == 1):
-        return "HoneyBee 1920x1080 120fps 420 8bit YUV YUV"
-    elif(option == 2):
+    if(option == 0):
         return "Beauty 1920x1080 120fps 420 8bit YUV"
+    elif(option == 1):
+        return "Bosphorus 1920x1080 120fps 420 8bit YUV"
+    elif(option == 2):
+        return "HoneyBee 1920x1080 120fps 420 8bit YUV"
+    elif(option == 3):
+        return "Jockey 1920x1080 120fps 420 8bit YUV"
+    elif(option == 4):
+        return "ShakeNDry 1920x1080 120fps 420 8bit YUV"
+    # elif(option == 5):
+    #     return "Beauty 1920x1080 120fps 420 8bit YUV"
 
 def get_path_file(option):
     print("Analyzing video: " + video_name(option))
-    if(option == 1):
-        return "/media/tulio/HD/simulation_data_bitstream/HoneyBee_1920x1080_120fps_420_8bit_YUV_YUV_main_data.csv"
+    if(option == 0):
+        return "Beauty_1920x1080_120fps_420_8bit_YUV_cq20_main_data.csv"
+    elif(option == 1):
+        return "Bosphorus_1920x1080_120fps_420_8bit_YUV_cq20_main_data.csv"
     elif(option == 2):
-        return "/home/tulio/Desktop/y4m_files/generated_files/cq_55/Beauty_1920x1080_120fps_420_8bit_YUV_cq55_main_data.csv"
+        return "HoneyBee_1920x1080_120fps_420_8bit_YUV_cq20_main_data.csv"
+    elif(option == 3):
+        return "Jockey_1920x1080_120fps_420_8bit_YUV_cq20_main_data.csv"
+    elif(option == 4):
+        return "ShakeNDry_1920x1080_120fps_420_8bit_YUV_cq20_main_data.csv"
+    # elif(option == 5):
+    #     return "Beauty_1920x1080_120fps_420_8bit_YUV_cq20_main_data.csv"
 
 
 def analyze_input(nsyms, bool):
@@ -44,22 +60,25 @@ def check_final_data(bits, cycles):
     return bits/cycles
 
 
-path_video_file = get_path_file(2)
 
-with open(path_video_file) as video_file:
-    video_reader = csv.reader(video_file, delimiter=';')
-    num_bits = 0
-    num_cycles = 0
-    for row in video_reader:
-        num_cycles += 1
-        num_bits += analyze_input(int(row[6]), int(row[0]))
-        print("Number of cycles: " + str(num_cycles) + "\t\t\tNumber of Bits: " + str(num_bits) + "\t\t\tBits/Cycle: " + str(check_final_data(num_bits, num_cycles)), end = '\r')
-        if(analyze_input(int(row[6]), int(row[0])) < 0):
-            print("Error, system stopped.")
-            sys.exit()
-    print("\n   ====================")
-    print("Final data: " + video_name(2))
-    print("\t-> Total cycles: " + str(num_cycles))
-    print("\t-> Total bits: " + str(num_bits))
-    print("\t-> Bits per cycles: " + str(check_final_data(num_bits, num_cycles)))
-    print("====================")
+num_bits = 0
+num_cycles = 0
+for i in range(0,5):
+    path_video_file = "/media/tulio/HD/y4m_files/generated_files/60_frames/cq_20/" + get_path_file(i)
+
+    with open(path_video_file) as video_file:
+        video_reader = csv.reader(video_file, delimiter=';')
+        for row in video_reader:
+            num_cycles += 1
+            num_bits += analyze_input(int(row[6]), int(row[0]))
+            if((num_cycles % 1000) == 0):
+                print("Video: " + str(i) + "\t Number of cycles: " + str(num_cycles) + "\t\t\t Number of Bits: " + str(num_bits) + "\t\t\t Bits/Cycle: " + str(check_final_data(num_bits, num_cycles)), end = '\r')
+            if(analyze_input(int(row[6]), int(row[0])) < 0):
+                print("Error, system stopped.")
+                sys.exit()
+        print("\n   ====================")
+        print("Final data: " + video_name(2))
+        print("\t-> Total cycles: " + str(num_cycles))
+        print("\t-> Total bits: " + str(num_bits))
+        print("\t-> Bits per cycles: " + str(check_final_data(num_bits, num_cycles)))
+        print("====================")
