@@ -31,8 +31,8 @@ import time
 
 import threading
 
-num_videos = 5  # set the number of videos to be analyzed with this script
-main_path_files = "/media/tulio/HD1/y4m_files/generated_files/"     # set the main path
+num_videos = 6  # set the number of videos to be analyzed with this script
+main_path_files = "/media/tulio/HD/y4m_files/generated_files/"     # set the main path
                                                                     # In this path, it must be possible to find the folders cq_55 and cq_20
 
 general_num_bits = 0
@@ -87,7 +87,7 @@ def save_file(video_name, cq_def, num_bits, num_cycles):
     # This function is also used to write into the final statistics file
     file_path_save = main_path_files + "statistics/" + cq_def + "_statistics"
     file = open(file_path_save, "a")
-    file.write("Video: " + str(video_name) + "\n")
+    file.write("Video: " + str(video_name) + " - " + str(cq_def) + "\n")
     file.write("Total bits: " + str(num_bits) + "\nTotal Cycles: " + str(num_cycles) + "\nBits/cycle: " + str(check_final_data(num_bits, num_cycles)))
     file.write("\n==============================================\n")
     file.close()
@@ -104,8 +104,8 @@ def video_name(option):
         return "Jockey 1920x1080 120fps 420 8bit YUV"
     elif(option == 4):
         return "ReadySetGo 3840x2160 120fps 420 10bit YUV"
-    # elif(option == 5):
-    #     return "Beauty 1920x1080 120fps 420 8bit YUV"
+    elif(option == 5):
+        return "YachtRide 3840x2160 120fps 420 10bit YUV"
 
 def get_path_file(option, cq_def):
     # Here is being centralized all the video paths in order to facilitate the access when other functions need
@@ -121,8 +121,8 @@ def get_path_file(option, cq_def):
         return "Jockey_1920x1080_120fps_420_8bit_YUV_" + cq_def + "_main_data.csv"
     elif(option == 4):
         return "ReadySetGo_3840x2160_120fps_420_10bit_YUV_" + cq_def + "_main_data.csv"
-    # elif(option == 5):
-    #     return "Beauty_1920x1080_120fps_420_8bit_YUV_cq20_main_data.csv"
+    elif(option == 5):
+        return "YachtRide_3840x2160_120fps_420_10bit_YUV_" + cq_def + "_main_data.csv"
 
 
 def analyze_input(nsyms, bool):
