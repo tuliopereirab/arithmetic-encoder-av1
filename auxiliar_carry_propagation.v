@@ -167,7 +167,8 @@ module auxiliar_carry_propagation #(
                                 ((reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 == 8'd255)) ? reg_addr_write + 4'd2 :
                                 4'd0;
 
-    assign addr_write_final =   ((flag_final != 2'b00) && (flag_final != 2'b11) && (in_flag == 2'b01)) ? reg_addr_write + 4'd1 :
+    assign addr_write_final =   ((reg_addr_read >= (reg_addr_write-1)) || (flag_final == 2'b11) || (flag_final == 2'b00)) ? 4'd0 :
+                                ((flag_final != 2'b00) && (flag_final != 2'b11) && (in_flag == 2'b01)) ? reg_addr_write + 4'd1 :
                                 ((flag_final != 2'b00) && (flag_final != 2'b11) && (in_flag == 2'b11)) ? reg_addr_write + 4'd2 :
                                 ((reg_addr_write != 0) && (reg_addr_read >= (reg_addr_write-1))) ? 4'd0 :
                                 reg_addr_write;

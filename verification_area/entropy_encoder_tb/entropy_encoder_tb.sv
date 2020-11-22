@@ -6,7 +6,7 @@ module entropy_encoder_tb #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 5,         // 0- Miss America 150frames 176x144 (Entire Video)
+    parameter SELECT_VIDEO = 8,         // 0- Miss America 150frames 176x144 (Entire Video)
                                         // 1- Akiyo 300frames 176x144 (Entire Video)
                                         // 2- Bowing 300frames (Entire Video)
                                         // 3- Carphone 382frames 176x144 (Entire Video)
@@ -14,6 +14,12 @@ module entropy_encoder_tb #(
                                         // 5- Beauty 1920x1080 120fps 420 8bit YUV
                                         // 6- Bosphorus 1920x1080 120fps 420 8bit YUV
                                         // 7- HoneyBee 1920x1080 120fps 420 8bit YUV
+                                        // =============================================
+                                        // New videos using the right config
+                                            // 8 - YachtRide 3840x2160 120fps 420 10bit YUV CQ = 20
+                                            // 9 - ReadySetGo 3840x2160 120fps 420 10bit YUV CQ = 20
+                                            // 10 - YachtRide 3840x2160 120fps 420 10bit YUV CQ = 55
+                                            // 11 - ReadySetGo 3840x2160 120fps 420 10bit YUV CQ = 55
     parameter RUN_UNTIL_FIRST_MISS = 1, // With this option in 1, the simulation will stop as soon as it gets the first miss
                                         // It doesn't matter if the miss is with Range or low
                                         // 0- Run until the end of the simulation and count misses and matches
@@ -144,6 +150,48 @@ module entropy_encoder_tb #(
                 file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/HoneyBee_1920x1080_120fps_420_8bit_YUV_final_bitstream.csv", "r");
                 if(GENERATE_OUTPUT_FILE)
                     file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/HoneyBee_1920x1080_120fps_420_8bit_YUV_output.csv", "w+");
+            end
+            8 : begin
+                $display("\t-> Video selected: YachtRide 3840x2160 120fps 420 10bit YUV \t CQ = 20\n");
+                file_inputs = $fopen("F:/y4m_files/generated_files/cq_20/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_main_data.csv", "r");
+                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_20/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_final_bitstream.csv", "r");
+                if(GENERATE_OUTPUT_FILE)
+                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_output.csv", "w+");
+            end
+            9 : begin
+                $display("\t-> Video selected: ReadySetGo 3840x2160 120fps 420 10bit YUV \tCQ = 20 \n");
+                file_inputs = $fopen("F:/y4m_files/generated_files/cq_20/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq20_main_data.csv", "r");
+                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_20/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq20_final_bitstream.csv", "r");
+                if(GENERATE_OUTPUT_FILE)
+                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq20_output.csv", "w+");
+            end
+            10 : begin
+                $display("\t-> Video selected: YachtRide 3840x2160 120fps 420 10bit YUV \tCQ = 55 \n");
+                file_inputs = $fopen("F:/y4m_files/generated_files/cq_55/YachtRide_3840x2160_120fps_420_10bit_YUV_cq55_main_data.csv", "r");
+                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_55/YachtRide_3840x2160_120fps_420_10bit_YUV_cq55_final_bitstream.csv", "r");
+                if(GENERATE_OUTPUT_FILE)
+                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/YachtRide_3840x2160_120fps_420_10bit_YUV_cq55_output.csv", "w+");
+            end
+            11 : begin
+                $display("\t-> Video selected: ReadySetGo 3840x2160 120fps 420 10bit YUV \tCQ = 55 \n");
+                file_inputs = $fopen("F:/y4m_files/generated_files/cq_55/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq55_main_data.csv", "r");
+                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_55/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq55_final_bitstream.csv", "r");
+                if(GENERATE_OUTPUT_FILE)
+                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq55_output.csv", "w+");
+            end
+            12 : begin
+                $display("\t-> Video selected: NO VIDEO!\n");
+                file_inputs = $fopen("F:/y4m_files/generated_files/cq_20/_main_data.csv", "r");
+                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_20/_final_bitstream.csv", "r");
+                if(GENERATE_OUTPUT_FILE)
+                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/_output.csv", "w+");
+            end
+            13 : begin
+                $display("\t-> Video selected: NO VIDEO!\n");
+                file_inputs = $fopen("F:/y4m_files/generated_files/cq_20/_main_data.csv", "r");
+                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_20/_final_bitstream.csv", "r");
+                if(GENERATE_OUTPUT_FILE)
+                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/_output.csv", "w+");
             end
         endcase
         if(GENERATE_OUTPUT_FILE)
