@@ -255,7 +255,7 @@ module auxiliar_carry_propagation #(
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+3) < reg_addr_write) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read+2] :
                         8'd0;
 
-    assign out_flag =   ((flag_final != 2'b11) && (flag_final != 2'b00) && (!reg_flag_second_time_reading) && (in_previous_bitstream == previous_input_bit_1)) ? 3'b100 :       // It must not choose this line when line 142
+    assign out_flag =   ((flag_final != 2'b11) && (flag_final != 2'b00) && (!reg_flag_second_time_reading) && (in_previous_bitstream == previous_input_bit_1) && (in_previous_bitstream != 255)) ? 3'b100 :       // It must not choose this line when line 142
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+2) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b010 :
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+1) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b011 :
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && (reg_addr_read < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b001 :
