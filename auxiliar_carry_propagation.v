@@ -23,7 +23,7 @@ module auxiliar_carry_propagation #(
     reg [OUTPUT_WIDTH-1:0] buffer[2**ADDR_WIDTH-1:0];
     // registers
     reg [(ADDR_WIDTH-1):0] reg_addr_write, reg_addr_read;
-    reg [1:0] reg_flag_final;
+    reg [2:0] reg_flag_final;
     wire flag_second_time;
     reg reg_flag_second_time_reading;           // The architecture will always hold the last value to go in
                                             // That must happen in order to synchronize with the other carry propagation block
@@ -33,12 +33,16 @@ module auxiliar_carry_propagation #(
     wire [2:0] ctrl_buffer, buffer_ctrl_start, buffer_ctrl_middle, buffer_ctrl_final;
     wire [(ADDR_WIDTH-1):0] addr_write, addr_read;
     wire [(ADDR_WIDTH-1):0] addr_write_start, addr_write_middle, addr_write_final;
-    wire [1:0] flag_final;
+    wire [2:0] flag_final;
     wire flag_start, mux_use_last_bit;
     reg [(OUTPUT_WIDTH-1):0] previous_input_bit_1;
+    reg [(INPUT_WIDTH-1):0] previous_input_bit_2_original;
+    reg [1:0] previous_input_flag;
 
     always @ (posedge clk) begin
         previous_input_bit_1 <= in_bitstream_1[(OUTPUT_WIDTH-1):0];
+        previous_input_bit_2_original <= in_bitstream_2;
+        previous_input_flag <= in_flag;
     end
 
     always @ (posedge clk) begin
@@ -88,9 +92,9 @@ module auxiliar_carry_propagation #(
             // Final: used to keep saving data on the end of line while reading data from the first positions
         // Although the buffer control is setted by 3 different variables, its goal is pretty simple:
             // Define the exact number of bitstreams to be saved into the buffer per cycle
-    assign ctrl_buffer =    ((flag_final != 2'b00) && (flag_final != 2'b11)) ? buffer_ctrl_final :
+    assign ctrl_buffer =    ((flag_final != 3'b000) && (flag_final != 3'b011)) ? buffer_ctrl_final :
                             (flag_start) ? buffer_ctrl_start :
-                            (flag_final == 2'b00) ? buffer_ctrl_middle :
+                            (flag_final == 3'b000) ? buffer_ctrl_middle :
                             3'b000;
 
     assign buffer_ctrl_start =  ((flag_start) && (in_standby_flag) && (in_flag == 2'b11)) ? 3'b100 :
@@ -103,8 +107,8 @@ module auxiliar_carry_propagation #(
                                 ((reg_addr_write != 0) && (in_flag == 2'b01) && (in_bitstream_1 == 8'd255)) ? 3'b001 :
                                 3'd0;
 
-    assign buffer_ctrl_final =  ((flag_final != 2'b00) && (flag_final != 2'b11) && (in_flag == 2'b11)) ? 3'b010 :
-                                ((flag_final != 2'b00) && (flag_final != 2'b11) && (in_flag == 2'b01)) ? 3'b001 :
+    assign buffer_ctrl_final =  ((flag_final != 3'b000) && (flag_final != 3'b011) && (in_flag == 2'b11)) ? 3'b010 :
+                                ((flag_final != 3'b000) && (flag_final != 3'b011) && (in_flag == 2'b01)) ? 3'b001 :
                                 3'd0;
     // ===========================================================================
         // General definitions
@@ -114,8 +118,8 @@ module auxiliar_carry_propagation #(
             // As the buffer_ctrl, the addr_write is also setted by 3 variables (start, middle, final)
                 // Again, this functionality helps to keep the code a little bit simpler
     assign addr_write = (flag_first) ? 4'd0 :
-                        ((flag_final != 2'b00) && (flag_final != 2'b11) && (in_flag == 2'b01)) ? addr_write_final :
-                        ((flag_final != 2'b00) && (flag_final != 2'b11) && (in_flag == 2'b11)) ? addr_write_final :
+                        ((flag_final != 3'b000) && (flag_final != 3'b011) && (in_flag == 2'b01)) ? addr_write_final :
+                        ((flag_final != 3'b000) && (flag_final != 3'b011) && (in_flag == 2'b11)) ? addr_write_final :
                         ((reg_addr_write != 0) && (reg_addr_read >= (reg_addr_write-1))) ? addr_write_final :
                         ((flag_start) && (in_standby_flag) && (in_flag == 2'b11)) ? addr_write_start :
                         ((flag_start) && (!in_standby_flag) && (in_flag == 2'b11)) ? addr_write_start :
@@ -138,7 +142,7 @@ module auxiliar_carry_propagation #(
     // So, as the max number of bitstreams going out per cycle under normal conditions is 3, the first cycle realeasing data should release X, 255, 255
         // The next cycles, however, must to release [all_data]-1.
     // The flag second time checks when it's time to release everything (first cycle releasing) and when it's time to hold data inside
-    assign flag_second_time =   ((reg_addr_read != 4'd0) || ((flag_final != 2'b00) && (flag_final != 2'b11))) ? 1'b1 :
+    assign flag_second_time =   ((reg_addr_read != 4'd0) || ((flag_final != 3'b000) && (flag_final != 3'b011))) ? 1'b1 :
                                 1'b0;
 
     // Under normal conditions, aux carry propagation will release only 3 bitstreams per cycle.
@@ -146,7 +150,7 @@ module auxiliar_carry_propagation #(
         // That also means that the aux carry must to release this value
         // So this mux sets the fourth pin for bitstream output to release the current output coming from the main carry propagation block
     // It's a little bit complex to understand this, but this is basically a way to do not waste a bitstream, which would create an state of error
-    assign mux_use_last_bit =   ((flag_final != 2'b11) && (flag_final != 2'b00) && (!reg_flag_second_time_reading) && (in_previous_bitstream == previous_input_bit_1)) ? 1'b1 :
+    assign mux_use_last_bit =   ((flag_final != 3'b011) && (flag_final != 3'b000) && (!reg_flag_second_time_reading) && (in_previous_bitstream == previous_input_bit_1)) ? 1'b1 :
                                 1'b0;
     // ===========================================================================
     // Flags
@@ -163,21 +167,22 @@ module auxiliar_carry_propagation #(
         // 01- done with execution and it isn't necessary to propagate the carry
         // 10- done with execution and [bitstream + 1] on the first
         // 11- memory empty
-    assign flag_final =     (flag_first) ? 4'd0 :                                   // 11 - indicates that the aux memory is empty; 00 - not empty and during the execution
-                            //(reg_flag_final == 2'b10) ? 2'b01 :       // This will avoid bit+1 more than once
-                            ((reg_flag_final == 2'b11) && (reg_addr_write > 0) && (in_flag == 2'b01) && (in_bitstream_1 < 8'd255)) ? 2'b01 :    // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
-                            ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b01) && (in_bitstream_1 < 8'd255)) ? 2'b01 :
-                            ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 < 8'd255)) ? 2'b01 :
-                            ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 < 8'd255)) ? 2'b01 :
-                            ((reg_flag_final == 2'b11) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 < 8'd255)) ? 2'b01 :      // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
-                            ((reg_flag_final == 2'b11) && (reg_addr_write > 0) && (in_flag == 2'b01) && (in_bitstream_1 > 8'd255)) ? 2'b10 :    // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
-                            ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b01) && (in_bitstream_1 > 8'd255)) ? 2'b10 :
-                            ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 > 8'd255)) ? 2'b10 :
-                            ((reg_flag_final == 2'b11) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 > 8'd255)) ? 2'b10 :      // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
-                            ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 > 8'd255)) ? 2'b10 :
-                            (reg_addr_write == 0) ? 2'b11 :
-                            ((reg_flag_final == 2'b10) || (reg_flag_final == 2'b01)) ? reg_flag_final :
-                            2'b00;
+    assign flag_final =     (flag_first) ? 2'd0 :                                   // 11 - indicates that the aux memory is empty; 00 - not empty and during the execution
+                            //(reg_flag_final == 3'b010) ? 2'b01 :       // This will avoid bit+1 more than once
+                            ((reg_flag_final == 3'b011) && (reg_addr_write > 0) && (in_flag == 2'b01) && (in_bitstream_1 < 8'd255)) ? 3'b001 :    // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
+                            ((reg_flag_final == 3'b000) && (reg_addr_write != 0) && (in_flag == 2'b01) && (in_bitstream_1 < 8'd255)) ? 3'b001 :
+                            ((reg_flag_final == 3'b000) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 < 8'd255)) ? 3'b001 :
+                            ((reg_flag_final == 3'b000) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 < 8'd255)) ? 3'b001 :
+                            ((reg_flag_final == 3'b011) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 < 8'd255)) ? 3'b001 :      // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
+                            ((reg_flag_final == 3'b011) && (reg_addr_write > 0) && (in_flag == 2'b01) && (in_bitstream_1 > 8'd255)) ? 3'b010 :    // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
+                            ((reg_flag_final == 3'b000) && (reg_addr_write != 0) && (in_flag == 2'b01) && (in_bitstream_1 > 8'd255)) ? 3'b010 :
+                            ((reg_flag_final == 3'b000) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 > 8'd255)) ? 3'b010 :
+                            ((reg_flag_final == 3'b011) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 > 8'd255)) ? 3'b010 :      // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
+                            ((reg_flag_final == 3'b000) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 > 8'd255)) ? 3'b010 :
+                            ((reg_flag_final == 3'b000) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 > 8'd255) && (in_bitstream_2 > 8'd255)) ? 3'b100 :
+                            ((reg_addr_write == 0) && (addr_write == 0)) ? 3'b011 :
+                            ((reg_flag_final == 3'b010) || (reg_flag_final == 3'b001)) ? reg_flag_final :
+                            3'b000;
     // ===========================================================================
     // Buffer
     // These 3 variables here are used as input for the buffer and basically decide, with the buffer_ctrl, which bitstreams should be saved into the buffer and what is the right order to do it
@@ -186,13 +191,13 @@ module auxiliar_carry_propagation #(
                             (flag_start) ? in_previous_bitstream :
                             ((reg_addr_write != 0) && (in_flag == 2'b01) && (in_bitstream_1 == 8'd255)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
                             ((reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 == 8'd255)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                            ((flag_final != 00) && (flag_final != 2'b11) && (in_flag != 2'b0)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
+                            ((flag_final != 00) && (flag_final != 3'b011) && (in_flag != 2'b0)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
                             8'd0;
 
     assign buffer_in_2 =    ((flag_start) && (in_standby_flag)) ? in_previous_bitstream :
                             (flag_start) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
                             ((reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 == 8'd255)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
-                            ((flag_final != 2'b00) && (flag_final != 2'b11) && (in_flag == 2'b11)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
+                            ((flag_final != 3'b000) && (flag_final != 3'b011) && (in_flag == 2'b11)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
                             8'd0;
 
     assign buffer_in_3 =    ((flag_start) && (!in_standby_flag) && (in_flag == 2'b11)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
@@ -217,17 +222,18 @@ module auxiliar_carry_propagation #(
                                 ((reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 == 8'd255)) ? reg_addr_write + 4'd2 :
                                 4'd0;
 
-    assign addr_write_final =   ((reg_addr_read >= (reg_addr_write-1)) || (flag_final == 2'b11) || (flag_final == 2'b00)) ? 4'd0 :
-                                ((flag_final != 2'b00) && (flag_final != 2'b11) && (in_flag == 2'b01)) ? reg_addr_write + 4'd1 :
-                                ((flag_final != 2'b00) && (flag_final != 2'b11) && (in_flag == 2'b11)) ? reg_addr_write + 4'd2 :
+    assign addr_write_final =   ((reg_addr_read >= (reg_addr_write-1)) || (flag_final == 3'b011) || (flag_final == 3'b000)) ? 4'd0 :
+                                ((flag_final != 3'b000) && (flag_final != 3'b011) && (in_flag == 2'b01)) ? reg_addr_write + 4'd1 :
+                                ((flag_final != 3'b000) && (flag_final != 3'b011) && (in_flag == 2'b11)) ? reg_addr_write + 4'd2 :
                                 ((reg_addr_write != 0) && (reg_addr_read >= (reg_addr_write-1))) ? 4'd0 :
                                 reg_addr_write;
 
     assign addr_read =  (flag_first) ? 4'd0 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+2) < reg_addr_write)) ? reg_addr_read + 4'd3 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+1) < reg_addr_write)) ? reg_addr_read + 4'd2 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && (reg_addr_read < reg_addr_write)) ? reg_addr_read + 4'd1 :
-                        ((reg_addr_read >= (reg_addr_write-1)) || (flag_final == 2'b11) || (flag_final == 2'b00)) ? 4'd0 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+1) < reg_addr_write) && (in_flag == 2'b11) && (reg_flag_second_time_reading)) ? reg_addr_read + 4'd3 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+2) < reg_addr_write)) ? reg_addr_read + 4'd3 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+1) < reg_addr_write)) ? reg_addr_read + 4'd2 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && (reg_addr_read < reg_addr_write)) ? reg_addr_read + 4'd1 :
+                        ((reg_addr_read >= (reg_addr_write-1)) || (flag_final == 3'b011) || (flag_final == 3'b000)) ? 4'd0 :
                         reg_addr_read;
 
     // ===========================================================================
@@ -237,31 +243,41 @@ module auxiliar_carry_propagation #(
     // It is also necessary to do not release too many bitstreams
     // So here it will be kept the bitstream that is currently saved on the main block's previous_bitstream register.
 
-    assign out_bit_1 =  ((flag_final == 2'b10) && (reg_addr_read < reg_addr_write) && (!reg_flag_second_time_reading)) ? buffer[reg_addr_read] + 8'd1 :
-                        ((flag_final == 2'b01) && (reg_addr_read < reg_addr_write) && (!reg_flag_second_time_reading)) ? buffer[reg_addr_read] :
-                        ((flag_final == 2'b10) && ((reg_addr_read+1) < reg_addr_write) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read] + 8'd1 :
-                        ((flag_final == 2'b01) && ((reg_addr_read+1) < reg_addr_write) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read] :
+    assign out_bit_1 =  (((flag_final == 3'b010) || (flag_final == 3'b100)) && (reg_addr_read < reg_addr_write) && (!reg_flag_second_time_reading)) ? buffer[reg_addr_read] + 8'd1 :
+                        ((flag_final == 3'b100) && (reg_addr_read < reg_addr_write) && (reg_flag_second_time_reading) && (buffer[reg_addr_read] != 8'd255)) ? buffer[reg_addr_read] + 8'd1 :    // When I get flag 3 and b1/b2 both > 255
+                        ((flag_final == 3'b001) && (reg_addr_read < reg_addr_write) && (!reg_flag_second_time_reading)) ? buffer[reg_addr_read] :
+                        ((flag_final == 3'b010) && ((reg_addr_read+1) < reg_addr_write) && (reg_flag_second_time_reading) && (previous_input_flag == 2'b11) && (previous_input_bit_2_original > 255)) ? buffer[reg_addr_read] + 8'd1 :
+                        ((flag_final == 3'b001) && ((reg_addr_read+1) < reg_addr_write) && (reg_flag_second_time_reading) && (previous_input_flag == 2'b11) && (previous_input_bit_2_original > 255)) ? buffer[reg_addr_read] +8'd1 :
+                        ((flag_final == 3'b010) && ((reg_addr_read+1) < reg_addr_write) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read] :
+                        ((flag_final == 3'b001) && ((reg_addr_read+1) < reg_addr_write) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read] :
                         8'd0;
 
-    assign out_bit_2 =  ((flag_final == 2'b10) && ((reg_addr_read+1) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 8'd0 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+1) < reg_addr_write) && (!reg_flag_second_time_reading)) ? buffer[reg_addr_read+1] :
-                        ((flag_final == 2'b10) && ((reg_addr_read+2) < reg_addr_write) && (reg_flag_second_time_reading)) ? 8'd0 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+2) < reg_addr_write) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read+1] :
+    assign out_bit_2 =  (((flag_final == 3'b010) || (flag_final == 3'b100)) && ((reg_addr_read+1) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 8'd0 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+1) < reg_addr_write) && (!reg_flag_second_time_reading)) ? buffer[reg_addr_read+1] :
+                        ((flag_final == 3'b010) && ((reg_addr_read+2) < reg_addr_write) && (reg_flag_second_time_reading)) ? 8'd0 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+1) < reg_addr_write) && (in_flag == 2'b11) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read+1] :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+2) < reg_addr_write) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read+1] :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+2) < reg_addr_write) && (in_flag == 2'b01) && (in_bitstream_1 > 255) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read+1] + 8'd1 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+2) < reg_addr_write) && (in_flag == 2'b01) && (in_bitstream_1 < 255) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read+1] :
                         8'd0;
 
-    assign out_bit_3 =  ((flag_final == 2'b10) && ((reg_addr_read+2) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 8'd0 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+2) < reg_addr_write) && (!reg_flag_second_time_reading)) ? buffer[reg_addr_read+2] :
-                        ((flag_final == 2'b10) && ((reg_addr_read+3) < reg_addr_write) && (reg_flag_second_time_reading)) ? 8'd0 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+3) < reg_addr_write) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read+2] :
+    assign out_bit_3 =  (((flag_final == 3'b010) || (flag_final == 3'b100)) && ((reg_addr_read+2) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 8'd0 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+2) < reg_addr_write) && (!reg_flag_second_time_reading)) ? buffer[reg_addr_read+2] :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+1) < reg_addr_write) && (in_flag == 2'b11) && (in_bitstream_2 < 255) && (reg_flag_second_time_reading)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] : // This case happens when I get flag 3 and b1/b2 != 255.
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+1) < reg_addr_write) && (in_flag == 2'b11) && (in_bitstream_2 > 255) && (reg_flag_second_time_reading)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + 8'd1 : // This case happens when I get flag 3 and b1/b2 != 255.
+                        ((flag_final == 3'b010) && ((reg_addr_read+3) < reg_addr_write) && (reg_flag_second_time_reading)) ? 8'd0 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+3) < reg_addr_write) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read+2] :
                         8'd0;
 
-    assign out_flag =   ((flag_final != 2'b11) && (flag_final != 2'b00) && (!reg_flag_second_time_reading) && (in_previous_bitstream == previous_input_bit_1) && (in_previous_bitstream != 255)) ? 3'b100 :       // It must not choose this line when line 142
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+2) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b010 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+1) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b011 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && (reg_addr_read < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b001 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+3) < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b010 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+2) < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b011 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+1) < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b001 :
-                        ((flag_final != 2'b11) && (flag_final != 2'b00) && (reg_addr_read < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b000 :
+    assign out_flag =   ((flag_final != 3'b011) && (flag_final != 3'b000) && (!reg_flag_second_time_reading) && (in_previous_bitstream == previous_input_bit_1) && (in_previous_bitstream != 255)) ? 3'b100 :       // It must not choose this line when line 142
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+2) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b010 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+1) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b011 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && (reg_addr_read < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b001 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+3) < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b010 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+2) < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b011 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+1) < reg_addr_write) && (in_flag == 2'b11) && (reg_flag_second_time_reading)) ? 3'b010 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+1) < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b001 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && (reg_addr_read < reg_addr_write) && (reg_flag_second_time_reading)) ? 3'b000 :
+                        ((flag_final != 3'b011) && (flag_final != 3'b000) && ((reg_addr_read+2) < reg_addr_write) && (in_flag == 2'b01) && (reg_flag_second_time_reading)) ? 3'b011 :
                         3'b000;
 endmodule
