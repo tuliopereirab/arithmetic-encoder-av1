@@ -124,13 +124,22 @@ module auxiliar_carry_propagation #(
                         ((reg_addr_write == 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 == 8'd255)) ? 1'b1 :
                         1'b0;
 
-    assign flag_final =     (flag_first) ? 4'd0 :
+    // Flag_final map
+        // 00- not empty and during the execution of the auxiliar carry propagation
+        // 01- done with execution and it isn't necessary to propagate the carry
+        // 10- done with execution and [bitstream + 1] on the first
+        // 11- memory empty
+    assign flag_final =     (flag_first) ? 4'd0 :                                   // 11 - indicates that the aux memory is empty; 00 - not empty and during the execution
                             //(reg_flag_final == 2'b10) ? 2'b01 :       // This will avoid bit+1 more than once
+                            ((reg_flag_final == 2'b11) && (reg_addr_write > 0) && (in_flag == 2'b01) && (in_bitstream_1 < 8'd255)) ? 2'b01 :    // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
                             ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b01) && (in_bitstream_1 < 8'd255)) ? 2'b01 :
                             ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 < 8'd255)) ? 2'b01 :
                             ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 < 8'd255)) ? 2'b01 :
+                            ((reg_flag_final == 2'b11) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 < 8'd255)) ? 2'b01 :      // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
+                            ((reg_flag_final == 2'b11) && (reg_addr_write > 0) && (in_flag == 2'b01) && (in_bitstream_1 > 8'd255)) ? 2'b10 :    // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
                             ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b01) && (in_bitstream_1 > 8'd255)) ? 2'b10 :
                             ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 > 8'd255)) ? 2'b10 :
+                            ((reg_flag_final == 2'b11) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 > 8'd255)) ? 2'b10 :      // when I get 2 bitstreams in a row and the reg_flag_final doesn't have time to be updated
                             ((reg_flag_final == 2'b00) && (reg_addr_write != 0) && (in_flag == 2'b11) && (in_bitstream_1 == 8'd255) && (in_bitstream_2 > 8'd255)) ? 2'b10 :
                             (reg_addr_write == 0) ? 2'b11 :
                             ((reg_flag_final == 2'b10) || (reg_flag_final == 2'b01)) ? reg_flag_final :
@@ -200,7 +209,7 @@ module auxiliar_carry_propagation #(
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+3) < reg_addr_write) && (reg_flag_second_time_reading)) ? buffer[reg_addr_read+2] :
                         8'd0;
 
-    assign out_flag =   ((flag_final != 2'b11) && (flag_final != 2'b00) && (!reg_flag_second_time_reading) && (in_previous_bitstream == previous_input_bit_1)) ? 3'b100 :
+    assign out_flag =   ((flag_final != 2'b11) && (flag_final != 2'b00) && (!reg_flag_second_time_reading) && (in_previous_bitstream == previous_input_bit_1)) ? 3'b100 :       // It must not choose this line when line 142
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+2) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b010 :
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && ((reg_addr_read+1) < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b011 :
                         ((flag_final != 2'b11) && (flag_final != 2'b00) && (reg_addr_read < reg_addr_write) && (!reg_flag_second_time_reading)) ? 3'b001 :
