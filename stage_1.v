@@ -34,7 +34,7 @@ module stage_1 #(
     assign bool_out = ~bool;
     assign out_symbol = SYMBOL;
 
-    lut_u #(
+    lut #(
         .DATA_WIDTH (LUT_DATA_WIDTH),
         .ADDR_WIDTH (LUT_ADDR_WIDTH)
         ) lut_u (
@@ -42,7 +42,7 @@ module stage_1 #(
             .addr (lut_addr),
             .q (lut_u_out)
         );
-    lut_v #(
+    lut #(
         .DATA_WIDTH (LUT_DATA_WIDTH),
         .ADDR_WIDTH (LUT_ADDR_WIDTH)
         ) lut_v (

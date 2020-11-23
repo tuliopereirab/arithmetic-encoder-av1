@@ -1,4 +1,4 @@
-module lut_u #(
+module lut #(
     parameter DATA_WIDTH=16,
     parameter ADDR_WIDTH=8
     )(
