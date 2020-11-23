@@ -15,37 +15,37 @@ add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/arith_encoder/OUT
 add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/arith_encoder/OUT_BIT_2
 add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/arith_encoder/OUT_FLAG_BITSTREAM
 add wave -noupdate -divider Flags
-add wave -noupdate -color {Dark Orchid} -radix unsigned /entropy_encoder_tb/ent_enc/carry_propagation/flag
-add wave -noupdate -color {Dark Orchid} -radix unsigned /entropy_encoder_tb/ent_enc/carry_propagation/flag_final_bits
-add wave -noupdate -color {Dark Orchid} -radix unsigned /entropy_encoder_tb/ent_enc/carry_propagation/in_flag_standby
-add wave -noupdate -color {Dark Orchid} -radix unsigned /entropy_encoder_tb/ent_enc/carry_propagation/flag_possible_error_in
+add wave -noupdate -color {Dark Orchid} -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/carry_propagation/flag
+add wave -noupdate -color {Dark Orchid} -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/carry_propagation/flag_final_bits
+add wave -noupdate -color {Dark Orchid} -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/carry_propagation/in_flag_standby
+add wave -noupdate -color {Dark Orchid} -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/carry_propagation/flag_possible_error_in
 add wave -noupdate -divider Bitstreams
-add wave -noupdate -color {Orange Red} -radix unsigned /entropy_encoder_tb/ent_enc/carry_propagation/in_new_bitstream_1
-add wave -noupdate -color {Orange Red} -radix unsigned /entropy_encoder_tb/ent_enc/carry_propagation/in_new_bitstream_2
-add wave -noupdate -color {Orange Red} -radix unsigned /entropy_encoder_tb/ent_enc/carry_propagation/in_previous_bitstream
-add wave -noupdate -color {Orange Red} -radix unsigned /entropy_encoder_tb/ent_enc/carry_propagation/in_standby_bitstream
+add wave -noupdate -color {Orange Red} -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/carry_propagation/in_new_bitstream_1
+add wave -noupdate -color {Orange Red} -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/carry_propagation/in_new_bitstream_2
+add wave -noupdate -color {Orange Red} -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/carry_propagation/in_previous_bitstream
+add wave -noupdate -color {Orange Red} -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/carry_propagation/in_standby_bitstream
 add wave -noupdate -divider -height 20 {NEW AUXILIAR}
 add wave -noupdate -divider {Inputs Aux}
-add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_standby_flag
-add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_flag
-add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_bitstream_1
-add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_bitstream_2
-add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_previous_bitstream
-add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/in_standby_bitstream
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/in_standby_flag
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/in_flag
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/in_bitstream_1
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/in_bitstream_2
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/in_previous_bitstream
+add wave -noupdate -color Sienna -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/in_standby_bitstream
 add wave -noupdate -divider Inside
-add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/reg_flag_final
-add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/reg_addr_write
-add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/reg_addr_read
-add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/flag_final
-add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/flag_start
-add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/flag_second_time
-add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/reg_flag_second_time_reading
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/reg_flag_final
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/reg_addr_write
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/reg_addr_read
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/flag_final
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/flag_start
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/flag_second_time
+add wave -noupdate -color Magenta -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/reg_flag_second_time_reading
 add wave -noupdate -divider {Out Auxiliar}
-add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/out_bit_1
-add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/out_bit_2
-add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/out_bit_3
-add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/out_flag
-add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/aux_carry_propagation/ctrl_mux_final
+add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/out_bit_1
+add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/out_bit_2
+add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/out_bit_3
+add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/out_flag
+add wave -noupdate -radix unsigned /entropy_encoder_tb/ent_enc/state_pipeline_4/aux_carry_propagation/ctrl_mux_final
 add wave -noupdate -divider {GENERAL OUTPUTS}
 add wave -noupdate -color Gold -radix unsigned /entropy_encoder_tb/ent_enc/OUT_BIT_1
 add wave -noupdate -color Gold -radix unsigned /entropy_encoder_tb/ent_enc/OUT_BIT_2
