@@ -52,7 +52,7 @@ module stage_4 #(
     wire out_carry_flag_last, out_carry_flag_standby, out_carry_flag_possible_error, out_carry_confirmed_error;
     reg reg_flag_last_output, reg_flag_standby, reg_possible_error, reg_confirmed_error;
     reg [2:0] reg_carry_flag;
-    reg [(S4_BITSTREAM_WIDTH-1):0] reg_previous_bitstream, reg_out_bitstream_1, reg_out_bitstream_2, reg_out_bitstream_3, reg_standby_bitstream, alternative_last_bit;
+    reg [(S4_BITSTREAM_WIDTH-1):0] reg_previous_bitstream, reg_out_bitstream_1, reg_out_bitstream_2, reg_out_bitstream_3, reg_out_bitstream_4, reg_standby_bitstream, alternative_last_bit;
 
     // Auxiliar Control to use the last bit output differently
     wire ctrl_mux_use_last_bit;
@@ -62,7 +62,7 @@ module stage_4 #(
     assign out_carry_bit_2 = reg_out_bitstream_2;
     assign out_carry_bit_3 = reg_out_bitstream_3;
     assign out_carry_error = reg_confirmed_error;
-    assign out_carry_last_bit =     (ctrl_mux_use_last_bit) ? alternative_last_bit :
+    assign out_carry_last_bit =     (ctrl_mux_use_last_bit) ? reg_out_bitstream_4 :
                                     reg_previous_bitstream;
     assign out_carry_flag_bitstream = reg_carry_flag;
     assign output_flag_last = reg_flag_last_output;
@@ -114,7 +114,7 @@ module stage_4 #(
 
     // auxiliar carry propagation
     wire mux_output_ctrl;
-    wire [(S4_BITSTREAM_WIDTH-1):0] out_bit_1_aux, out_bit_2_aux, out_bit_3_aux;
+    wire [(S4_BITSTREAM_WIDTH-1):0] out_bit_1_aux, out_bit_2_aux, out_bit_3_aux, out_bit_4_aux;
     wire [(S4_BITSTREAM_WIDTH-1):0] mux_output_bit_1, mux_output_bit_2, mux_output_bit_3;
     wire [2:0] out_flag_aux, mux_output_flag;
 
@@ -137,6 +137,7 @@ module stage_4 #(
             .out_bit_1 (out_bit_1_aux),
             .out_bit_2 (out_bit_2_aux),
             .out_bit_3 (out_bit_3_aux),
+            .out_bit_4 (out_bit_4_aux),
             .out_flag (out_flag_aux),
             .ctrl_mux_last_bit (ctrl_mux_use_last_bit)
         );
@@ -167,6 +168,7 @@ module stage_4 #(
             reg_out_bitstream_1 <= mux_output_bit_1;
             reg_out_bitstream_2 <= mux_output_bit_2;
             reg_out_bitstream_3 <= mux_output_bit_3;
+            reg_out_bitstream_4 <= out_bit_4_aux;       // This one will be used only when releasing the Out_4 from Aux CARRY
             reg_flag_last_output <= out_carry_flag_last;
             reg_standby_bitstream <= out_carry_standby_bitstream;
             reg_possible_error <= out_carry_flag_possible_error;
