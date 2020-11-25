@@ -16,7 +16,7 @@ add wave -noupdate -color {Cornflower Blue} -radix unsigned /tb_carry_propagatio
 add wave -noupdate -color {Cornflower Blue} -radix unsigned /tb_carry_propagation/state_pipeline_4/aux_carry_propagation/reg_addr_read
 add wave -noupdate -color {Cornflower Blue} -radix unsigned /tb_carry_propagation/state_pipeline_4/aux_carry_propagation/reg_propag
 add wave -noupdate -color {Cornflower Blue} /tb_carry_propagation/state_pipeline_4/aux_carry_propagation/reg_status
-add wave -noupdate -divider {Main Wires}
+add wave -noupdate -divider {Main Wires}
 add wave -noupdate -color Gold -radix unsigned /tb_carry_propagation/state_pipeline_4/aux_carry_propagation/addr_write
 add wave -noupdate -color Gold -radix unsigned /tb_carry_propagation/state_pipeline_4/aux_carry_propagation/addr_read
 add wave -noupdate -color Gold -radix binary /tb_carry_propagation/state_pipeline_4/aux_carry_propagation/buffer_ctrl
