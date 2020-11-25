@@ -208,7 +208,7 @@ module auxiliar_carry_propagation #(
         // because these values were already defined by Status_Flag
     assign buffer_ctrl_final_first =    (((status_flag == 3'b001) || (status_flag == 3'b010)) && (reg_addr_write > 4)) ? 3'b001 :
                                         (((status_flag == 3'b100) || (status_flag == 3'b101) || (status_flag == 3'b110)) && (reg_addr_write > 3)) ? 3'b010 :
-                                        (status_flag == 3'b011) ? 3'b010 :
+                                        ((status_flag == 3'b011) && (reg_addr_write > 3)) ? 3'b010 :
                                         3'b000;
     assign buffer_ctrl_final_second_no_carry =  ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 4)) ? 3'b001 :
                                                 ((in_flag == 2'b11) && ((reg_addr_write - reg_addr_read) == 4)) ? 3'b010 :
@@ -284,7 +284,8 @@ module auxiliar_carry_propagation #(
     assign buffer_1_final_first =   (((status_flag == 3'b001) || (status_flag == 3'b010)) && (reg_addr_write > 4)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
                                     ((status_flag == 3'b101) && (reg_addr_write > 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + 1 :
                                     ((status_flag == 3'b110) && (reg_addr_write > 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                                    (status_flag == 3'b011) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + 1 :
+                                    ((status_flag == 3'b011) && (reg_addr_write == 3)) ? 8'd0 :
+                                    ((status_flag == 3'b011) && (reg_addr_write > 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + 1 :
                                     8'd0;
     assign buffer_1_final_second_no_carry = ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 4)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
                                             ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 4)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + in_bitstream_2[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
@@ -297,7 +298,7 @@ module auxiliar_carry_propagation #(
                                             8'd0;
     // Buffer 2 Final
     assign buffer_2_final_first =   (((status_flag == 3'b100) || (status_flag == 3'b101) || (status_flag == 3'b110)) && (reg_addr_write > 3)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
-                                    (status_flag == 3'b011) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
+                                    ((status_flag == 3'b011) && (reg_addr_write > 3)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
                                     8'd0;
     assign buffer_2_final_second_no_carry = ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 4)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
                                             ((in_flag == 2'b01) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
@@ -338,7 +339,7 @@ module auxiliar_carry_propagation #(
     // Sub sub-variables
     assign addr_write_final_first = (((status_flag == 3'b001) || (status_flag == 3'b010)) && (reg_addr_write > 4)) ? reg_addr_write + 4'd1 :
                                     (((status_flag == 3'b100) || (status_flag == 3'b101) || (status_flag == 3'b110)) && (reg_addr_write > 3)) ? reg_addr_write + 4'd2 :
-                                    (status_flag == 3'b011) ? reg_addr_write + 4'd2 :
+                                    ((status_flag == 3'b011) && (reg_addr_write > 3)) ? reg_addr_write + 4'd2 :
                                     4'd0;
     assign addr_write_final_second_no_carry =   ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 4)) ? reg_addr_write + 4'd1 :
                                                 ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 4)) ? reg_addr_write + 4'd2 :
@@ -365,7 +366,7 @@ module auxiliar_carry_propagation #(
     // Addr_read's sub-variables
     assign addr_read_first =    (((status_flag == 3'b001) || (status_flag == 3'b010)) && (reg_addr_write > 4)) ? reg_addr_read + 4'd4 :
                                 (((status_flag == 3'b100) || (status_flag == 3'b101) || (status_flag == 3'b110)) && (reg_addr_write > 3)) ? reg_addr_read + 4'd4 :
-                                (status_flag == 3'b011) ? reg_addr_read + 4'd4 :
+                                ((status_flag == 3'b011) && (reg_addr_write > 3)) ? reg_addr_read + 4'd4 :
                                 4'd0;
     assign addr_read_second_no_carry =  ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 4)) ? reg_addr_read + 4'd4 :
                                         ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 4)) ? reg_addr_read + 4'd4 :
@@ -413,19 +414,26 @@ module auxiliar_carry_propagation #(
     assign out_1_first =    ((status_flag == 3'b001) || (status_flag == 3'b101)) ? buffer[reg_addr_read] :
                             ((status_flag == 3'b010) || (status_flag == 3'b000) || (status_flag == 3'b110) || (status_flag == 3'b011)) ? buffer[reg_addr_read] + 8'd1 :
                             8'd0;
-    assign out_1_second_no_carry = buffer[addr_read];
+    assign out_1_second_no_carry =  ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) < 2)) ? 8'd0 :
+                                    (((in_flag == 2'b01) || (in_flag == 2'b11)) && ((reg_addr_write - reg_addr_read) < 2)) ? buffer[addr_read] + in_bitstream_1[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
+                                    buffer[addr_read];
     assign out_1_second_carry = 8'd0;
+
     // Out 2
     assign out_2_first =    ((status_flag == 3'b001) || (status_flag == 3'b101)) ? buffer[reg_addr_read+1] :
                             8'd0;
-    assign out_2_second_no_carry =  ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) == 2)) ? 8'd0 :
+    assign out_2_second_no_carry =  ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) <= 2)) ? 8'd0 :
+                                    ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) < 2)) ? 8'd0 :
+                                    ((in_flag == 2'b11) && ((reg_addr_write - reg_addr_read) < 2)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + in_bitstream_2[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
                                     ((reg_addr_write - reg_addr_read) == 2) ? buffer[reg_addr_read+1] + in_bitstream_1[(OUTPUT_WIDTH-1):0] :
                                     buffer[reg_addr_read+1];
     assign out_2_second_carry = 8'd0;
+
     // Out 3
     assign out_3_first =    ((status_flag == 3'b001) || (status_flag == 3'b101)) ? buffer[reg_addr_read+2] :
                             8'd0;
-    assign out_3_second_no_carry =  (((in_flag == 2'b01) || (in_flag == 2'b00)) && ((reg_addr_write - reg_addr_read) == 2)) ? 8'd0 :
+    assign out_3_second_no_carry =  ((reg_addr_write - reg_addr_read) < 2) ? 8'd0 :
+                                    (((in_flag == 2'b01) || (in_flag == 2'b00)) && ((reg_addr_write - reg_addr_read) == 2)) ? 8'd0 :
                                     ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 2)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + in_bitstream_2[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
                                     ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) == 3)) ? 8'd0 :
                                     ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 3)) ? buffer[reg_addr_read+2] + in_bitstream_1[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
@@ -437,7 +445,8 @@ module auxiliar_carry_propagation #(
                             ((status_flag == 3'b101) && (reg_addr_write == 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + 8'd1 :
                             ((status_flag == 3'b101) && (reg_addr_write > 3)) ? buffer[reg_addr_read+3] :
                             ((status_flag == 3'b110) && (reg_addr_write == 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                            (status_flag == 3'b011) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + 8'd1 :
+                            ((status_flag == 3'b011) && (reg_addr_write == 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + 8'd1 :
+                            ((status_flag == 3'b011) && (reg_addr_write > 3)) ? 8'd0 :
                             8'd0;
     assign out_4_second_no_carry =  ((reg_addr_write - reg_addr_read) == 2) ? 8'd0 :
                                     ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
@@ -456,7 +465,10 @@ module auxiliar_carry_propagation #(
                             ((status_flag == 3'b010) && (reg_addr_write > 4)) ? 3'b100 :
                             3'b100;
 
-    assign out_flag_second_no_carry =   ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) == 2)) ? 3'b001 :
+    assign out_flag_second_no_carry =   ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) < 2)) ? 3'b000 :
+                                        ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) < 2)) ? 3'b001 :
+                                        ((in_flag == 2'b11) && ((reg_addr_write - reg_addr_read) < 2)) ? 3'b011 :
+                                        ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) == 2)) ? 3'b001 :
                                         ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 2)) ? 3'b011 :
                                         ((in_flag == 2'b11) && ((reg_addr_write - reg_addr_read) == 2)) ? 3'b010 :
                                         ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) == 3)) ? 3'b011 :
