@@ -31,42 +31,65 @@ module auxiliar_carry_propagation #(
 
     // addr_write
     wire [(ADDR_WIDTH-1):0] addr_write;
-    wire [(ADDR_WIDTH-1):0] addr_write_start, addr_write_middle, addr_write_final;
-    wire [(ADDR_WIDTH-1):0] addr_write_final_first, addr_write_final_second_no_carry, addr_write_final_carry;
+    wire [(ADDR_WIDTH-1):0] addr_write_start, addr_write_final;
+    wire [(ADDR_WIDTH-1):0] addr_write_final_first, addr_write_final_c0, addr_write_final_c1;
+    wire [(ADDR_WIDTH-1):0] addr_write_final_c2, addr_write_final_c3, addr_write_final_c4;
     reg [(ADDR_WIDTH-1):0] reg_addr_write;
 
     // addr_read
     wire [(ADDR_WIDTH-1):0] addr_read;
-    wire [(ADDR_WIDTH-1):0] addr_read_first, addr_read_second_no_carry, addr_read_second_carry;
+    wire [(ADDR_WIDTH-1):0] addr_read_first, addr_read_c0, addr_read_c1;
+    wire [(ADDR_WIDTH-1):0] addr_read_c2, addr_read_c3, addr_read_c4;
     reg [(ADDR_WIDTH-1):0] reg_addr_read;
 
     // connections for the 4 out_bit output pins
-    wire [(OUTPUT_WIDTH-1):0] out_1_first, out_1_second_no_carry, out_1_second_carry;
-    wire [(OUTPUT_WIDTH-1):0] out_2_first, out_2_second_no_carry, out_2_second_carry;
-    wire [(OUTPUT_WIDTH-1):0] out_3_first, out_3_second_no_carry, out_3_second_carry;
-    wire [(OUTPUT_WIDTH-1):0] out_4_first, out_4_second_no_carry, out_4_second_carry;
-    wire [2:0] out_flag_first, out_flag_second_no_carry, out_flag_second_carry;
+    // out 1
+    wire [(OUTPUT_WIDTH-1):0] out_1_first, out_1_c0, out_1_c1, out_1_c2, out_1_c3, out_1_c4;
+
+    // out 2
+    wire [(OUTPUT_WIDTH-1):0] out_2_first, out_2_c0, out_2_c1, out_2_c2, out_2_c3, out_2_c4;
+
+    // out 3
+    wire [(OUTPUT_WIDTH-1):0] out_3_first, out_3_c0, out_3_c1, out_3_c2, out_3_c3, out_3_c4;
+
+    // out 4
+    wire [(OUTPUT_WIDTH-1):0] out_4_first, out_4_c0, out_4_c1, out_4_c2, out_4_c3, out_4_c4;
+
+    // out flag
+    wire [2:0] out_flag_first, out_flag_c0, out_flag_c1, out_flag_c2;
+    wire [2:0] out_flag_c3, out_flag_c4;
 
     // all wires related to the buffer operations
-    wire [(OUTPUT_WIDTH-1):0] buffer_1, buffer_2, buffer_3, buffer_4;
+    wire [(OUTPUT_WIDTH-1):0] buffer_1, buffer_2, buffer_3;
     // buffer 1
-    wire [(OUTPUT_WIDTH-1):0] buffer_1_final, buffer_1_middle, buffer_1_start;
-    wire [(OUTPUT_WIDTH-1):0] buffer_1_final_first, buffer_1_final_second_no_carry, buffer_1_final_second_carry;
+    wire [(OUTPUT_WIDTH-1):0] buffer_1_final, buffer_1_start;
+    wire [(OUTPUT_WIDTH-1):0] buffer_1_final_first, buffer_1_final_c0, buffer_1_final_c1;
+    wire [(OUTPUT_WIDTH-1):0] buffer_1_final_c2, buffer_1_final_c3, buffer_1_final_c4;
     // buffer 2
-    wire [(OUTPUT_WIDTH-1):0] buffer_2_final, buffer_2_middle, buffer_2_start;
-    wire [(OUTPUT_WIDTH-1):0] buffer_2_final_first, buffer_2_final_second_no_carry, buffer_2_final_second_carry;
+    wire [(OUTPUT_WIDTH-1):0] buffer_2_final;
+    wire [(OUTPUT_WIDTH-1):0] buffer_2_final_first, buffer_2_final_c0, buffer_2_final_c1;
+    wire [(OUTPUT_WIDTH-1):0] buffer_2_final_c2, buffer_2_final_c3, buffer_2_final_c4;
     //buffer 3
-    wire [(OUTPUT_WIDTH-1):0] buffer_3_final, buffer_3_middle, buffer_3_start;
-    wire [(OUTPUT_WIDTH-1):0] buffer_3_final_second_no_carry, buffer_3_final_second_carry;
+    wire [(OUTPUT_WIDTH-1):0] buffer_3_final;
+    wire [(OUTPUT_WIDTH-1):0] buffer_3_final_c0, buffer_3_final_c1, buffer_3_final_c2;
+    wire [(OUTPUT_WIDTH-1):0] buffer_3_final_c3, buffer_3_final_c4;
     // Buffer 4 doesn't have any connections because it is only used during the START phase
     // Buffer control
     wire [2:0] buffer_ctrl;
-    wire [2:0] buffer_ctrl_start, buffer_ctrl_middle, buffer_ctrl_final;
-    wire [2:0] buffer_ctrl_final_first, buffer_ctrl_final_second_no_carry, buffer_ctrl_final_second_carry;
+    wire [2:0] buffer_ctrl_start, buffer_ctrl_final;
+    wire [2:0] buffer_ctrl_final_first, buffer_ctrl_final_c0, buffer_ctrl_final_c1;
+    wire [2:0] buffer_ctrl_final_c2, buffer_ctrl_final_c3, buffer_ctrl_final_c4;
+
+    // Counter 255: these register and wire will count the number of 255 received
+    // The width will be set as 32 bits for now and can be changed in the future
+    reg [31:0] reg_counter_255;
+    wire [31:0] counter_255;
+    wire [31:0] counter_255_start, counter_255_middle, counter_255_final;
+    wire [31:0] counter_255_final_first, counter_255_final_c4;
 
     // Other control variables
-    reg [(ADDR_WIDTH-1):0] reg_propag;
-    wire [(ADDR_WIDTH-1):0] propag_zero;    // if FINAL phase and carry required to propagate inside the buffer
+    reg reg_carry;
+    wire carry;    // if FINAL phase and carry required to propagate inside the buffer
                                             // this variable will save the last position of the buffer that must be zero (255 + 1)
     reg [3:0] reg_status;                       // this variables here (reg and wire) save the status
     wire [3:0] status_flag;                     // The comparison between reg_status and status_flag will define if FINAL_first or FINAL_second
@@ -82,13 +105,15 @@ module auxiliar_carry_propagation #(
             reg_addr_write <= 4'd0;
             reg_addr_read <= 4'd0;
             reg_status <= 3'd0;
-            reg_propag <= 4'd0;
+            reg_carry <= 1'd0;
+            reg_counter_255 <= 0;
         end else begin
-            reg_propag <= propag_zero;
+            reg_carry <= carry;
             reg_status <= status_flag;
             reg_addr_write <= addr_write;
             reg_addr_read <= addr_read;
             ctrl_mux_last_bit <= mux_use_last_bit;
+            reg_counter_255 <= counter_255;
         end
     end
 
@@ -96,12 +121,6 @@ module auxiliar_carry_propagation #(
     // The following always basically defines what to do with the buffer each cycle
     always @ (posedge clk) begin
         case(buffer_ctrl)
-            3'b100 : begin
-                buffer[reg_addr_write] <= buffer_1;
-                buffer[reg_addr_write+1] <= buffer_2;
-                buffer[reg_addr_write+2] <= buffer_3;
-                buffer[reg_addr_write+3] <= buffer_4;
-            end
             3'b011 : begin
                 buffer[reg_addr_write] <= buffer_1;
                 buffer[reg_addr_write+1] <= buffer_2;
@@ -153,10 +172,10 @@ module auxiliar_carry_propagation #(
                             4'b0000;
 
     // The variable Propag_zero will basically save the reg_write when the FINAL phase is defined
-    assign propag_zero =    ((status_flag == 4'b0010) || (status_flag == 4'b0110) || (status_flag == 4'b0011) && ((reg_status == 4'b0000) || (reg_status == 4'b0111))) ? reg_addr_write :
-                            ((status_flag == 4'b0100) && ((reg_status == 4'b0000) || (reg_status == 4'b0111))) ? reg_addr_write + 4'd1 :
-                            ((reg_status != 4'b0111) && (reg_status != 4'b0000)) ? reg_propag :
-                            4'd0;
+    assign carry =  ((status_flag == 4'b0010) || (status_flag == 4'b0110) || (status_flag == 4'b0011) && ((reg_status == 4'b0000) || (reg_status == 4'b0111))) ? 1'b1 :
+                    ((status_flag == 4'b0100) && ((reg_status == 4'b0000) || (reg_status == 4'b0111))) ? 1'b1 :
+                    ((reg_status != 4'b0111) && (reg_status != 4'b0000)) ? reg_carry :
+                    1'd0;
 
     // The Phase Flag basically tells the higher variables of the hierarchy which sub-variable to use
     assign phase_flag = (flag_first) ? 2'd0 :
@@ -188,63 +207,45 @@ module auxiliar_carry_propagation #(
 
     assign buffer_ctrl =    (phase_flag == 2'b00) ? 3'b000 :
                             (phase_flag == 2'b01) ? buffer_ctrl_start :
-                            (phase_flag == 2'b10) ? buffer_ctrl_middle :
                             (phase_flag == 2'b11) ? buffer_ctrl_final :
                             3'b000;
 
-    assign buffer_ctrl_start =  ((!in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? 3'b011 :
-                                ((in_standby_flag) && (in_flag == 2'b01) && (in_bitstream_1 == 255)) ? 3'b011 :
-                                ((in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? 3'b100 :
+    assign buffer_ctrl_start =  ((!in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? 3'b001 :
+                                ((in_standby_flag) && (in_flag == 2'b01) && (in_bitstream_1 == 255)) ? 3'b001 :
+                                ((in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? 3'b001 :
                                 3'b000;
-    assign buffer_ctrl_middle = ((in_flag == 2'b01) && (status_flag == 4'b0111)) ? 3'b001 :
-                                ((in_flag == 2'b11) && (status_flag == 4'b0111)) ? 3'b010 :
-                                3'b000;
+
     assign buffer_ctrl_final =  (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? buffer_ctrl_final_first :
-                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_addr_read >= propag_zero)) ? buffer_ctrl_final_second_no_carry :
-                                ((reg_status == status_flag) && (reg_addr_read < propag_zero)) ? buffer_ctrl_final_second_carry :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 0)) ? buffer_ctrl_final_c0 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 1)) ? buffer_ctrl_final_c1 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 2)) ? buffer_ctrl_final_c2 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 3)) ? buffer_ctrl_final_c3 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? buffer_ctrl_final_c4 :
                                 3'b000;
 
 
     // This buffer_ctrl_final_first doesn't consider the in_flag or any bitstreams in the comparisons
         // because these values were already defined by Status_Flag
-    assign buffer_ctrl_final_first =    (((status_flag == 4'b0001) || (status_flag == 4'b0010)) && (reg_addr_write > 4)) ? 3'b001 :
-                                        (((status_flag == 4'b0100) || (status_flag == 4'b0101) || (status_flag == 4'b0110) || (status_flag == 4'b1000)) && (reg_addr_write > 3)) ? 3'b010 :
-                                        ((status_flag == 4'b0011) && (reg_addr_write > 3)) ? 3'b010 :
+    assign buffer_ctrl_final_first =    ((reg_counter_255 >= 3) && ((status_flag == 4'b0001) || (status_flag == 4'b0010) || (status_flag == 4'b0100))) ? 3'b001 :
+                                        ((reg_counter_255 >= 3) && ((status_flag == 4'b0101) || (status_flag == 4'b0110) || (status_flag == 4'b0011) || (status_flag == 4'b1000))) ? 3'b010 :
                                         3'b000;
-    assign buffer_ctrl_final_second_no_carry =  ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 4)) ? 3'b001 :
-                                                ((in_flag == 2'b11) && ((reg_addr_write - reg_addr_read) == 4)) ? 3'b010 :
-                                                ((in_flag == 2'b01) && (in_bitstream_1 < 255) && ((reg_addr_write - reg_addr_read) > 4)) ? 3'b001 :
-                                                ((in_flag == 2'b01) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? 3'b101 :
-                                                ((in_flag == 2'b11) && (in_bitstream_1 < 255) && ((reg_addr_write - reg_addr_read) > 4)) ? 3'b010 :
-                                                ((in_flag == 2'b11) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? 3'b110 :
-                                                3'b000;
-    // When it's necessary to propagate a carry through all 255 bitstreams saved into the buffer
-    // The propagation will be done without throwing out the bitstream != 255
-    // For that, all new values will be saved into the buffer
-    assign buffer_ctrl_final_second_carry = (in_flag == 2'b01) ? 3'b101 :
-                                            (in_flag == 2'b11) ? 3'b110 :
-                                            3'b000;
-
+    assign buffer_ctrl_final_c0 =
+    assign buffer_ctrl_final_c1 =
+    assign buffer_ctrl_final_c2 =
+    assign buffer_ctrl_final_c3 =
+    assign buffer_ctrl_final_c4 =
 
     // set the three main buffer variables
     assign buffer_1 =   (phase_flag == 2'b01) ? buffer_1_start :
-                        (phase_flag == 2'b10) ? buffer_1_middle :
                         (phase_flag == 2'b11) ? buffer_1_final :
                         8'd0;
 
-    assign buffer_2 =   (phase_flag == 2'b01) ? buffer_2_start :
-                        (phase_flag == 2'b10) ? buffer_2_middle :
-                        (phase_flag == 2'b11) ? buffer_2_final :
+    assign buffer_2 =   (phase_flag == 2'b11) ? buffer_2_final :
                         8'd0;
 
-    assign buffer_3 =   (phase_flag == 2'b01) ? buffer_3_start :
-                        (phase_flag == 2'b10) ? buffer_3_middle :
-                        (phase_flag == 2'b11) ? buffer_3_final :
+    assign buffer_3 =   (phase_flag == 2'b11) ? buffer_3_final :
                         8'd0;
 
-    // The buffer 4 doesn't have sub-variables because it is used only during the Start Phase
-    assign buffer_4 =   ((in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
-                        8'd0;
 
     // First set of sub-variables for buffer
     // Buffer 1
@@ -252,68 +253,56 @@ module auxiliar_carry_propagation #(
                             ((in_standby_flag) && (in_flag == 2'b01) && (in_bitstream_1 == 255)) ? in_standby_bitstream :
                             ((in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? in_standby_bitstream :
                             8'd0;
-    assign buffer_1_middle =    ((in_flag == 2'b01) && (status_flag == 4'b0111)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                                ((in_flag == 2'b11) && (status_flag == 4'b0111)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                                8'd0;
     assign buffer_1_final =     (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? buffer_1_final_first :
-                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_addr_read >= propag_zero)) ? buffer_1_final_second_no_carry :
-                                ((reg_status == status_flag) && (reg_addr_read < propag_zero)) ? buffer_1_final_second_carry :
-                                8'd0;
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 0)) ? buffer_1_final_c0 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 1)) ? buffer_1_final_c1 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 2)) ? buffer_1_final_c2 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 3)) ? buffer_1_final_c3 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? buffer_1_final_c4 :
+                                3'b000;
     // Buffer 2
-    assign buffer_2_start = ((!in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                            ((in_standby_flag) && (in_flag == 2'b01) && (in_bitstream_1 == 255)) ? in_previous_bitstream :
-                            ((in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? in_previous_bitstream :
-                            8'd0;
-    assign buffer_2_middle =    ((in_flag == 2'b11) && (status_flag == 4'b0111)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
-                                8'd0;
     assign buffer_2_final =     (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? buffer_2_final_first :
-                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_addr_read >= propag_zero)) ? buffer_2_final_second_no_carry :
-                                ((reg_status == status_flag) && (reg_addr_read < propag_zero)) ? buffer_2_final_second_carry :
-                                8'd0;
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 0)) ? buffer_2_final_c0 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 1)) ? buffer_2_final_c1 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 2)) ? buffer_2_final_c2 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 3)) ? buffer_2_final_c3 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? buffer_2_final_c4 :
+                                3'b000;
     // Buffer 3
-    assign buffer_3_start = ((!in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
-                            ((in_standby_flag) && (in_flag == 2'b01) && (in_bitstream_1 == 255)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                            ((in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                            8'd0;
-    assign buffer_3_middle =    8'd0;   // Not used during the Middle Phase
-    assign buffer_3_final =     ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_addr_read >= propag_zero)) ? buffer_3_final_second_no_carry :
-                                ((reg_status == status_flag) && (reg_addr_read < propag_zero)) ? buffer_3_final_second_carry :
-                                8'd0;
+    assign buffer_3_final =     (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? buffer_3_final_first :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 0)) ? buffer_3_final_c0 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 1)) ? buffer_3_final_c1 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 2)) ? buffer_3_final_c2 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 3)) ? buffer_3_final_c3 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? buffer_3_final_c4 :
+                                3'b000;
     // --------
     // Sub sub-variables
     // Buffer 1 Final
-    assign buffer_1_final_first =   (((status_flag == 4'b0001) || (status_flag == 4'b0010)) && (reg_addr_write > 4)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                                    ((status_flag == 4'b0101) && (reg_addr_write > 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + 1 :
-                                    (((status_flag == 4'b0110) || (status_flag == 4'b1000)) && (reg_addr_write > 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                                    ((status_flag == 4'b0011) && (reg_addr_write == 3)) ? 8'd0 :
-                                    ((status_flag == 4'b0011) && (reg_addr_write > 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + 1 :
+    assign buffer_1_final_first =   ((reg_counter_255 >= 3) && ((status_flag == 4'b0001) || (status_flag == 4'b0010) || (status_flag == 4'b0100))) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
+                                    ((reg_counter_255 >= 3) && ((status_flag == 4'b0101) || (status_flag == 4'b0110) || (status_flag == 4'b0011) || (status_flag == 4'b1000))) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + in_bitstream_2[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
                                     8'd0;
-    assign buffer_1_final_second_no_carry = ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 4)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                                            ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 4)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + in_bitstream_2[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                            ((in_flag == 2'b01) && (in_bitstream_1 < 255) && ((reg_addr_write - reg_addr_read) > 4)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                                            ((in_flag == 2'b01) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? buffer[reg_addr_write-1] + 8'd1 :
-                                            ((in_flag == 2'b11) && (in_bitstream_1 < 255) && ((reg_addr_write - reg_addr_read) > 4)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + in_bitstream_2[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                            ((in_flag == 2'b11) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? buffer[reg_addr_write-1] + 8'd1 :
-                                            8'd0;
-    assign buffer_1_final_second_carry =    ((in_flag == 2'b01) || (in_flag == 2'b11)) ? buffer[reg_addr_write-1] + in_bitstream_1[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                            8'd0;
+    assign buffer_1_final_c0 =
+    assign buffer_1_final_c1 =
+    assign buffer_1_final_c2 =
+    assign buffer_1_final_c3 =
+    assign buffer_1_final_c4 =
+
     // Buffer 2 Final
-    assign buffer_2_final_first =   (((status_flag == 4'b0100) || (status_flag == 4'b0101) || (status_flag == 4'b0110)) && (reg_addr_write > 3)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
-                                    (((status_flag == 4'b0011) || (status_flag == 4'b1000)) && (reg_addr_write > 3)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
+    assign buffer_2_final_first =  ((reg_counter_255 >= 3) && ((status_flag == 4'b0101) || (status_flag == 4'b0110) || (status_flag == 4'b0011) || (status_flag == 4'b1000))) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
                                     8'd0;
-    assign buffer_2_final_second_no_carry = ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 4)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
-                                            ((in_flag == 2'b01) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                                            ((in_flag == 2'b11) && (in_bitstream_1 < 255) && ((reg_addr_write - reg_addr_read) > 4)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
-                                            ((in_flag == 2'b11) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + in_bitstream_2[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                            8'd0;
-    assign buffer_2_final_second_carry =    (in_flag == 2'b01) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                                            (in_flag == 2'b11) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + in_bitstream_2[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                            8'd0;
+    assign buffer_2_final_c0 =
+    assign buffer_2_final_c1 =
+    assign buffer_2_final_c2 =
+    assign buffer_2_final_c3 =
+    assign buffer_2_final_c4 =
+
     // Buffer 3 Final
-    assign buffer_3_final_second_no_carry = ((in_flag == 2'b11) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
-                                            8'd0;
-    assign buffer_3_final_second_carry =    (in_flag == 2'b11) ? in_bitstream_2[(OUTPUT_WIDTH-1):0] :
-                                            8'd0;
+    assign buffer_3_final_c0 =
+    assign buffer_3_final_c1 =
+    assign buffer_3_final_c2 =
+    assign buffer_3_final_c3 =
+    assign buffer_3_final_c4 =
 
     // ===========================================================================
     // Addresses definitions
@@ -321,66 +310,53 @@ module auxiliar_carry_propagation #(
 
     assign addr_write = (flag_first) ? 4'd0 :
                         (phase_flag == 2'b01) ? addr_write_start :
-                        (phase_flag == 2'b10) ? addr_write_middle :
+                        (phase_flag == 2'b10) ? reg_addr_write :
                         (phase_flag == 2'b11) ? addr_write_final :
                         4'd0;
     // Sub-variables for Addr Write
-    assign addr_write_start =   ((!in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? reg_addr_write + 4'd3 :
-                                ((in_standby_flag) && (in_flag == 2'b01) && (in_bitstream_1 == 255)) ? reg_addr_write + 4'd3 :
-                                ((in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? reg_addr_write + 4'd4 :
-                                reg_addr_write;
-    assign addr_write_middle =  ((in_flag == 2'b01) && (status_flag == 4'b0111)) ? reg_addr_write + 4'd1 :
-                                ((in_flag == 2'b11) && (status_flag == 4'b0111)) ? reg_addr_write + 4'd2 :
-                                reg_addr_write;
+    assign addr_write_start =   ((!in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? 4'd1 :
+                                ((in_standby_flag) && (in_flag == 2'b01) && (in_bitstream_1 == 255)) ? 4'd1 :
+                                ((in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? 4'd1 :
+                                4'd0;
     assign addr_write_final =   (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? addr_write_final_first :
-                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_addr_read >= propag_zero)) ? addr_write_final_second_no_carry :
-                                ((reg_status == status_flag) && (reg_addr_read < propag_zero)) ? addr_write_final_carry :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 0)) ? addr_write_final_c0 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 1)) ? addr_write_final_c1 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 2)) ? addr_write_final_c2 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 3)) ? addr_write_final_c3 :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? addr_write_final_c4 :
                                 4'd0;
 
     // Sub sub-variables
-    assign addr_write_final_first = (((status_flag == 4'b0001) || (status_flag == 4'b0010)) && (reg_addr_write > 4)) ? reg_addr_write + 4'd1 :
-                                    (((status_flag == 4'b0100) || (status_flag == 4'b0101) || (status_flag == 4'b0110) || (status_flag == 4'b1000)) && (reg_addr_write > 3)) ? reg_addr_write + 4'd2 :
-                                    ((status_flag == 4'b0011) && (reg_addr_write > 3)) ? reg_addr_write + 4'd2 :
+    assign addr_write_final_first = ((reg_counter_255 >= 3) && ((status_flag == 4'b0001) || (status_flag == 4'b0010) || (status_flag == 4'b0100))) ? 4'd2 :
+                                    ((reg_counter_255 >= 3) && ((status_flag == 4'b0101) || (status_flag == 4'b0110) || (status_flag == 4'b0011) || (status_flag == 4'b1000))) ? 4'd3 :
                                     4'd0;
-    assign addr_write_final_second_no_carry =   ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 4)) ? reg_addr_write + 4'd1 :
-                                                ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 4)) ? reg_addr_write + 4'd2 :
-                                                ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) > 4)) ? reg_addr_write :
-                                                ((in_flag == 2'b01) && (in_bitstream_1 < 255) && ((reg_addr_write - reg_addr_read) > 4)) ? reg_addr_write + 4'd1 :
-                                                ((in_flag == 2'b01) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? reg_addr_write + 4'd1 :
-                                                ((in_flag == 2'b11) && (in_bitstream_1 < 255) && ((reg_addr_write - reg_addr_read) > 4)) ? reg_addr_write + 4'd2 :
-                                                ((in_flag == 2'b11) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? reg_addr_write + 4'd2 :
-                                                4'd0;
-    assign addr_write_final_carry = (in_flag == 2'b00) ? reg_addr_write :
-                                    (in_flag == 2'b01) ? reg_addr_write + 4'd1 :
-                                    (in_flag == 2'b11) ? reg_addr_write + 4'd2 :
-                                    4'd0;
+    assign addr_write_final_c0 =
+    assign addr_write_final_c1 =
+    assign addr_write_final_c2 =
+    assign addr_write_final_c3 =
+    assign addr_write_final_c4 =
 
 
     // The addr_read basically tells the buffer which bitstreams must be released in the current clock cycle
     // All addr_read sub-variables here analyze different part of the execution and define, based on the analysis, what is the best way to update the addr
     assign addr_read =  (flag_first) ? 4'd0 :
                         (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? addr_read_first :
-                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_addr_read >= propag_zero)) ? addr_read_second_no_carry :
-                        ((reg_status == status_flag) && (reg_addr_read < propag_zero)) ? addr_read_second_carry :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 0)) ? addr_read_c0 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 1)) ? addr_read_c1 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 2)) ? addr_read_c2 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 3)) ? addr_read_c3 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? addr_read_c4 :
                         4'd0;
 
     // Addr_read's sub-variables
-    assign addr_read_first =    (((status_flag == 4'b0001) || (status_flag == 4'b0010)) && (reg_addr_write > 4)) ? reg_addr_read + 4'd4 :
-                                (((status_flag == 4'b0100) || (status_flag == 4'b0101) || (status_flag == 4'b0110) || (status_flag == 4'b1000)) && (reg_addr_write > 3)) ? reg_addr_read + 4'd4 :
-                                ((status_flag == 4'b0011) && (reg_addr_write > 3)) ? reg_addr_read + 4'd4 :
+    assign addr_read_first =    ((reg_counter_255 >= 3) && ((status_flag == 4'b0001) || (status_flag == 4'b0010) || (status_flag == 4'b0100))) ? 4'd1 :
+                                ((reg_counter_255 >= 3) && ((status_flag == 4'b0101) || (status_flag == 4'b0110) || (status_flag == 4'b0011) || (status_flag == 4'b1000))) ? 4'd1 :
                                 4'd0;
-    assign addr_read_second_no_carry =  ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 4)) ? reg_addr_read + 4'd4 :
-                                        ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 4)) ? reg_addr_read + 4'd4 :
-                                        ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) > 4)) ? reg_addr_read + 4'd4 :
-                                        ((in_flag == 2'b01) && (in_bitstream_1 < 255) && ((reg_addr_write - reg_addr_read) > 4)) ? reg_addr_read + 4'd4 :
-                                        ((in_flag == 2'b01) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? reg_addr_read + 4'd4 :
-                                        ((in_flag == 2'b11) && (in_bitstream_1 < 255) && ((reg_addr_write - reg_addr_read) > 4)) ? reg_addr_read + 4'd4 :
-                                        ((in_flag == 2'b11) && (in_bitstream_1 > 255) && ((reg_addr_write - reg_addr_read) > 4)) ? reg_addr_read + 4'd4 :
-                                        4'd0;
-    assign addr_read_second_carry = (in_flag == 2'b00) ? reg_addr_read + 4'd1 :
-                                    (in_flag == 2'b01) ? reg_addr_read + 4'd1 :
-                                    (in_flag == 2'b11) ? reg_addr_read + 4'd1 :
-                                    4'd0;
+    assign addr_read_c0 =
+    assign addr_read_c1 =
+    assign addr_read_c2 =
+    assign addr_read_c3 =
+    assign addr_read_c4 =
 
 
     // ===========================================================================
@@ -388,99 +364,124 @@ module auxiliar_carry_propagation #(
     // The output variables basically set the output pins for this block
     // Main variables
     assign out_bit_1 =  (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? out_1_first :
-                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_addr_read >= propag_zero) && (reg_addr_read > 0)) ? out_1_second_no_carry :
-                        ((reg_status == status_flag) && (reg_addr_read < propag_zero)) ? out_1_second_carry :
-                        4'd0;
-    assign out_bit_2 =  (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? out_2_first :
-                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_addr_read >= propag_zero) && (reg_addr_read > 0)) ? out_2_second_no_carry :
-                        ((reg_status == status_flag) && (reg_addr_read < propag_zero)) ? out_2_second_carry :
-                        4'd0;
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 0)) ? out_1_c0 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 1)) ? out_1_c1 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 2)) ? out_1_c2 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 3)) ? out_1_c3 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? out_1_c4 :
+                        8'd0;
+    assign out_bit_2 =  (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? out_1_first :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 0)) ? out_2_c0 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 1)) ? out_2_c1 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 2)) ? out_2_c2 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 3)) ? out_2_c3 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? out_2_c4 :
+                        8'd0;
     assign out_bit_3 =  (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? out_3_first :
-                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_addr_read >= propag_zero) && (reg_addr_read > 0)) ? out_3_second_no_carry :
-                        ((reg_status == status_flag) && (reg_addr_read < propag_zero)) ? out_3_second_carry :
-                        4'd0;
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 0)) ? out_3_c0 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 1)) ? out_3_c1 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 2)) ? out_3_c2 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 3)) ? out_3_c3 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? out_3_c4 :
+                        8'd0;
     assign out_bit_4 =  (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? out_4_first :
-                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_addr_read >= propag_zero) && (reg_addr_read > 0)) ? out_4_second_no_carry :
-                        ((reg_status == status_flag) && (reg_addr_read < propag_zero)) ? out_4_second_carry :
-                        4'd0;
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 0)) ? out_4_c0 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 1)) ? out_4_c1 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 2)) ? out_4_c2 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 3)) ? out_4_c3 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? out_4_c4 :
+                        8'd0;
 
     // Flag definition - Main Variable
     assign out_flag =   (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? out_flag_first :
-                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_addr_read >= propag_zero) && (reg_addr_read > 0)) ? out_flag_second_no_carry :
-                        ((reg_status == status_flag) && (reg_addr_read < propag_zero)) ? out_flag_second_carry :
-                        4'd0;
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 0)) ? out_flag_c0 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 1)) ? out_flag_c1 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 2)) ? out_flag_c2 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 == 3)) ? out_flag_c3 :
+                        ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? out_flag_c4 :
+                        8'd0;
 
     // Sub-variables
     // Out 1
-    assign out_1_first =    ((status_flag == 4'b0001) || (status_flag == 4'b0101) || (status_flag == 4'b1000)) ? buffer[reg_addr_read] :
-                            ((status_flag == 4'b0010) || (status_flag == 4'b0000) || (status_flag == 4'b0110) || (status_flag == 4'b0011)) ? buffer[reg_addr_read] + 8'd1 :
-                            8'd0;
-    assign out_1_second_no_carry =  ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) < 2)) ? 8'd0 :
-                                    (((in_flag == 2'b01) || (in_flag == 2'b11)) && ((reg_addr_write - reg_addr_read) < 2)) ? buffer[addr_read] + in_bitstream_1[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                    buffer[addr_read];
-    assign out_1_second_carry = 8'd0;
+    assign out_1_first = buffer[reg_addr_read] + carry;
+    assign out_1_c0 =
+    assign out_1_c1 =
+    assign out_1_c2 =
+    assign out_1_c3 =
+    assign out_1_c4 =
 
     // Out 2
-    assign out_2_first =    ((status_flag == 4'b0001) || (status_flag == 4'b0101) || (status_flag == 4'b1000)) ? buffer[reg_addr_read+1] :
-                            8'd0;
-    assign out_2_second_no_carry =  ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) <= 2)) ? 8'd0 :
-                                    ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) < 2)) ? 8'd0 :
-                                    ((in_flag == 2'b11) && ((reg_addr_write - reg_addr_read) < 2)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + in_bitstream_2[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                    ((reg_addr_write - reg_addr_read) == 2) ? buffer[reg_addr_read+1] + in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                                    buffer[reg_addr_read+1];
-    assign out_2_second_carry = 8'd0;
+    assign out_2_first =    (carry == 1'b1) ? 8'd0 :
+                            8'd255;
+    assign out_2_c0 =
+    assign out_2_c1 =
+    assign out_2_c2 =
+    assign out_2_c3 =
+    assign out_2_c4 =
 
     // Out 3
-    assign out_3_first =    ((status_flag == 4'b0001) || (status_flag == 4'b0101) || (status_flag == 4'b1000)) ? buffer[reg_addr_read+2] :
-                            8'd0;
-    assign out_3_second_no_carry =  ((reg_addr_write - reg_addr_read) < 2) ? 8'd0 :
-                                    (((in_flag == 2'b01) || (in_flag == 2'b00)) && ((reg_addr_write - reg_addr_read) == 2)) ? 8'd0 :
-                                    ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 2)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + in_bitstream_2[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                    ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) == 3)) ? 8'd0 :
-                                    ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 3)) ? buffer[reg_addr_read+2] + in_bitstream_1[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                    ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 3)) ? buffer[reg_addr_read+2] + in_bitstream_1[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                    buffer[reg_addr_read+2];
-    assign out_3_second_carry = 8'd0;
-    // Out 4
-    assign out_4_first =    ((status_flag == 4'b0001) && (reg_addr_write >= 4)) ? buffer[reg_addr_read+3] :
-                            ((status_flag == 4'b0101) && (reg_addr_write == 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + 8'd1 :
-                            ((status_flag == 4'b0101) && (reg_addr_write > 3)) ? buffer[reg_addr_read+3] :
-                            ((status_flag == 4'b0110) && (reg_addr_write == 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                            ((status_flag == 4'b0011) && (reg_addr_write == 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + 8'd1 :
-                            ((status_flag == 4'b0011) && (reg_addr_write > 3)) ? 8'd0 :
-                            ((status_flag == 4'b1000) && (reg_addr_write == 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                            ((status_flag == 4'b1000) && (reg_addr_write > 3)) ? buffer[addr_read+3] :
-                            8'd0;
-    assign out_4_second_no_carry =  ((reg_addr_write - reg_addr_read) == 2) ? 8'd0 :
-                                    ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 3)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] :
-                                    ((reg_addr_write - reg_addr_read) == 3) ? 8'd0 :
-                                    ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 4)) ? buffer[reg_addr_read+3] + in_bitstream_1[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                    ((in_flag == 2'b11) && (in_bitstream_1 != 255) && ((reg_addr_write - reg_addr_read) == 4)) ? buffer[reg_addr_read+3] + in_bitstream_1[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
-                                    buffer[reg_addr_read+3];
-    assign out_4_second_carry = 8'd0;
-    // Out Flag
-    assign out_flag_first = ((status_flag == 4'b0001) && (reg_addr_write == 3)) ? 3'b010 :
-                            ((status_flag == 4'b0001) && (reg_addr_write == 4)) ? 3'b100 :
-                            ((status_flag == 4'b0001) && (reg_addr_write > 4)) ? 3'b100 :
-                            // Status Flag = 010
-                            ((status_flag == 4'b0010) && (reg_addr_write == 3)) ? 3'b010 :
-                            ((status_flag == 4'b0010) && (reg_addr_write == 4)) ? 3'b100 :
-                            ((status_flag == 4'b0010) && (reg_addr_write > 4)) ? 3'b100 :
-                            3'b100;
 
-    assign out_flag_second_no_carry =   ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) < 2)) ? 3'b000 :
-                                        ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) < 2)) ? 3'b001 :
-                                        ((in_flag == 2'b11) && ((reg_addr_write - reg_addr_read) < 2)) ? 3'b011 :
-                                        ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) == 2)) ? 3'b001 :
-                                        ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 2)) ? 3'b011 :
-                                        ((in_flag == 2'b11) && ((reg_addr_write - reg_addr_read) == 2)) ? 3'b010 :
-                                        ((in_flag == 2'b00) && ((reg_addr_write - reg_addr_read) == 3)) ? 3'b011 :
-                                        ((in_flag == 2'b01) && ((reg_addr_write - reg_addr_read) == 3)) ? 3'b010 :
-                                        3'b100;
-    assign out_flag_second_carry =  ((reg_propag - reg_addr_read) == 1) ? 3'b001 :
-                                    ((reg_propag - reg_addr_read) == 2) ? 3'b011 :
-                                    ((reg_propag - reg_addr_read) == 3) ? 3'b010 :
-                                    ((reg_propag - reg_addr_read) > 4) ? 3'b100 :
-                                    3'd0;
+    assign out_3_first =    (carry == 1'b1) ? 8'd0 :
+                            8'd255;
+    assign out_3_c0 =
+    assign out_3_c1 =
+    assign out_3_c2 =
+    assign out_3_c3 =
+    assign out_3_c4 =
+
+    // Out 4
+
+    assign out_4_first =    ((reg_counter_255 >= 3) && (carry == 1'b1)) ? 8'd0 :
+                            ((reg_counter_255 >= 3) && (carry == 1'b0)) ? 8'd255 :
+                            ((status_flag == 4'b0100) && (carry == 1'b1)) ? 8'd0 :
+                            ((status_flag == 4'b0100) && (carry == 1'b0)) ? 8'd255 :
+                            ((status_flag != 4'b0001) && (status_flag != 4'b0010) && (status_flag != 0100) && (reg_counter_255 == 2)) ? in_bitstream_1[(OUTPUT_WIDTH-1):0] + in_bitstream_2[(INPUT_WIDTH-1):OUTPUT_WIDTH] :
+                            8'd0;
+
+    assign out_4_c0 =
+    assign out_4_c1 =
+    assign out_4_c2 =
+    assign out_4_c3 =
+    assign out_4_c4 =
+
+    // Out Flag
+
+    assign out_flag_first = ((reg_counter_255 == 2) && ((status_flag == 4'b0001) || (status_flag == 4'b0010))) ? 3'b010 :
+                            3'b100;
+    assign out_flag_c0 =    ((in_flag != 2'b00) && ((reg_addr_write-reg_addr_read) >= 4)) ? 3'b100 :
+                            ((in_flag == 2'b11) && ((reg_addr_write-reg_addr_read) == 3)) ? 3'b100 :
+                            ((in_flag == 2'b11) && ((reg_addr_write-reg_addr_read) == 2))
+    assign out_flag_c1 =
+    assign out_flag_c2 =
+    assign out_flag_c3 =
+    assign out_flag_c4 =
+
+
+    // Counter 255
+    // Instead of saving into the buffer each one of the 255 received in this block
+    // It is better to count that number and release each one of initial begin
+    assign counter_255 =    (flag_first) ? 0 :
+                            (phase_flag == 2'b01) ? counter_255_start :
+                            (phase_flag == 2'b10) ? counter_255_middle :
+                            (phase_flag == 2'b11) ? counter_255_final :
+                            0;
+    // Sub variables
+    assign counter_255_start =  ((!in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? 2 :
+                                ((in_standby_flag) && (in_flag == 2'b01) && (in_bitstream_1 == 255)) ? 2 :
+                                ((in_standby_flag) && (in_flag == 2'b11) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? 3 :
+                                0;
+    assign counter_255_middle = (in_flag == 2'b01) ? reg_counter_255 + 1 :
+                                (in_flag == 2'b11) ? reg_counter_255 + 2 :
+                                reg_counter_255;
+    assign counter_255_final =  (((reg_status == 4'b0111) || (reg_status == 4'b0000)) && (status_flag != 4'b0111) && (status_flag != 4'b0000)) ? counter_255_final_first :
+                                ((status_flag != 4'b0000) && (reg_status == status_flag) && (reg_counter_255 >= 4)) ? counter_255_final_c4 :
+                                0;
+
+    // Sub sub-variables
+    assign counter_255_final_first =    (reg_counter_255 >= 3) ? reg_counter_255 - 3 :
+                                        0;
+    assign counter_255_final_c4 =   (reg_counter_255 == 4) ? 0 :
+                                    reg_counter_255 - 4;
+
 
 endmodule
