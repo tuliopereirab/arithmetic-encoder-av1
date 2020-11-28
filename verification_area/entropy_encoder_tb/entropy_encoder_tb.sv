@@ -6,20 +6,16 @@ module entropy_encoder_tb #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 9,         // 0- Miss America 150frames 176x144 (Entire Video)
-                                        // 1- Akiyo 300frames 176x144 (Entire Video)
-                                        // 2- Bowing 300frames (Entire Video)
-                                        // 3- Carphone 382frames 176x144 (Entire Video)
-                                        // 4- Bus 150frames 352x288 (Entire Video)
-                                        // 5- Beauty 1920x1080 120fps 420 8bit YUV
-                                        // 6- Bosphorus 1920x1080 120fps 420 8bit YUV
-                                        // 7- HoneyBee 1920x1080 120fps 420 8bit YUV
-                                        // =============================================
-                                        // New videos using the right config
-                                            // 8 - YachtRide 3840x2160 120fps 420 10bit YUV CQ = 20
-                                            // 9 - ReadySetGo 3840x2160 120fps 420 10bit YUV CQ = 20
-                                            // 10 - YachtRide 3840x2160 120fps 420 10bit YUV CQ = 55
-                                            // 11 - ReadySetGo 3840x2160 120fps 420 10bit YUV CQ = 55
+    parameter SELECT_CQ = 0,            // This config defines the CQ of the video to be executed
+                                        // The SELECT_CQ is only valid when SELECT_VIDEO != -1
+                                        // 0- cq55, 1- cq20
+    parameter SELECT_VIDEO = -1,         // -1 - Run all videos
+                                        // 0 - Beauty 1920x1080 120fps 420 8bit YUV
+                                        // 1 - Bosphorus 1920x1080 120fps 420 8bit YUV
+                                        // 2 - HoneyBee 1920x1080 120fps 420 8bit YUV
+                                        // 3 - Jockey 1920x1080 120fps 420 8bit YUV
+                                        // 4 - ReadySetGo 3840x2160 120fps 420 10bit YUV
+                                        // 5 - YachtRide 3840x2160 120fps 420 10bit YUV
     parameter RUN_UNTIL_FIRST_MISS = 1, // With this option in 1, the simulation will stop as soon as it gets the first miss
                                         // It doesn't matter if the miss is with Range or low
                                         // 0- Run until the end of the simulation and count misses and matches
@@ -93,109 +89,140 @@ module entropy_encoder_tb #(
     always #1ns tb_clk <= ~tb_clk;      // Here is the Clock (clk) generator
                                         // It is set to execute in a 12ns period
 
+    function string get_video_name;
+        input video_id;
+        case(video_id)
+            0 : return "Beauty 1920x1080 120fps 420 8bit YUV";
+            1 : return "Bosphorus 1920x1080 120fps 420 8bit YUV";
+            2 : return "HoneyBee_1920x1080_120fps_420_8bit_YUV";
+            3 : return "Jockey 1920x1080 120fps 420 8bit YUV";
+            4 : return "ReadySetGo 3840x2160 120fps 420 10bit YUV";
+            5 : return "YachtRide 3840x2160 120fps 420 10bit YUV";
+            default : return "invalid id";
+        endcase
+    endfunction
+
+
     function void open_file;
-        case(SELECT_VIDEO)
+        input int cq_id, video_id;
+        string path, output_path, cq;
+        string bitstream_sufix, main_sufix, output_sufix;
+        string inputs_path, bitstream_path, video_file_name;
+        path = "F:/y4m_files/generated_files/";
+        output_path = "C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/";
+        if(cq_id)   // with cq_id in 1, uses cq = 20
+            cq = "20";
+        else
+            cq = "55";
+        bitstream_sufix = "_final_bitstream.csv";
+        main_sufix = "_main_data.csv";
+        output_sufix = "_output.csv";
+        $display("\t-> Video selected: %s\n", get_video_name(video_id));
+        case(video_id)
             0 : begin
-                $display("\t-> Video selected: Miss America 150 frames 176x144 (Entire Video)\n");
-                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/miss-america_150frames_176x144_main_data.csv", "r");
-                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/miss-america_150frames_176x144_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/miss-america_150frames_176x144_output.csv", "w+");
+                $display("\t-> Video selected: Beauty 1920x1080 120fps 420 8bit YUV\n");
+                video_file_name = "Beauty_1920x1080_120fps_420_8bit_YUV";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             1 : begin
-                $display("\t-> Video selected: Akiyo 300 frames 176x144 (Entire Video)\n");
-                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/akiyo_300frames_176x144_main_data.csv", "r");
-                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/akiyo_300frames_176x144_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/akiyo_300frames_176x144_output.csv", "w+");
+                video_file_name = "Bosphorus_1920x1080_120fps_420_8bit_YUV";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             2 : begin
-                $display("\t-> Video selected: Bowing 300frames (Entire Video)\n");
-                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/bowing_300frames_main_data.csv", "r");
-                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/bowing_300frames_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/bowing_300frames_output.csv", "w+");
+                video_file_name = "HoneyBee_1920x1080_120fps_420_8bit_YUV";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             3 : begin
-                $display("\t-> Video selected: Carphone 382frames 176x144 (Entire Video)\n");
-                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/carphone_382frames_176x144_main_data.csv", "r");
-                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/carphone_382frames_176x144_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/carphone_382frames_176x144_output.csv", "w+");
+                video_file_name = "Jockey_1920x1080_120fps_420_8bit_YUV";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             4 : begin
-                $display("\t-> Video selected: Bus 150frames 352x288 (Entire Video)\n");
-                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/bus_150frames_352x288_main_data.csv", "r");
-                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/bus_150frames_352x288_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/bus_150frames_352x288_output.csv", "w+");
+                video_file_name = "ReadySetGo_3840x2160_120fps_420_10bit_YUV";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             5 : begin
-                $display("\t-> Video selected: Beauty 1920x1080 120fps 420 8bit YUV\n");
-                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Beauty_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r");
-                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Beauty_1920x1080_120fps_420_8bit_YUV_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/Beauty_1920x1080_120fps_420_8bit_YUV_output.csv", "w+");
+                video_file_name = "YachtRide_3840x2160_120fps_420_10bit_YUV";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             6 : begin
-                $display("\t-> Video selected: Bosphorus 1920x1080 120fps 420 8bit YUV\n");
-                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Bosphorus_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r");
-                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Bosphorus_1920x1080_120fps_420_8bit_YUV_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/Bosphorus_1920x1080_120fps_420_8bit_YUV_output.csv", "w+");
+                $display("\t-> Video selected: Invalid Video ID\n");
+                $stop;
+                video_file_name = "";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             7 : begin
-                $display("\t-> Video selected: HoneyBee 1920x1080 120fps 420 8bit YUV\n");
-                file_inputs = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/HoneyBee_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r");
-                file_bitstream = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/HoneyBee_1920x1080_120fps_420_8bit_YUV_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/HoneyBee_1920x1080_120fps_420_8bit_YUV_output.csv", "w+");
+                $stop;
+                video_file_name = "";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             8 : begin
-                $display("\t-> Video selected: YachtRide 3840x2160 120fps 420 10bit YUV \t CQ = 20\n");
-                file_inputs = $fopen("F:/y4m_files/generated_files/cq_20/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_main_data.csv", "r");
-                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_20/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_output.csv", "w+");
+                $stop;
+                video_file_name = "";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             9 : begin
-                $display("\t-> Video selected: ReadySetGo 3840x2160 120fps 420 10bit YUV \tCQ = 20 \n");
-                file_inputs = $fopen("F:/y4m_files/generated_files/cq_20/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq20_main_data.csv", "r");
-                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_20/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq20_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq20_output.csv", "w+");
+                $stop;
+                video_file_name = "";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             10 : begin
-                $display("\t-> Video selected: YachtRide 3840x2160 120fps 420 10bit YUV \tCQ = 55 \n");
-                file_inputs = $fopen("F:/y4m_files/generated_files/cq_55/YachtRide_3840x2160_120fps_420_10bit_YUV_cq55_main_data.csv", "r");
-                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_55/YachtRide_3840x2160_120fps_420_10bit_YUV_cq55_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/YachtRide_3840x2160_120fps_420_10bit_YUV_cq55_output.csv", "w+");
+                $stop;
+                video_file_name = "";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             11 : begin
-                $display("\t-> Video selected: ReadySetGo 3840x2160 120fps 420 10bit YUV \tCQ = 55 \n");
-                file_inputs = $fopen("F:/y4m_files/generated_files/cq_55/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq55_main_data.csv", "r");
-                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_55/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq55_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq55_output.csv", "w+");
+                $stop;
+                video_file_name = "";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             12 : begin
-                $display("\t-> Video selected: NO VIDEO!\n");
-                file_inputs = $fopen("F:/y4m_files/generated_files/cq_20/_main_data.csv", "r");
-                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_20/_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/_output.csv", "w+");
+                $stop;
+                video_file_name = "";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
             end
             13 : begin
-                $display("\t-> Video selected: NO VIDEO!\n");
-                file_inputs = $fopen("F:/y4m_files/generated_files/cq_20/_main_data.csv", "r");
-                file_bitstream = $fopen("F:/y4m_files/generated_files/cq_20/_final_bitstream.csv", "r");
-                if(GENERATE_OUTPUT_FILE)
-                    file_output = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/entropy_encoder_tb/Output_Files/_output.csv", "w+");
+                $stop;
+                video_file_name = "";
+                inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
+                bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
+                output_path = {output_path, video_file_name, ".csv"};
+            end
+            default : begin
+                $stop;
             end
         endcase
-        if(GENERATE_OUTPUT_FILE)
+        file_inputs = $fopen(inputs_path, "r");
+        file_bitstream = $fopen(bitstream_path, "r");
+        if(GENERATE_OUTPUT_FILE) begin
+            file_output = $fopen(output_path, "w+");
             $display("\t-> Config: generating output file.\n");
+        end
     endfunction
 
     function void add_line_output_file;
@@ -296,6 +323,18 @@ module entropy_encoder_tb #(
         end
     endfunction
 
+    function void print_problem;
+        input int count, flag_num, special, bitstream_num, expected, got;
+        string special_str;
+        if(special)
+            special_str = "Special";
+        else
+            special_str = "";
+        $display("Video: %s\n", get_video_name(current_video_id));
+        $display("%d - Flag %d %s - Bitstream %d -> Bitstream doesn't match with expected. \t%d, got %d\n", count, flag_num, special_str, bitstream_num, expected, got);
+        statistic(2);
+    endfunction
+
     function void check_bitstream;
         if(tb_flag_first_bitstream) begin
             tb_flag_first_bitstream = 0;        // The first bitstream will not be checked because it's gonna be ZERO
@@ -305,7 +344,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d Special - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_2, tb_out_bit_2);
+                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_2, tb_out_bit_2);
                             statistic(2);
                         end
                     end else begin
@@ -317,7 +356,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d Special - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_2, tb_out_bit_2);
+                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_2, tb_out_bit_2);
                             statistic(2);
                         end
                     end else begin
@@ -327,7 +366,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_3 != tb_out_bit_3) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d Special - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_3, tb_out_bit_3);
+                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_3, tb_out_bit_3);
                             statistic(2);
                         end
                     end else begin
@@ -339,7 +378,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d Special - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_2, tb_out_bit_2);
+                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_2, tb_out_bit_2);
                             statistic(2);
                         end
                     end else begin
@@ -349,7 +388,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_3 != tb_out_bit_3) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d Special - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_3, tb_out_bit_3);
+                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_3, tb_out_bit_3);
                             statistic(2);
                         end
                     end else begin
@@ -359,7 +398,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_4 != tb_out_last_bit) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d Special - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_4, tb_out_last_bit);
+                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_4, tb_out_last_bit);
                             statistic(2);
                         end
                     end else begin
@@ -374,7 +413,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_1, tb_out_bit_1);
+                            print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -386,7 +425,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_1, tb_out_bit_1);
+                            print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -396,7 +435,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_2, tb_out_bit_2);
+                            print_problem(general_counter, tb_out_flag_bitstream, 0, 2, temp_bitstream_2, tb_out_bit_2);
                             statistic(2);
                         end
                     end else begin
@@ -408,7 +447,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_1, tb_out_bit_1);
+                            print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -418,7 +457,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_2, tb_out_bit_2);
+                            print_problem(general_counter, tb_out_flag_bitstream, 0, 2, temp_bitstream_2, tb_out_bit_2);
                             statistic(2);
                         end
                     end else begin
@@ -428,7 +467,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_3 != tb_out_bit_3) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_3, tb_out_bit_3);
+                            print_problem(general_counter, tb_out_flag_bitstream, 0, 3, temp_bitstream_3, tb_out_bit_3);
                             statistic(2);
                         end
                     end else begin
@@ -440,7 +479,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d - 1 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_1, tb_out_bit_1);
+                            print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
                             statistic(2);
                         end
                     end else begin
@@ -450,7 +489,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d - 2 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_2, tb_out_bit_2);
+                            print_problem(general_counter, tb_out_flag_bitstream, 0, 2, temp_bitstream_2, tb_out_bit_2);
                             statistic(2);
                         end
                     end else begin
@@ -460,7 +499,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_3 != tb_out_bit_3) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d - 3 -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_3, tb_out_bit_3);
+                            print_problem(general_counter, tb_out_flag_bitstream, 0, 3, temp_bitstream_3, tb_out_bit_3);
                             statistic(2);
                         end
                     end else begin
@@ -470,7 +509,7 @@ module entropy_encoder_tb #(
                     if(temp_bitstream_4 != tb_out_last_bit) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            $display("%d - Flag %d - LAST -> Bitstream doesn't match with expected. \t%d, got %d\n", general_counter, tb_out_flag_bitstream, temp_bitstream_4, tb_out_last_bit);
+                            print_problem(general_counter, tb_out_flag_bitstream, 0, 4, temp_bitstream_4, tb_out_last_bit);
                             statistic(2);
                         end
                     end else begin
@@ -491,7 +530,7 @@ module entropy_encoder_tb #(
         else begin
             if((temp_init_low == 0) && (temp_init_range == 32768) && ((temp_init_low != previous_low_out) || (temp_init_range != previous_range_out))) begin
                 reset_counter = reset_counter + 1;
-                $display("\t-> %d: Reset detected -> %d\n", general_counter, reset_counter);
+                $display("\t%d: %s \t-> %d: Reset detected -> %d\n", current_video_id, get_video_name(current_video_id), general_counter, reset_counter);
                 return 1;       // found a reset
             end else begin
                 // reset detection: set the previous low and range to be used in the next execution
@@ -510,63 +549,83 @@ module entropy_encoder_tb #(
         return 0;       // not reset
     endfunction
 
+    int current_video_id, current_video_cq;
+
     initial begin
         $display("-> Starting testbench...\n");
         tb_clk <= 1'b0;
         $display("\t-> Clock set\n");
-        open_file();
-        if((file_inputs) && (file_bitstream))  $display("\t-> Files opened successfully\n");
-        else begin
-            $display("\t-> Unable to open at least one of the files\n");
-            $stop;
+        if(SELECT_VIDEO == -1) begin
+            $display("\t->\tRunning all videos!\t<-\n");
+            current_video_id = 0;
+            current_video_cq = 0;
+        end else begin
+            $display("\t->\tRunning only video %d!\t<-\n", SELECT_VIDEO);
+            current_video_id = SELECT_VIDEO;
+            current_video_cq = SELECT_CQ;
         end
-        $display("-> Configuration completed.\n");
-        $display("-> Starting simulation...\n");
-        reset_function(1);      // This function is called with 1 because it is the first execution (start_flag)
-        #2ns;
-        tb_reset <= 1'b0;
-        #2ns;
-        $display("\t-> Reset procedure completed\n");
-        $display("\t-> Starting simulation loop\n");
-        while(!$feof(file_inputs)) begin
-            reset_sign_return = run_simulation();
-            if(reset_sign_return) begin
-                //$display("\t\t-> Finish previous simulation\n");
-                tb_input_flag_last = 1;
-                while(!tb_out_flag_last) begin
-                    if(tb_out_flag_bitstream != 0) begin
-                        check_bitstream();
-                        if(tb_error_detection) begin
-                            statistic(4);
-                        end
-                    end
-                    #2ns;
+        while(current_video_cq <= 1) begin
+            while(current_video_id <= 5) begin
+                open_file(current_video_cq, current_video_id);    // cq (1 for 20 and 0 for 55), video id
+                if((file_inputs) && (file_bitstream))  $display("\t-> Files opened successfully\n");
+                else begin
+                    $display("\t-> Unable to open at least one of the files\n");
+                    $stop;
                 end
-                if(tb_out_flag_bitstream != 0) begin            // When it finds the LAST FLAG, there's still one set of bitstream to come out
-                    if(GENERATE_OUTPUT_FILE)
-                        add_line_output_file();
-                    check_bitstream();                          // This if is able to get this last set of bitstream
-                    // if(tb_error_detection) begin                // Analyze it, as always, and more forward to the reset
+                $display("-> Configuration completed.\n");
+                $display("-> Starting simulation...\n");
+                reset_function(1);      // This function is called with 1 because it is the first execution (start_flag)
+                #2ns;
+                tb_reset <= 1'b0;
+                #2ns;
+                $display("\t-> Reset procedure completed\n");
+                $display("\t-> Starting simulation loop\n");
+                while(!$feof(file_inputs)) begin
+                    reset_sign_return = run_simulation();
+                    if(reset_sign_return) begin
+                        //$display("\t\t-> Finish previous simulation\n");
+                        tb_input_flag_last = 1;
+                        while(!tb_out_flag_last) begin
+                            if(tb_out_flag_bitstream != 0) begin
+                                check_bitstream();
+                                if(tb_error_detection) begin
+                                    statistic(4);
+                                end
+                            end
+                            #2ns;
+                        end
+                        if(tb_out_flag_bitstream != 0) begin            // When it finds the LAST FLAG, there's still one set of bitstream to come out
+                            if(GENERATE_OUTPUT_FILE)
+                                add_line_output_file();
+                            check_bitstream();                          // This if is able to get this last set of bitstream
+                            // if(tb_error_detection) begin                // Analyze it, as always, and more forward to the reset
+                            //     statistic(4);
+                            // end
+                        end
+                        #2ns;      // It is necessary to give time for the check_bitstream function to properly verify the output
+                        //$display("\t\t-> Architecture empty\n");
+                        reset_function(0);      // set the flag to zero avoiding an entire reset
+                        tb_flag_first_bitstream = 1;        // Tells the TB to don't consider the first bitstream after the reset.
+                        #2ns;
+                        //$display("\t\t-> Setting the reset sign to 0\n");
+                        tb_reset <= 1'b0;
+                    end
+                    if(tb_out_flag_bitstream != 0) begin
+                        if(GENERATE_OUTPUT_FILE)
+                            add_line_output_file();
+                        check_bitstream();
+                    end
+                    // if(tb_error_detection) begin
                     //     statistic(4);
                     // end
+                    #2ns;
                 end
-                #2ns;      // It is necessary to give time for the check_bitstream function to properly verify the output
-                //$display("\t\t-> Architecture empty\n");
-                reset_function(0);      // set the flag to zero avoiding an entire reset
-                tb_flag_first_bitstream = 1;        // Tells the TB to don't consider the first bitstream after the reset.
-                #2ns;
-                //$display("\t\t-> Setting the reset sign to 0\n");
-                tb_reset <= 1'b0;
+                if(SELECT_VIDEO == -1)
+                    current_video_id = current_video_id + 1;
+                else
+                    statistic(0);
             end
-            if(tb_out_flag_bitstream != 0) begin
-                if(GENERATE_OUTPUT_FILE)
-                    add_line_output_file();
-                check_bitstream();
-            end
-            // if(tb_error_detection) begin
-            //     statistic(4);
-            // end
-            #2ns;
+            current_video_cq = current_video_cq + 1;
         end
         statistic(0);
     end
