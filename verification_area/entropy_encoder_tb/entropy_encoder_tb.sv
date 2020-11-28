@@ -90,15 +90,29 @@ module entropy_encoder_tb #(
                                         // It is set to execute in a 12ns period
 
     function string get_video_name;
-        input video_id;
-        case(video_id)
-            0 : return "Beauty 1920x1080 120fps 420 8bit YUV";
-            1 : return "Bosphorus 1920x1080 120fps 420 8bit YUV";
-            2 : return "HoneyBee_1920x1080_120fps_420_8bit_YUV";
-            3 : return "Jockey 1920x1080 120fps 420 8bit YUV";
-            4 : return "ReadySetGo 3840x2160 120fps 420 10bit YUV";
-            5 : return "YachtRide 3840x2160 120fps 420 10bit YUV";
-            default : return "invalid id";
+        input int video_id_name;
+        case(video_id_name)
+            0 : begin
+                return "Beauty 1920x1080 120fps 420 8bit YUV";
+            end
+            1 : begin
+                return "Bosphorus 1920x1080 120fps 420 8bit YUV";
+            end
+            2 : begin
+                return "HoneyBee_1920x1080_120fps_420_8bit_YUV";
+            end
+            3 : begin
+                return "Jockey 1920x1080 120fps 420 8bit YUV";
+            end
+            4 : begin
+                return "ReadySetGo 3840x2160 120fps 420 10bit YUV";
+            end
+            5 : begin
+                return "YachtRide 3840x2160 120fps 420 10bit YUV";
+            end
+            default : begin
+                return "invalid id";
+            end
         endcase
     endfunction
 
@@ -519,17 +533,26 @@ module entropy_encoder_tb #(
         end
     endfunction
 
+    function int get_cq;
+        input int cq;
+        if(cq)
+            return 20;
+        else
+            return 55;
+    endfunction
+
     function int run_simulation;
+        input int cq_id_run, video_id_run;
         status = $fscanf (file_inputs, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;\n", temp_bool, temp_init_range, temp_init_low, temp_fl, temp_fh, temp_symbol, temp_nsyms, temp_norm_in_rng, temp_norm_in_low, temp_range, temp_low);
         general_counter = general_counter + 1;
         if(status != 11) begin
-            $display("\t-> Problem reading file: %d\n", general_counter);
+            $display("\t-> Problem reading the main file: %d\n", general_counter);
             statistic(3);
         end
         else begin
             if((temp_init_low == 0) && (temp_init_range == 32768) && ((temp_init_low != previous_low_out) || (temp_init_range != previous_range_out))) begin
                 reset_counter = reset_counter + 1;
-                $display("\t%d: %s \t-> %d: Reset detected -> %d\n", current_video_id, get_video_name(current_video_id), general_counter, reset_counter);
+                $display("\t%0d: cq%0d - %s \t-> %d: Reset detected -> %0d\n", video_id_run, get_cq(cq_id_run), get_video_name(video_id_run), general_counter, reset_counter);
                 return 1;       // found a reset
             end else begin
                 // reset detection: set the previous low and range to be used in the next execution
@@ -582,7 +605,7 @@ module entropy_encoder_tb #(
                 $display("\t-> Reset procedure completed\n");
                 $display("\t-> Starting simulation loop\n");
                 while(!$feof(file_inputs)) begin
-                    reset_sign_return = run_simulation();
+                    reset_sign_return = run_simulation(current_video_cq, current_video_id);
                     if(reset_sign_return) begin
                         //$display("\t\t-> Finish previous simulation\n");
                         tb_input_flag_last = 1;
