@@ -120,7 +120,6 @@ module entropy_encoder_tb #(
         $display("\t-> Video selected: %s\n", get_video_name(video_id));
         case(video_id)
             0 : begin
-                $display("\t-> Video selected: Beauty 1920x1080 120fps 420 8bit YUV\n");
                 video_file_name = "Beauty_1920x1080_120fps_420_8bit_YUV";
                 inputs_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, main_sufix};
                 bitstream_path = {path, "cq_", cq, "/", video_file_name, "_cq", cq, bitstream_sufix};
@@ -565,6 +564,8 @@ module entropy_encoder_tb #(
             current_video_cq = SELECT_CQ;
         end
         while(current_video_cq <= 1) begin
+            if(SELECT_VIDEO == -1)
+                current_video_id = 0;
             while(current_video_id <= 5) begin
                 open_file(current_video_cq, current_video_id);    // cq (1 for 20 and 0 for 55), video id
                 if((file_inputs) && (file_bitstream))  $display("\t-> Files opened successfully\n");
