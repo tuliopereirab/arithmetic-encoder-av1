@@ -42,10 +42,10 @@ module vedic_2x2 (
     wire a1b1, a0b1, a1b0, a0b0;
     wire carry_1;
 
-    assign a0b0 = a[0] * b[0];
-    assign a0b1 = a[0] * b[1];
-    assign a1b0 = a[1] * b[0];
-    assign a1b1 = a[1] * b[1];
+    assign a0b0 = a[0] & b[0];
+    assign a0b1 = a[0] & b[1];
+    assign a1b0 = a[1] & b[0];
+    assign a1b1 = a[1] & b[1];
 
     assign r[0] = a0b0;
 
