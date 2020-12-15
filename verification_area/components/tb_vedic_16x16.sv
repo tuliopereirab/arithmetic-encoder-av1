@@ -1,6 +1,6 @@
 module tb_vedic_16x16 #(
     parameter TB_RANGE_WIDTH = 16,
-    parameter TOTAL_TESTS = 100000000
+    parameter TOTAL_TESTS = 1000000000
     ) ();
 
     int general_counter, wrongs, rights;
