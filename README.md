@@ -72,16 +72,16 @@
 - **Previous**: saves the previous bitstream generated.
 - **Stand-by**: this register is used to treat the 255 exception (explained below). Briefly, when receiving 255 as input, saves here the previos bitstreams.
 - Below are the equations for normal operation for 1 input:
-![formula](https://render.githubusercontent.com/render/math?math=Out_1 = B_{PREV}[7:0] + B_{IN_1}[8])
-![formula](https://render.githubusercontent.com/render/math?math=B_{PREV} = B_{IN_1}[7:0])
+[Equation 1](https://render.githubusercontent.com/render/math?math=Out_1=B_{PREV}[7:0]+B_{IN_1}[8])
+[Equation 2](https://render.githubusercontent.com/render/math?math=B_{PREV}=B_{IN_1}[7:0])
 - Below are the equations for normal operation for 2 inputs:
-![formula](https://render.githubusercontent.com/render/math?math=Out_1 = B_{PREV}[7:0] + B_{IN_1}[8])
-![formula](https://render.githubusercontent.com/render/math?math=Out_2 = B_{IN_1}[7:0] + B_{IN_2}[8])
-![formula](https://render.githubusercontent.com/render/math?math=B_{PREV} = B_{IN_2}[7:0])
+[Equation 3](https://render.githubusercontent.com/render/math?math=Out_1=B_{PREV}[7:0]+B_{IN_1}[8])
+[Equation 4](https://render.githubusercontent.com/render/math?math=Out_2=B_{IN_1}[7:0]+B_{IN_2}[8])
+[Equation 5](https://render.githubusercontent.com/render/math?math=B_{PREV}=B_{IN_2}[7:0])
 - Below are the equations when receiving 255:
-![formula](https://render.githubusercontent.com/render/math?math=B_{STAND-BY} = B_{PREV}[7:0])
-![formula](https://render.githubusercontent.com/render/math?math=B_{PREV} = B_{IN_1}[7:0])
-![formula](https://render.githubusercontent.com/render/math?math=Out_1 = 0)
+[Equation 6](https://render.githubusercontent.com/render/math?math=B_{STAND-BY}=B_{PREV}[7:0])
+[Equation 7](https://render.githubusercontent.com/render/math?math=B_{PREV}=B_{IN_1}[7:0])
+[Equation 8](https://render.githubusercontent.com/render/math?math=Out_1=0)
 - When using the _stand-by_ register, do the same operation that are used during normal operations. The only different is that _stand-by_ comes before _previous_.
 
 ##### The 255 exception
@@ -120,7 +120,7 @@
 1. Generate the simulation data and generate the LUT data ([lut-generator.py](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/lut-generator.py));
 2. Import the testbench file [entropy_encoder_tb.sv]() and change the simulation file's path;
 3. Import all _.v_ files;
-4. Compile all files in a simulation software (e.g. Modelsim);
+4. Compile all files in a simulation software (e.g., Modelsim);
 5. Use the scripts in folder [verification_area/modelsim_project/scripts/main_entropy_encoder/]();
 6. With the waveform scripts, some waveforms will be imported to the project (**only tested on Modelsim**);
 7. With the [re-run.do]() file, the LUT memories will be filled with generated data and the simulation will start.
