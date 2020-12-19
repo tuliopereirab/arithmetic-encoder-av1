@@ -6,7 +6,7 @@
 - As measured in 2020-10-26, this project's frequency, when synthesizing to ASIC, is around **567,85 MHz**.
 
 ## What is still missing?
-1. **Carry propagation for the bitstream**: as the AV1's implementation for the carry propagation isn't good enough for a hardware implementation, other methods to design the same functionality are under research.
+1. **Fix some problems with the carry propagation block ([stage_4.v]())**: the stage for is a very detailed and complex block that is still missing one specific exception (receiving _B != 255_ followed by _B == 255_).
 2. **Improve frequency and reduce area**: as higher as an architecture's frequency is, there are always ways to make it even higher without increasing the area.
 
 ## Project overview
@@ -36,9 +36,9 @@
 - **Final bitstream**:
 #### Testbenches
 - **Entropy encoder testbench**: This is the main testbench for the entire archicture. It validades the bitstreams generated and after the carry propagation process. The file is called [entropy_encoder_tb.sv]()
-- **Arithmetic encoder testbench**: This testbench is used to validade only the stages 1, 2 and 3 of the pipeline together. The file is called [tb_arith_encoder.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/complete-tb/tb_arith_encoder.sv).
-- **Pre-bitstream testbench**: This file also verifies the low and range outputs and the bitstream and a few other values used by the function *od_ec_enc_done* on the AV1's original code. The file is called [tb_bitstream](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/pipeline_sv_csv/tb_bitstream.sv).
-- **Component testbenches**: The LZC (Leading Zero Counter) has its own testbench called [tb_lzc.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/components/tb_lzc.sv).
+- **Arithmetic encoder testbench**: This testbench is used to validade only the stages 1, 2 and 3 of the pipeline together. The file is called [tb_arith_encoder.sv]().
+- **Pre-bitstream testbench**: This file also verifies the low and range outputs and the bitstream and a few other values used by the function *od_ec_enc_done* on the AV1's original code. The file is called [tb_bitstream]().
+- **Component testbenches**: The LZC (Leading Zero Counter) has its own testbench called [tb_lzc.sv]().
 - **Carry propagation testbench**: The Carry Propagation testbench verifies only the 4th stage of pipeline with random input data and it is called [tb_carry_propagation.sv]().
 
 ## Architecture in-depth explanation
@@ -109,8 +109,18 @@
 - The architecture's current critical path is the _range_ generation and normalization, which passes through a multiplication and the LZC sub-block.
 
 ### Ways to improve
-1- Find a way to multiply faster (already did some unsuccessful trials with Vedic multiplication method);
-2- Find a way to split the range generation equation and execute some parts in Stage 1;
-3- Use approximate computing to avoid the multiplication of the range.
+1. Find a way to multiply faster (already did some unsuccessful trials with Vedic multiplication method);
+2. Find a way to split the range generation equation and execute some parts in Stage 1;
+3. Use approximate computing to avoid the multiplication of the range.
 
-**More information about the architecture are in the [Project](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/Project) folder.**
+**More information about the architecture in [Project](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/Project) folder.**
+
+
+## How to run the main testbench?
+1. Generate the simulation data and generate the LUT data ([lut-generator.py](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/lut-generator.py));
+2. Import the testbench file [entropy_encoder_tb.sv]() and change the simulation file's path;
+3. Import all _.v_ files;
+4. Compile all files in a simulation software (e.g. Modelsim);
+5. Use the scripts in folder [verification_area/modelsim_project/scripts/main_entropy_encoder/]();
+6. With the waveform scripts, some waveforms will be imported to the project (**only tested on Modelsim**);
+7. With the [re-run.do]() file, the LUT memories will be filled with generated data and the simulation will start.
