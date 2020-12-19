@@ -14,7 +14,7 @@
 // Everytime it is shown 'Former Stage 3', it is actually talking about the one-round normalization
 
 
-module stage_2 #(
+module stage_2_vedic #(
     parameter RANGE_WIDTH = 16,
     parameter D_SIZE = 5,
     parameter SYMBOL_WIDTH = 4
@@ -36,15 +36,30 @@ module stage_2 #(
 
     // former stage 3 input
     wire [(RANGE_WIDTH-1):0] range;
+    wire [((RANGE_WIDTH*2)-1):0] r_u, r_v;
 
     // -------------------------------
+
+    // multiplications
+    vedic_16x16 R_U (
+            .a (RR),
+            .b (UU),
+            .r (r_u)
+        );
+    vedic_16x16 R_V (
+            .a (RR),
+            .b (VV),
+            .r (r_v)
+        );
 
     wire [(RANGE_WIDTH):0] v;
 
     assign RR = in_range >> 8;
 
-    assign u = (RR * UU >> 1) + lut_u;
-    assign v = (RR * VV >> 1) + lut_v;
+
+
+    assign u = (r_u >> 1) + lut_u;
+    assign v = (r_v >> 1) + lut_v;
 
 
     assign range_1 = u[(RANGE_WIDTH-1):0] - v[(RANGE_WIDTH-1):0];
@@ -57,7 +72,7 @@ module stage_2 #(
                     range_2;
 
     // bool
-    assign v_bool = (RR * VV >> 1) + 16'd4;
+    assign v_bool = (r_v >> 1) + 16'd4;
 
     assign range_bool = (symbol[0] == 1'b1) ? v_bool[(RANGE_WIDTH-1):0] :
                         in_range - v_bool[(RANGE_WIDTH-1):0];
