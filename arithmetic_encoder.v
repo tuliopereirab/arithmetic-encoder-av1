@@ -11,7 +11,7 @@ module arithmetic_encoder #(
         input [(GENERAL_SYMBOL_WIDTH-1):0] general_symbol,
         input [GENERAL_SYMBOL_WIDTH:0] general_nsyms,
         input general_bool,
-        output wire [(GENERAL_RANGE_WIDTH-1):0] RANGE_OUTPUT, OUT_OFFS,
+        output wire [(GENERAL_RANGE_WIDTH-1):0] RANGE_OUTPUT,
         output wire [(GENERAL_LOW_WIDTH-1):0] LOW_OUTPUT,
         output wire [(GENERAL_D_SIZE-1):0] CNT_OUTPUT,
         output wire [(GENERAL_RANGE_WIDTH-1):0] OUT_BIT_1, OUT_BIT_2,
@@ -23,11 +23,9 @@ module arithmetic_encoder #(
     reg [(GENERAL_LOW_WIDTH-1):0] reg_Low_s3;
     reg [(GENERAL_D_SIZE-1):0] reg_S_s3;
     reg [1:0] reg_flag_bitstream;
-    reg [(GENERAL_RANGE_WIDTH-1):0] reg_offs;
     reg [(GENERAL_RANGE_WIDTH-1):0] reg_pre_bitstream_1, reg_pre_bitstream_2;
     assign RANGE_OUTPUT = reg_Range_s3;
     assign LOW_OUTPUT = reg_Low_s3;
-    assign OUT_OFFS = reg_offs;
     assign OUT_BIT_1 = reg_pre_bitstream_1;
     assign OUT_BIT_2 = reg_pre_bitstream_2;
     assign OUT_FLAG_BITSTREAM = reg_flag_bitstream;
@@ -72,7 +70,6 @@ module arithmetic_encoder #(
     wire [(GENERAL_RANGE_WIDTH-1):0] range_out_s3;
     wire [(GENERAL_LOW_WIDTH-1):0] low_out_s3;
     wire [(GENERAL_D_SIZE-1):0] s_out_s3;
-    wire [(GENERAL_RANGE_WIDTH-1):0] offs_out_s3;
     wire [(GENERAL_RANGE_WIDTH-1):0] pre_bitstream_out_1, pre_bitstream_out_2;      // this is the output for the stage 3.
     wire [1:0] out_flag_bitstream;
     // ---------------------------------------------------
@@ -82,13 +79,11 @@ module arithmetic_encoder #(
             reg_S_s3 <= 5'd0;
             reg_Range_s3 <= 16'd32768;       // not necessary
             reg_Low_s3 <= 24'd0;
-            reg_offs <= 16'd0;
         end
         else if(ctrl_reg_final) begin  // already saving what comes from the Stage [3,4,5]
             reg_Range_s3 <= range_out_s3;
             reg_Low_s3 <= low_out_s3;
             reg_S_s3 <= s_out_s3;
-            reg_offs <= offs_out_s3;
         end
     end
     // ---------------------------------------------------
@@ -188,8 +183,6 @@ module arithmetic_encoder #(
             .in_s (reg_S_s3),
             .in_low (reg_Low_s3),
             // bitstream
-            .in_offs (reg_offs),
-            .out_offs (offs_out_s3),
             .flag_bitstream (out_flag_bitstream),
             .out_bit_1 (pre_bitstream_out_1),
             .out_bit_2 (pre_bitstream_out_2),

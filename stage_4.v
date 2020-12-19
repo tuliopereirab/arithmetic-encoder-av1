@@ -12,7 +12,7 @@ module stage_4 #(
         input s4_reset,
         input s4_flag_first,
         input s4_final_flag, s4_final_flag_2_3,           // This flag will be sended in 1 exactly in the next clock cycle after the last input
-        input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_1, in_arith_bitstream_2, in_arith_range, in_arith_offs,
+        input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_1, in_arith_bitstream_2, in_arith_range,
         input [(S4_D_SIZE-1):0] in_arith_cnt,
         input [(S4_LOW_WIDTH-1):0] in_arith_low,
         input [1:0] in_arith_flag,

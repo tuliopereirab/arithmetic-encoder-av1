@@ -49,7 +49,7 @@ module entropy_encoder #(
     // ARITHMETIC ENCODER OUTPUT CONNECTIONS
         // ALl arithmetic encoder outputs come from registers
         // Therefore, it isn't necessary to create more registers here
-    wire [(TOP_RANGE_WIDTH-1):0] out_arith_bitstream_1, out_arith_bitstream_2, out_arith_range, out_arith_offs;
+    wire [(TOP_RANGE_WIDTH-1):0] out_arith_bitstream_1, out_arith_bitstream_2, out_arith_range;
     wire [(TOP_D_SIZE-1):0] out_arith_cnt;
     wire [(TOP_LOW_WIDTH-1):0] out_arith_low;
     wire [1:0] out_arith_flag;
@@ -76,8 +76,7 @@ module entropy_encoder #(
             .CNT_OUTPUT (out_arith_cnt),
             .OUT_BIT_1 (out_arith_bitstream_1),
             .OUT_BIT_2 (out_arith_bitstream_2),
-            .OUT_FLAG_BITSTREAM (out_arith_flag),
-            .OUT_OFFS (out_arith_offs)
+            .OUT_FLAG_BITSTREAM (out_arith_flag)
         );
 
     stage_4 #(
@@ -98,7 +97,6 @@ module entropy_encoder #(
             .in_arith_bitstream_1 (out_arith_bitstream_1),
             .in_arith_bitstream_2 (out_arith_bitstream_2),
             .in_arith_range (out_arith_range),
-            .in_arith_offs (out_arith_offs),
             .in_arith_cnt(out_arith_cnt),
             .in_arith_low (out_arith_low),
             .in_arith_flag (out_arith_flag),
