@@ -6,7 +6,7 @@
 - As measured in 2020-10-26, this project's frequency, when synthesizing to ASIC, is around **567,85 MHz**.
 
 ## What is still missing?
-1. **Fix some problems with the carry propagation block ([stage_4.v]())**: the stage for is a very detailed and complex block that is still missing one specific exception (receiving _B != 255_ followed by _B == 255_).
+1. **Fix some problems with the carry propagation block ([stage_4.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/stage_4.v))**: the stage for is a very detailed and complex block that is still missing one specific exception (receiving _B != 255_ followed by _B == 255_).
 2. **Improve frequency and reduce area**: as higher as an architecture's frequency is, there are always ways to make it even higher without increasing the area.
 
 ## Project overview
@@ -23,7 +23,7 @@
 - The simulation data files are generated directly from AV1's algorithm, modified to create output files with important data.
 
 ##### How to generate?
-1. Download the modified file of the AV1's entropy encoder, [entenc.c](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/AV1-reference/entenc.c);
+1. Download the modified file of the AV1's entropy encoder, [entenc.c](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/AV1-reference-info/entenc.c);
 2. Download/clone the [AV1's reference code](https://aomedia.googlesource.com/aom/);
 3. Copy and overwrite the file _entenc.c_ modified into the folder _aom/aom_dsp_;
 4. Run any encoding process according to the procedure as specified in the AV1's website;
@@ -35,11 +35,11 @@
 - **Bitstream pre-carry**:
 - **Final bitstream**:
 #### Testbenches
-- **Entropy encoder testbench**: This is the main testbench for the entire archicture. It validades the bitstreams generated and after the carry propagation process. The file is called [entropy_encoder_tb.sv]()
-- **Arithmetic encoder testbench**: This testbench is used to validade only the stages 1, 2 and 3 of the pipeline together. The file is called [tb_arith_encoder.sv]().
-- **Pre-bitstream testbench**: This file also verifies the low and range outputs and the bitstream and a few other values used by the function *od_ec_enc_done* on the AV1's original code. The file is called [tb_bitstream]().
-- **Component testbenches**: The LZC (Leading Zero Counter) has its own testbench called [tb_lzc.sv]().
-- **Carry propagation testbench**: The Carry Propagation testbench verifies only the 4th stage of pipeline with random input data and it is called [tb_carry_propagation.sv]().
+- **Entropy encoder testbench**: This is the main testbench for the entire archicture. It validades the bitstreams generated and after the carry propagation process. The file is called [entropy_encoder_tb.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/entropy_encoder_tb.sv)
+- **Arithmetic encoder testbench**: This testbench is used to validade only the stages 1, 2 and 3 of the pipeline together. The file is called [tb_arith_encoder.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/tb_arith_encoder.sv).
+- **Pre-bitstream testbench**: This file also verifies the low and range outputs and the bitstream and a few other values used by the function *od_ec_enc_done* on the AV1's original code. The file is called [tb_bitstream](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/other_tb/pipeline_sv_csv/tb_bitstream.sv).
+- **Component testbenches**: The LZC (Leading Zero Counter) has its own testbench called [tb_lzc.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/components/tb_lzc.sv).
+- **Carry propagation testbench**: The Carry Propagation testbench verifies only the 4th stage of pipeline with random input data and it is called [tb_carry_propagation.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/components/tb_carry_propagation.sv).
 
 ## Architecture in-depth explanation
 ### Stage 1
@@ -58,7 +58,7 @@
 ### Stage 4
 - The output bitstreams are 8-bit arrays.
 - As Stage 3 generates 9-bit bitstreams, the 4th stage propagates the _b[9]_ to previously generated bitstreams.
-- This block is divided in 3 sub-blocks: [carry_propagation.v](), [auxiliar_carry_propagation.v]() and [final_bits.v]().
+- This block is divided in 3 sub-blocks: [carry_propagation.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/carry_propagation.v), [auxiliar_carry_propagation.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/auxiliar_carry_propagation.v) and [final_bits.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/final_bits.v).
 - The following subsections explain exactly the blocks' behaviors.
 
 #### Main Carry Propagation
@@ -118,9 +118,9 @@
 
 ## How to run the main testbench?
 1. Generate the simulation data and generate the LUT data ([lut-generator.py](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/lut-generator.py));
-2. Import the testbench file [entropy_encoder_tb.sv]() and change the simulation file's path;
+2. Import the testbench file [entropy_encoder_tb.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/entropy_encoder_tb.sv) and change the simulation file's path;
 3. Import all _.v_ files;
 4. Compile all files in a simulation software (e.g., Modelsim);
-5. Use the scripts in folder [verification_area/modelsim_project/scripts/main_entropy_encoder/]();
+5. Use the scripts in folder [verification_area/modelsim_project/scripts/main_entropy_encoder/](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/verification_area/modelsim_project/scripts/main_entropy_encoder);
 6. With the waveform scripts, some waveforms will be imported to the project (**only tested on Modelsim**);
-7. With the [re-run.do]() file, the LUT memories will be filled with generated data and the simulation will start.
+7. With the [re-run.do](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/modelsim_project/scripts/main_entropy_encoder/re-run.do) file, the LUT memories will be filled with generated data and the simulation will start.
