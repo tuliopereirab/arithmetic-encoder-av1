@@ -16,7 +16,7 @@
 #define EC_MIN_PROB 4
 #define CDF_PROB_TOP 32768
 
-#define MAX_INPUTS 20000000000000
+#define MAX_INPUTS 20
 
 int16_t cnt;
 uint16_t range;
@@ -24,6 +24,16 @@ uint32_t low;
 int offs = 0;
 int stop_after_reset_flag;
 int reset_counter, bitstream_counter;
+
+// ---------------------
+int range_analyzer_file = 1;  // This variable defines wheather to create the file to analyze the range or not
+          // This file comprises different values that are related to the range generation
+          // This is a CSV file containing:
+               // range_in; uv_bool_def; fl, fh; range_without_lut; range_raw;
+          // Where:
+               // uv_bool_def is the definition of the equation used for the range_raw generation
+// ---------------------
+
 
 
 // -------------------
@@ -62,7 +72,18 @@ void setup(){
      struct stat sb;
      bitstream_counter = 0;
      if((stat("output-files/", &sb) != 0) || !S_ISDIR(sb.st_mode))
-          mkdir("output-files", 0700);
+     mkdir("output-files", 0700);
+
+     if(range_analyzer_file){
+          if((arq = fopen("output-files/range_analyzer.csv", "w+")) == NULL){
+               printf("Unable to create range_analyzer_file.\n");
+               exit(EXIT_FAILURE);
+          }else{
+               fprintf(arq, "range_in; equation; fl; fh; u_no_lut; v_no_lut\n");
+               fclose(arq);
+          }
+     }
+
      reset_function();
      arq = fopen("output-files/final_bitstream.csv", "w+");
      fclose(arq);
@@ -131,7 +152,7 @@ int run_simulation(){
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
      int s, nsyms, bool;
-     if((arq_input = fopen("/home/tulio/Desktop/y4m_files/generated_files/cq_55/Beauty_1920x1080_120fps_420_8bit_YUV_cq55_main_data.csv", "r")) != NULL){
+     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_55/Beauty_1920x1080_120fps_420_8bit_YUV_cq55_main_data.csv", "r")) != NULL){
           i = 0;
           status = 1;
           reset = 0;
@@ -192,6 +213,21 @@ int run_simulation(){
      return 0;
 }
 
+
+void add_to_file(int bool_flag, unsigned range_in, char equation[], unsigned fl, unsigned fh, unsigned u, unsigned v){
+     FILE *arq;
+     if((arq = fopen("output-files/range_analyzer.csv", "a+")) == NULL){
+          printf("Error opening range_analyzer_file");
+          exit(EXIT_FAILURE);
+     }else{
+          if(bool_flag)
+               fprintf(arq, "%"PRIu16";%s;%"PRIu16";N/A;N/A;%"PRIu16";\n", range_in, equation, fl, v);
+          else
+               fprintf(arq, "%"PRIu16";%s;%"PRIu16";%"PRIu16";%"PRIu16";%"PRIu16";\n", range_in, equation, fl, fh, u, v);
+          fclose(arq);
+     }
+}
+
 void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      uint32_t l;
      unsigned r;
@@ -204,34 +240,45 @@ void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      assert(fl <= 32768U);
      assert(7 - EC_PROB_SHIFT - CDF_SHIFT >= 0);
      const int N = nsyms - 1;
+     u = ((r >> 8) * (uint32_t)(fl >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s - 1));
+     v = ((r >> 8) * (uint32_t)(fh >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s + 0));
      if (fl < CDF_PROB_TOP) {
-          u = ((r >> 8) * (uint32_t)(fl >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s - 1));
-          v = ((r >> 8) * (uint32_t)(fh >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s + 0));
           l += r - u;
           r = u - v;
+          // Beyond this point, only if range_analyzer_file is 1
+          if(range_analyzer_file)
+               add_to_file(0, range, "u-v", fl, fh, ((u-(EC_MIN_PROB*(N- s-1)))), (v-(EC_MIN_PROB*(N-(s+0)))));
      } else {
-          r -= ((r >> 8) * (uint32_t)(fh >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s + 0));
+          r -= v;
+          if(range_analyzer_file)
+               add_to_file(0, range, "range_in - v", fl, fh, (u-(EC_MIN_PROB*(N- s-1))), (v-(EC_MIN_PROB*(N-(s+0)))));
      }
 
      od_ec_enc_normalize(l, r);
 }
 
 void od_ec_encode_bool_q15(int val, unsigned f) {
-    uint32_t l;
-    unsigned r;
-    unsigned v;
-    assert(0 < f);
-    assert(f < 32768U);
-    l = low;
-    r = range;
-    assert(32768U <= r);
-    v = ((r >> 8) * (uint32_t)(f >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT));
-    v += EC_MIN_PROB;
-    if (val)
-        l += r - v;
-    r = val ? v : r - v;
+     uint32_t l;
+     unsigned r;
+     unsigned v;
+     assert(0 < f);
+     assert(f < 32768U);
+     l = low;
+     r = range;
+     assert(32768U <= r);
+     v = ((r >> 8) * (uint32_t)(f >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT));
+     v += EC_MIN_PROB;
+     if (val)
+          l += r - v;
+     r = val ? v : r - v;
+     if(range_analyzer_file){
+          if(val)
+               add_to_file(1, range, "bool v", f, 0, 1, (v-EC_MIN_PROB));
+          else
+               add_to_file(1, range, "bool r-v", f, 0, 1, (v-EC_MIN_PROB));
+     }
 
-    od_ec_enc_normalize(l, r);
+     od_ec_enc_normalize(l, r);
 }
 
 void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
