@@ -67,10 +67,10 @@ module carry_propagation #(
 // -------------------------------------
 
 
-    assign out_bitstream_4 =    ((!flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                                ((flag_final) && (flag_in == 1) && (in_bitstream_1 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
-                                ((flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && ((in_bitstream_2 != 255) || (in_bitstream_2 == 255))) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                                ((flag_final) && (flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
+    assign out_bitstream_4 =    ((reg_counter != 0) && (!flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                                ((reg_counter != 0) && (flag_final) && (flag_in == 1) && (in_bitstream_1 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
+                                ((reg_counter != 0) && (flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && ((in_bitstream_2 != 255) || (in_bitstream_2 == 255))) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                                ((reg_counter != 0) && (flag_final) && (flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
                                 8'd0;
 
     assign out_bitstream_5 =    ((flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && ((in_bitstream_2 == 255) || (in_bitstream_2 != 255))) ? in_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
@@ -163,8 +163,8 @@ module carry_propagation #(
 
 // -------------------------------------
 
-    assign out_2_c0_not_final = ((flag_in == 10) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                                ((flag_in == 10) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+    assign out_2_c0_not_final = ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                                ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 8'd0;
     assign out_2_c0_final =     (flag_in == 1) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                                 ((flag_in == 2) && (in_bitstream_1 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :

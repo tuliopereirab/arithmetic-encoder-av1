@@ -98,18 +98,6 @@ module tb_carry_propagation #(
             end
             2 : begin       // check_bitstream 1 and 2
                 if(expected_result[read_pointer] != tb_out_bitstream_1) begin
-                    stop_execution(1, 3, expected_result[read_pointer], tb_out_bitstream_1);
-                end else begin
-                    read_pointer = update_pointer(read_pointer);
-                end
-
-                if(expected_result[read_pointer] != tb_out_bitstream_2)
-                    stop_execution(2, 3, expected_result[read_pointer], tb_out_bitstream_2);
-                else
-                    read_pointer = update_pointer(read_pointer);
-            end
-            3 : begin       // check bitstream 1, 2 and 3
-                if(expected_result[read_pointer] != tb_out_bitstream_1) begin
                     stop_execution(1, 2, expected_result[read_pointer], tb_out_bitstream_1);
                 end else begin
                     read_pointer = update_pointer(read_pointer);
@@ -119,9 +107,21 @@ module tb_carry_propagation #(
                     stop_execution(2, 2, expected_result[read_pointer], tb_out_bitstream_2);
                 else
                     read_pointer = update_pointer(read_pointer);
+            end
+            3 : begin       // check bitstream 1, 2 and 3
+                if(expected_result[read_pointer] != tb_out_bitstream_1) begin
+                    stop_execution(1, 3, expected_result[read_pointer], tb_out_bitstream_1);
+                end else begin
+                    read_pointer = update_pointer(read_pointer);
+                end
+
+                if(expected_result[read_pointer] != tb_out_bitstream_2)
+                    stop_execution(2, 3, expected_result[read_pointer], tb_out_bitstream_2);
+                else
+                    read_pointer = update_pointer(read_pointer);
 
                 if(expected_result[read_pointer] != tb_out_bitstream_3)
-                    stop_execution(3, 2, expected_result[read_pointer], tb_out_bitstream_3);
+                    stop_execution(3, 3, expected_result[read_pointer], tb_out_bitstream_3);
                 else
                     read_pointer = update_pointer(read_pointer);
             end
@@ -279,14 +279,13 @@ module tb_carry_propagation #(
         tb_flag_first = 0;
         #4ns;
         while(1) begin
-            tb_arith_bitstream_1 = generate_value(511);         // set 511 as max number to be expressed with a 9-bit array
-            tb_arith_bitstream_2 = generate_value(511);
+            tb_arith_bitstream_1 = generate_value(500);         // set 511 as max number to be expressed with a 9-bit array
+            tb_arith_bitstream_2 = generate_value(500);
             tb_arith_flag = generate_value(2);
+            if(first_input == 1)
+                tb_arith_flag = 1;
             if(tb_arith_flag != 0) begin
-                if(first_input == 1)
-                    first_input = 0;
-                else
-                    add_value();
+                add_value();
             end
             #4ns;
         end
@@ -300,13 +299,10 @@ module tb_carry_propagation #(
         #1ns;       // The output checker will be executed exactly 1ns after the input
         while(1) begin
             if(tb_out_flag != 0) begin
-                if(first_output == 1)
-                    first_output = 0;
-                else
-                    check();
-                    check_counter = check_counter + 1;
-                    if((check_counter % 10000) == 0)
-                        $display("Counter: %d\tBit_1: %d\tBit_2: %d\tFlag: %d\n", check_counter, tb_arith_bitstream_1, tb_arith_bitstream_2, tb_arith_flag);
+                check();
+                check_counter = check_counter + 1;
+                if((check_counter % 10000) == 0)
+                    $display("Counter: %d\tBit_1: %d\tBit_2: %d\tFlag: %d\n", check_counter, tb_arith_bitstream_1, tb_arith_bitstream_2, tb_arith_flag);
             end
             #4ns;
         end
