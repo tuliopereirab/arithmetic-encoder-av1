@@ -73,7 +73,7 @@ module stage_3 #(
                         16'd0;
 
     assign flag_bitstream = ((s_comp >= 9) && (s_comp < 17)) ? 2'd1 :       // The flag will be used to show the register in the end of this module when to save the new bits
-                            (s_comp >= 17) ? 2'd3 :                         // As it can give a different number of outputs, it's necessary to indicate when to save both or only 1
+                            (s_comp >= 17) ? 2'd2 :                         // As it can give a different number of outputs, it's necessary to indicate when to save both or only 1
                             2'd0;                                           // 01: save only bit_1; 11: save both
 
 

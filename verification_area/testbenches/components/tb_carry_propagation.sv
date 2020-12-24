@@ -97,7 +97,7 @@ module tb_carry_propagation #(
                     read_pointer = update_pointer(read_pointer);
                 end
             end
-            3 : begin       // check_bitstream 1 and 2
+            2 : begin       // check_bitstream 1 and 2
                 if(expected_result[read_pointer] != tb_out_bitstream_1) begin
                     stop_execution(1, 3, expected_result[read_pointer], tb_out_bitstream_1);
                 end else begin
@@ -109,7 +109,7 @@ module tb_carry_propagation #(
                 else
                     read_pointer = update_pointer(read_pointer);
             end
-            2 : begin       // check bitstream 1, 2 and 3
+            3 : begin       // check bitstream 1, 2 and 3
                 if(expected_result[read_pointer] != tb_out_bitstream_1) begin
                     stop_execution(1, 2, expected_result[read_pointer], tb_out_bitstream_1);
                 end else begin

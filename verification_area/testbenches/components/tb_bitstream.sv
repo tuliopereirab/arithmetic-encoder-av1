@@ -263,7 +263,7 @@ module tb_bitstream #(
                     match_bit_1 = match_bit_1 + 1;
                 end
             end
-            3 : begin           // For this case, the values in the bitstream file are inverted
+            2 : begin           // For this case, the values in the bitstream file are inverted
                 if(tb_bit_1 != verify_bit_2[verify_read]) begin
                     miss_bit_1 = miss_bit_1 + 1;
                     if(RUN_UNTIL_FIRST_MISS) begin

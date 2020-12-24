@@ -352,7 +352,7 @@ module entropy_encoder_tb #(
         if(tb_flag_first_bitstream) begin
             tb_flag_first_bitstream = 0;        // The first bitstream will not be checked because it's gonna be ZERO
             case(tb_out_flag_bitstream)     // In case the first bitstream comes followed by more bitstreams at the same time, this part of the code will be executed
-                3 : begin                   // It will ignore the first bitstream and test the following bitstreams
+                2 : begin                   // It will ignore the first bitstream and test the following bitstreams
                     status = $fscanf (file_bitstream, "%d;\n", temp_bitstream_2);
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
@@ -364,7 +364,7 @@ module entropy_encoder_tb #(
                         match_bitstream = match_bitstream + 1;
                     end
                 end
-                2 : begin
+                3 : begin
                     status = $fscanf (file_bitstream, "%d;\n%d;\n", temp_bitstream_2, temp_bitstream_3);
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
@@ -433,7 +433,7 @@ module entropy_encoder_tb #(
                         match_bitstream = match_bitstream + 1;
                     end
                 end
-                3 : begin           // 2 bitstream is going to be tested
+                2 : begin           // 2 bitstream is going to be tested
                     status = $fscanf (file_bitstream, "%d;\n%d;\n", temp_bitstream_1, temp_bitstream_2);
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;
@@ -455,7 +455,7 @@ module entropy_encoder_tb #(
                         match_bitstream = match_bitstream + 1;
                     end
                 end
-                2 : begin           // 3 bitstreams are going to be tested
+                3 : begin           // 3 bitstreams are going to be tested
                     status = $fscanf (file_bitstream, "%d;\n%d;\n%d;\n", temp_bitstream_1, temp_bitstream_2, temp_bitstream_3);
                     if(temp_bitstream_1 != tb_out_bit_1) begin
                         miss_bitstream = miss_bitstream + 1;

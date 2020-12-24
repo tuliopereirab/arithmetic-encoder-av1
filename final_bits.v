@@ -27,7 +27,7 @@ module final_bits_generator #(
 
     // outputs
     assign flag =   ((s > 9) && (s <= 17)) ? 2'b01 :
-                    (s > 17) ? 2'b11 :
+                    (s > 17) ? 2'b10 :
                     2'b00;
 
     assign out_bit_1 = e_1 >> c_1;
