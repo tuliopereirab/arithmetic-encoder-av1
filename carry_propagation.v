@@ -107,8 +107,8 @@ module carry_propagation #(
                         8'd0;
 
     assign counter_c1 = ((!flag_final) && (flag_in == 0)) ? reg_counter :
-                        ((!flag_final) && (flag_in == 1) && (in_bitstream_1 == 255)) ? reg_counter + 1 :
-                        ((!flag_final) && (flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? reg_counter + 2 :
+                        ((!flag_final) && (flag_in == 1) && (in_bitstream_1 == 255)) ? reg_counter + 8'd1 :
+                        ((!flag_final) && (flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? reg_counter + 8'd2 :
                         ((!flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? 8'd1 :
                         8'd0;
 
@@ -171,7 +171,7 @@ module carry_propagation #(
                                 ((flag_in == 2) && (in_bitstream_1 == 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 8'd0;
 
-    assign out_2_c1_not_final = ((flag_in == 1) && (in_bitstream_1 != 255)) ? 255 + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+    assign out_2_c1_not_final = ((flag_in == 1) && (in_bitstream_1 != 255)) ? 8'd255 + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? 8'd255 + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? 8'd255 + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                                 ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? 8'd255 + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :

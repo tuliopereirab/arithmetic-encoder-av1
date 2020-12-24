@@ -16,10 +16,9 @@ module entropy_encoder #(
         input [(TOP_SYMBOL_WIDTH-1):0] top_symbol,
         input [TOP_SYMBOL_WIDTH:0] top_nsyms,
         input top_bool,
-        output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1, OUT_BIT_2, OUT_BIT_3, OUT_LAST_BIT,
+        output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1, OUT_BIT_2, OUT_BIT_3, OUT_BIT_4, OUT_BIT_5,
         output wire [2:0] OUT_FLAG_BITSTREAM,
-        output wire OUT_FLAG_LAST, ERROR_INDICATION         // The error indication will only be activated when two bitstream 255 in a row followed by a >255 bitstream;
-    );
+        output wire OUT_FLAG_LAST
 
     // In order to ensure that all the necessary flags in the Carry propagation block will be correctly initiated,
     // I will propagate a flag called flag_first able to set all flags to zero without requiring any other flag
@@ -104,10 +103,10 @@ module entropy_encoder #(
             .out_carry_bit_1 (OUT_BIT_1),
             .out_carry_bit_2 (OUT_BIT_2),
             .out_carry_bit_3 (OUT_BIT_3),
-            .out_carry_last_bit (OUT_LAST_BIT),
+            .out_carry_bit_4 (OUT_BIT_4),
+            .out_carry_bit_5 (OUT_BIT_5),
             .out_carry_flag_bitstream (OUT_FLAG_BITSTREAM),
-            .output_flag_last (OUT_FLAG_LAST),
-            .out_carry_error (ERROR_INDICATION)
+            .output_flag_last (OUT_FLAG_LAST)
         );
 
 endmodule
