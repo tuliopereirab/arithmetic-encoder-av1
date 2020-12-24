@@ -94,6 +94,7 @@ module stage_4 #(
         .INPUT_DATA_WIDTH (S4_RANGE_WIDTH)
         ) carry_propag (
             .clk (s4_clk),
+            .reset (s4_reset),
             .flag_in (mux_flag_final),
             .flag_first (s4_flag_first),
             .flag_final (s4_final_flag),
@@ -137,7 +138,11 @@ module stage_4 #(
         end
     end
     always @ (posedge s4_clk) begin
-        if(s4_final_flag_2_3) begin
+        if(s4_reset) begin
+            reg_flag_final <= 1'b0;
+            reg_final_bit_1 <= 1'b0;
+            reg_final_bit_2 <= 1'b0;
+        end else if(s4_final_flag_2_3) begin
             reg_flag_final <= out_final_bits_flag;
             reg_final_bit_1 <= out_final_bits_1;
             reg_final_bit_2 <= out_final_bits_2;

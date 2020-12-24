@@ -9,7 +9,7 @@ module entropy_encoder_tb #(
     parameter SELECT_CQ = 0,            // This config defines the CQ of the video to be executed
                                         // The SELECT_CQ is only valid when SELECT_VIDEO != -1
                                         // 0- cq55, 1- cq20
-    parameter SELECT_VIDEO = -1,         // -1 - Run all videos
+    parameter SELECT_VIDEO = 3,         // -1 - Run all videos
                                         // 0 - Beauty 1920x1080 120fps 420 8bit YUV
                                         // 1 - Bosphorus 1920x1080 120fps 420 8bit YUV
                                         // 2 - HoneyBee 1920x1080 120fps 420 8bit YUV
@@ -33,13 +33,14 @@ module entropy_encoder_tb #(
     int temp_fl, temp_fh, temp_symbol, temp_nsyms, temp_bool;   // inputs
     int temp_range, temp_low;               // verification variables (final numbers for low and range)
     int temp_init_range, temp_init_low;     // reset variables (verify is these variables are 32768 and 0, respectively)
-    int temp_bitstream_1, temp_bitstream_2, temp_bitstream_3, temp_bitstream_4;
+    int temp_bitstream_1, temp_bitstream_2, temp_bitstream_3, temp_bitstream_4, temp_bitstream_5;
     int temp_norm_in_rng, temp_norm_in_low;
     int status;     // check if the file was correctly read
     // ---------------------------------
     int match_bitstream, miss_bitstream;
     int general_counter, reset_counter;
-    int tb_flag_first_bitstream;
+    int i; //tb_flag_first_bitstream;       // The commented variable isn't in use anymore
+                                            // Now the architecture identifies which is the actual first bitstream to be released.
     // ---------------------------------
     // reset detection
     int previous_range_out, previous_low_out;
@@ -53,7 +54,7 @@ module entropy_encoder_tb #(
     reg [(TB_RANGE_WIDTH-1):0] tb_fl, tb_fh;
     reg [(TB_SYMBOL_WIDTH-1):0] tb_symbol;
     reg [TB_SYMBOL_WIDTH:0] tb_nsyms;
-    wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_1, tb_out_bit_2, tb_out_last_bit, tb_out_bit_3;
+    wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_1, tb_out_bit_2, tb_out_last_bit, tb_out_bit_3, tb_out_bit_4, tb_out_bit_5;
     wire [2:0] tb_out_flag_bitstream;
     wire tb_error_detection;
 
@@ -80,10 +81,10 @@ module entropy_encoder_tb #(
             .OUT_BIT_1 (tb_out_bit_1),
             .OUT_BIT_2 (tb_out_bit_2),
             .OUT_BIT_3 (tb_out_bit_3),
-            .OUT_LAST_BIT (tb_out_last_bit),
+            .OUT_BIT_4 (tb_out_bit_4),
+            .OUT_BIT_5 (tb_out_bit_5),
             .OUT_FLAG_BITSTREAM (tb_out_flag_bitstream),
-            .OUT_FLAG_LAST (tb_out_flag_last),
-            .ERROR_INDICATION (tb_error_detection)
+            .OUT_FLAG_LAST (tb_out_flag_last)
         );
 
     always #1ns tb_clk <= ~tb_clk;      // Here is the Clock (clk) generator
@@ -241,23 +242,19 @@ module entropy_encoder_tb #(
     function void add_line_output_file;
         case(tb_out_flag_bitstream)
             1 : begin           // 1 bitstream will be added to the file
-                if(!tb_flag_first_bitstream)
-                    $fdisplay(file_output, "%0d;", tb_out_bit_1);
+                $fdisplay(file_output, "%0d;", tb_out_bit_1);
             end
             3 : begin           // 2 bitstream will be added to the file
-                if(!tb_flag_first_bitstream)
-                    $fdisplay(file_output, "%0d;", tb_out_bit_1);
+                $fdisplay(file_output, "%0d;", tb_out_bit_1);
                 $fdisplay(file_output, "%0d;", tb_out_bit_2);
             end
             2 : begin           // 3 bitstreams will be added to the file
-                if(!tb_flag_first_bitstream)
-                    $fdisplay(file_output, "%0d;", tb_out_bit_1);
+                $fdisplay(file_output, "%0d;", tb_out_bit_1);
                 $fdisplay(file_output, "%0d;", tb_out_bit_2);
                 $fdisplay(file_output, "%0d;", tb_out_bit_3);
             end
             4 : begin           // 4 bitstreams will be added to the file
-                if(!tb_flag_first_bitstream)
-                    $fdisplay(file_output, "%0d;", tb_out_bit_1);
+                $fdisplay(file_output, "%0d;", tb_out_bit_1);
                 $fdisplay(file_output, "%0d;", tb_out_bit_2);
                 $fdisplay(file_output, "%0d;", tb_out_bit_3);
                 $fdisplay(file_output, "%0d;", tb_out_last_bit);
@@ -300,7 +297,7 @@ module entropy_encoder_tb #(
         if(start_flag) begin
             $display("\t-> Resetting testbench variables\n");
             reset_counter = 0;
-            tb_flag_first_bitstream = 1;
+            // tb_flag_first_bitstream = 1; // This variable isn't required anymore because the architecture identifies when the first bitstream is actually going out
             match_bitstream = 0;
             miss_bitstream = 0;
         end
@@ -344,107 +341,151 @@ module entropy_encoder_tb #(
         else
             special_str = "";
         $display("Video: %s\n", get_video_name(current_video_id));
-        $display("%d - Flag %d %s - Bitstream %d -> Bitstream doesn't match with expected. \t%d, got %d\n", count, flag_num, special_str, bitstream_num, expected, got);
+        $display("%0d - Flag %0d %0s - Bitstream %0d -> Bitstream doesn't match with expected. \t%0d, got %0d\n", count, flag_num, special_str, bitstream_num, expected, got);
         statistic(2);
     endfunction
 
     function void check_bitstream;
-        if(tb_flag_first_bitstream) begin
-            tb_flag_first_bitstream = 0;        // The first bitstream will not be checked because it's gonna be ZERO
-            case(tb_out_flag_bitstream)     // In case the first bitstream comes followed by more bitstreams at the same time, this part of the code will be executed
-                2 : begin                   // It will ignore the first bitstream and test the following bitstreams
+        case(tb_out_flag_bitstream)
+            1 : begin        // 1 bitstream is going to be tested
+                status = $fscanf (file_bitstream, "%d;\n", temp_bitstream_1);
+                if(temp_bitstream_1 != tb_out_bit_1) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+            end
+            2 : begin           // 2 bitstream is going to be tested
+                status = $fscanf (file_bitstream, "%d;\n%d;\n", temp_bitstream_1, temp_bitstream_2);
+                if(temp_bitstream_1 != tb_out_bit_1) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+                if(temp_bitstream_2 != tb_out_bit_2) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 2, temp_bitstream_2, tb_out_bit_2);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+            end
+            3 : begin           // 3 bitstreams are going to be tested
+                status = $fscanf (file_bitstream, "%d;\n%d;\n%d;\n", temp_bitstream_1, temp_bitstream_2, temp_bitstream_3);
+                if(temp_bitstream_1 != tb_out_bit_1) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+                if(temp_bitstream_2 != tb_out_bit_2) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 2, temp_bitstream_2, tb_out_bit_2);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+                if(temp_bitstream_3 != tb_out_bit_3) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 3, temp_bitstream_3, tb_out_bit_3);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+            end
+            4 : begin           // 3 bitstreams are going to be tested
+                status = $fscanf (file_bitstream, "%d;\n%d;\n%d;\n%d;\n", temp_bitstream_1, temp_bitstream_2, temp_bitstream_3, temp_bitstream_4);
+                if(temp_bitstream_1 != tb_out_bit_1) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+                if(temp_bitstream_2 != tb_out_bit_2) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 2, temp_bitstream_2, tb_out_bit_2);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+                if(temp_bitstream_3 != tb_out_bit_3) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 3, temp_bitstream_3, tb_out_bit_3);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+                if(temp_bitstream_4 != tb_out_last_bit) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 4, temp_bitstream_4, tb_out_last_bit);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+            end
+            5 : begin
+                status = $fscanf (file_bitstream, "%d;\n", temp_bitstream_1);
+                if(temp_bitstream_1 != tb_out_bit_1) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+                for(i = 0; i < tb_out_bit_3; i = i+1) begin
                     status = $fscanf (file_bitstream, "%d;\n", temp_bitstream_2);
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_2, tb_out_bit_2);
+                            print_problem(general_counter, tb_out_flag_bitstream, 0, 2, temp_bitstream_2, tb_out_bit_2);
                             statistic(2);
                         end
                     end else begin
                         match_bitstream = match_bitstream + 1;
                     end
                 end
-                3 : begin
-                    status = $fscanf (file_bitstream, "%d;\n%d;\n", temp_bitstream_2, temp_bitstream_3);
-                    if(temp_bitstream_2 != tb_out_bit_2) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_2, tb_out_bit_2);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
+            end
+            6 : begin
+                status = $fscanf (file_bitstream, "%d;\n", temp_bitstream_1);
+                if(temp_bitstream_1 != tb_out_bit_1) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
+                        statistic(2);
                     end
-
-                    if(temp_bitstream_3 != tb_out_bit_3) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_3, tb_out_bit_3);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
-                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
                 end
-                4 : begin
-                    status = $fscanf (file_bitstream, "%d;\n%d;\n%d;\n", temp_bitstream_2, temp_bitstream_3, temp_bitstream_4);
-                    if(temp_bitstream_2 != tb_out_bit_2) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_2, tb_out_bit_2);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
-                    end
-
-                    if(temp_bitstream_3 != tb_out_bit_3) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_3, tb_out_bit_3);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
-                    end
-
-                    if(temp_bitstream_4 != tb_out_last_bit) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 1, 4, temp_bitstream_4, tb_out_last_bit);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
-                    end
-                end
-            endcase
-        end else begin
-            case(tb_out_flag_bitstream)
-                1 : begin        // 1 bitstream is going to be tested
-                    status = $fscanf (file_bitstream, "%d;\n", temp_bitstream_1);
-                    if(temp_bitstream_1 != tb_out_bit_1) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
-                    end
-                end
-                2 : begin           // 2 bitstream is going to be tested
-                    status = $fscanf (file_bitstream, "%d;\n%d;\n", temp_bitstream_1, temp_bitstream_2);
-                    if(temp_bitstream_1 != tb_out_bit_1) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
-                    end
-
+                for(i = 0; i < tb_out_bit_3; i = i+1) begin
+                    status = $fscanf (file_bitstream, "%d;\n", temp_bitstream_2);
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
@@ -455,18 +496,30 @@ module entropy_encoder_tb #(
                         match_bitstream = match_bitstream + 1;
                     end
                 end
-                3 : begin           // 3 bitstreams are going to be tested
-                    status = $fscanf (file_bitstream, "%d;\n%d;\n%d;\n", temp_bitstream_1, temp_bitstream_2, temp_bitstream_3);
-                    if(temp_bitstream_1 != tb_out_bit_1) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
+                status = $fscanf (file_bitstream, "%d;\n", temp_bitstream_4);
+                if(temp_bitstream_4 != tb_out_bit_4) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_4, tb_out_bit_4);
+                        statistic(2);
                     end
-
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+            end
+            7 : begin
+                status = $fscanf (file_bitstream, "%d;\n", temp_bitstream_1);
+                if(temp_bitstream_1 != tb_out_bit_1) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+                for(i = 0; i < tb_out_bit_3; i = i+1) begin
+                    status = $fscanf (file_bitstream, "%d;\n", temp_bitstream_2);
                     if(temp_bitstream_2 != tb_out_bit_2) begin
                         miss_bitstream = miss_bitstream + 1;
                         if(RUN_UNTIL_FIRST_MISS) begin
@@ -476,61 +529,28 @@ module entropy_encoder_tb #(
                     end else begin
                         match_bitstream = match_bitstream + 1;
                     end
-
-                    if(temp_bitstream_3 != tb_out_bit_3) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 0, 3, temp_bitstream_3, tb_out_bit_3);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
-                    end
                 end
-                4 : begin           // 3 bitstreams are going to be tested
-                    status = $fscanf (file_bitstream, "%d;\n%d;\n%d;\n%d;\n", temp_bitstream_1, temp_bitstream_2, temp_bitstream_3, temp_bitstream_4);
-                    if(temp_bitstream_1 != tb_out_bit_1) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_1, tb_out_bit_1);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
+                status = $fscanf (file_bitstream, "%d;\n%d;\n", temp_bitstream_4, temp_bitstream_5);
+                if(temp_bitstream_4 != tb_out_bit_4) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_4, tb_out_bit_4);
+                        statistic(2);
                     end
-
-                    if(temp_bitstream_2 != tb_out_bit_2) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 0, 2, temp_bitstream_2, tb_out_bit_2);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
-                    end
-
-                    if(temp_bitstream_3 != tb_out_bit_3) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 0, 3, temp_bitstream_3, tb_out_bit_3);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
-                    end
-
-                    if(temp_bitstream_4 != tb_out_last_bit) begin
-                        miss_bitstream = miss_bitstream + 1;
-                        if(RUN_UNTIL_FIRST_MISS) begin
-                            print_problem(general_counter, tb_out_flag_bitstream, 0, 4, temp_bitstream_4, tb_out_last_bit);
-                            statistic(2);
-                        end
-                    end else begin
-                        match_bitstream = match_bitstream + 1;
-                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
                 end
-            endcase
-        end
+                if(temp_bitstream_5 != tb_out_bit_5) begin
+                    miss_bitstream = miss_bitstream + 1;
+                    if(RUN_UNTIL_FIRST_MISS) begin
+                        print_problem(general_counter, tb_out_flag_bitstream, 0, 1, temp_bitstream_5, tb_out_bit_5);
+                        statistic(2);
+                    end
+                end else begin
+                    match_bitstream = match_bitstream + 1;
+                end
+            end
+        endcase
     endfunction
 
     function int get_cq;
@@ -626,10 +646,11 @@ module entropy_encoder_tb #(
                             //     statistic(4);
                             // end
                         end
-                        #2ns;      // It is necessary to give time for the check_bitstream function to properly verify the output
+                        //#2ns;      // It is necessary to give time for the check_bitstream function to properly verify the output
+                        tb_input_flag_last = 0; // Set the flag_final to zero and tell the architecture that it is over.
                         //$display("\t\t-> Architecture empty\n");
                         reset_function(0);      // set the flag to zero avoiding an entire reset
-                        tb_flag_first_bitstream = 1;        // Tells the TB to don't consider the first bitstream after the reset.
+                        // tb_flag_first_bitstream = 1;        // Tells the TB to don't consider the first bitstream after the reset.   NOT IN USE ANYMORE (SEE DECLARATION)
                         #2ns;
                         //$display("\t\t-> Setting the reset sign to 0\n");
                         tb_reset <= 1'b0;
