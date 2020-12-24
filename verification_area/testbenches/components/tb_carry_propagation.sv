@@ -18,7 +18,7 @@ module tb_carry_propagation #(
     reg [(TB_LOW_WIDTH-1):0] tb_low;
     // outputs
     wire tb_out_flag_last, tb_error;
-    wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bitstream_1, tb_out_bitstream_2, tb_out_bitstream_3, tb_out_bitstream_last;
+    wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bitstream_1, tb_out_bitstream_2, tb_out_bitstream_3, tb_out_bitstream_4, tb_out_bitstream_5;
     wire [2:0] tb_out_flag;
 
     // Interval variables Testbench
@@ -48,7 +48,6 @@ module tb_carry_propagation #(
             .in_arith_bitstream_1 (tb_arith_bitstream_1),
             .in_arith_bitstream_2 (tb_arith_bitstream_2),
             .in_arith_range (tb_range),
-            .in_arith_offs (tb_arith_offs),
             .in_arith_cnt (tb_cnt),
             .in_arith_low (tb_low),
             .in_arith_flag (tb_arith_flag),
@@ -56,10 +55,10 @@ module tb_carry_propagation #(
             .out_carry_bit_1 (tb_out_bitstream_1),
             .out_carry_bit_2 (tb_out_bitstream_2),
             .out_carry_bit_3 (tb_out_bitstream_3),
-            .out_carry_last_bit (tb_out_bitstream_last),
+            .out_carry_bit_4 (tb_out_bitstream_4),
+            .out_carry_bit_5 (tb_out_bitstream_5),
             .out_carry_flag_bitstream (tb_out_flag),
-            .output_flag_last (tb_out_flag_last),
-            .out_carry_error (tb_error)
+            .output_flag_last (tb_out_flag_last)
         );
 
     function int generate_value;
@@ -84,7 +83,7 @@ module tb_carry_propagation #(
 
     function void stop_execution;
         input int bitstream, flag, expected, got;
-        $display("Error: Bitstream %d, Flag %d\t expected %d, got %d\n", bitstream, flag, expected, got);
+        $display("Error: Bitstream %0d, Flag %0d\t expected %0d, got %0d\n", bitstream, flag, expected, got);
         $stop;
     endfunction
 
@@ -143,10 +142,67 @@ module tb_carry_propagation #(
                 else
                     read_pointer = update_pointer(read_pointer);
 
-                if(expected_result[read_pointer] != tb_out_bitstream_last)
-                    stop_execution(4, 4, expected_result[read_pointer], tb_out_bitstream_last);
+                if(expected_result[read_pointer] != tb_out_bitstream_4)
+                    stop_execution(4, 4, expected_result[read_pointer], tb_out_bitstream_4);
                 else
                     read_pointer = update_pointer(read_pointer);
+            end
+            5 : begin
+                if(expected_result[read_pointer] != tb_out_bitstream_1) begin
+                    stop_execution(1, 5, expected_result[read_pointer], tb_out_bitstream_1);
+                end else begin
+                    read_pointer = update_pointer(read_pointer);
+                end
+                for(i = 0; i < tb_out_bitstream_3; i = i + 1) begin
+                    if(expected_result[read_pointer] != tb_out_bitstream_2) begin
+                        stop_execution(2, 5, expected_result[read_pointer], tb_out_bitstream_2);
+                    end else begin
+                        read_pointer = update_pointer(read_pointer);
+                    end
+                end
+            end
+            6 : begin
+                if(expected_result[read_pointer] != tb_out_bitstream_1) begin
+                    stop_execution(1, 6, expected_result[read_pointer], tb_out_bitstream_1);
+                end else begin
+                    read_pointer = update_pointer(read_pointer);
+                end
+                for(i = 0; i < tb_out_bitstream_3; i = i + 1) begin
+                    if(expected_result[read_pointer] != tb_out_bitstream_2) begin
+                        stop_execution(2, 6, expected_result[read_pointer], tb_out_bitstream_2);
+                    end else begin
+                        read_pointer = update_pointer(read_pointer);
+                    end
+                end
+                if(expected_result[read_pointer] != tb_out_bitstream_4) begin
+                    stop_execution(4, 6, expected_result[read_pointer], tb_out_bitstream_4);
+                end else begin
+                    read_pointer = update_pointer(read_pointer);
+                end
+            end
+            7 : begin
+                if(expected_result[read_pointer] != tb_out_bitstream_1) begin
+                    stop_execution(1, 7, expected_result[read_pointer], tb_out_bitstream_1);
+                end else begin
+                    read_pointer = update_pointer(read_pointer);
+                end
+                for(i = 0; i < tb_out_bitstream_3; i = i + 1) begin
+                    if(expected_result[read_pointer] != tb_out_bitstream_2) begin
+                        stop_execution(2, 7, expected_result[read_pointer], tb_out_bitstream_2);
+                    end else begin
+                        read_pointer = update_pointer(read_pointer);
+                    end
+                end
+                if(expected_result[read_pointer] != tb_out_bitstream_4) begin
+                    stop_execution(4, 7, expected_result[read_pointer], tb_out_bitstream_4);
+                end else begin
+                    read_pointer = update_pointer(read_pointer);
+                end
+                if(expected_result[read_pointer] != tb_out_bitstream_5) begin
+                    stop_execution(5, 7, expected_result[read_pointer], tb_out_bitstream_5);
+                end else begin
+                    read_pointer = update_pointer(read_pointer);
+                end
             end
             default : begin
                 $display("Wrong flag coming from DUT!\n");
@@ -177,7 +233,7 @@ module tb_carry_propagation #(
                     propagate_carry(aux_pointer);
                 end
             end
-            3 : begin
+            2 : begin
                 aux_pointer = write_pointer;
                 expected_result[write_pointer] = tb_arith_bitstream_1[(TB_BITSTREAM_WIDTH-1):0];    // save only the 8:0
                 write_pointer = update_pointer(write_pointer);
@@ -223,11 +279,9 @@ module tb_carry_propagation #(
         tb_flag_first = 0;
         #4ns;
         while(1) begin
-            tb_arith_bitstream_1 = generate_value(500);         // set 511 as max number to be expressed with a 9-bit array
-            tb_arith_bitstream_2 = generate_value(500);
-            tb_arith_flag = generate_value(3);              // Flag is a 2-bit array
-            while(tb_arith_flag == 2)       // I can't generate flag 2 because it'd use the last value
-                tb_arith_flag = generate_value(3);
+            tb_arith_bitstream_1 = generate_value(511);         // set 511 as max number to be expressed with a 9-bit array
+            tb_arith_bitstream_2 = generate_value(511);
+            tb_arith_flag = generate_value(2);
             if(tb_arith_flag != 0) begin
                 if(first_input == 1)
                     first_input = 0;

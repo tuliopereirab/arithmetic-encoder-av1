@@ -93,6 +93,7 @@ module stage_4 #(
         .OUTPUT_DATA_WIDTH (S4_BITSTREAM_WIDTH),
         .INPUT_DATA_WIDTH (S4_RANGE_WIDTH)
         ) carry_propag (
+            .clk (s4_clk),
             .flag_in (mux_flag_final),
             .flag_first (s4_flag_first),
             .flag_final (s4_final_flag),
