@@ -90,6 +90,7 @@ module carry_propagation #(
                             8'd0;
 
     assign previous_c1 =    (flag_final) ? 8'd0 :
+                            (flag_in == 0) ? reg_previous :
                             ((flag_in == 1) && (in_bitstream_1 == 255)) ? reg_previous :
                             ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? reg_previous :
                             ((flag_in == 1) && (in_bitstream_1 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :

@@ -282,8 +282,10 @@ module tb_carry_propagation #(
             tb_arith_bitstream_1 = generate_value(500);         // set 511 as max number to be expressed with a 9-bit array
             tb_arith_bitstream_2 = generate_value(500);
             tb_arith_flag = generate_value(2);
-            if(first_input == 1)
+            if(first_input == 1) begin
                 tb_arith_flag = 1;
+                first_input = 0;
+            end
             if(tb_arith_flag != 0) begin
                 add_value();
             end
