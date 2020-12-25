@@ -9,7 +9,7 @@ module entropy_encoder_tb #(
     parameter SELECT_CQ = 0,            // This config defines the CQ of the video to be executed
                                         // The SELECT_CQ is only valid when SELECT_VIDEO != -1
                                         // 0- cq55, 1- cq20
-    parameter SELECT_VIDEO = 3,         // -1 - Run all videos
+    parameter SELECT_VIDEO = -1,         // -1 - Run all videos
                                         // 0 - Beauty 1920x1080 120fps 420 8bit YUV
                                         // 1 - Bosphorus 1920x1080 120fps 420 8bit YUV
                                         // 2 - HoneyBee 1920x1080 120fps 420 8bit YUV
