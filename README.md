@@ -58,45 +58,15 @@
 ### Stage 4
 - The output bitstreams are 8-bit arrays.
 - As Stage 3 generates 9-bit bitstreams, the 4th stage propagates the _b[9]_ to previously generated bitstreams.
-- This block is divided in 3 sub-blocks: [carry_propagation.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/carry_propagation.v), [auxiliar_carry_propagation.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/auxiliar_carry_propagation.v) and [final_bits.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/final_bits.v).
+- This block is divided in 2 sub-blocks: [carry_propagation.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/carry_propagation.v) and [final_bits.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/final_bits.v).
 - The following subsections explain exactly the blocks' behaviors.
 
-#### Main Carry Propagation
-- This block makes the 9th bit propagation to previosly generated bitstreams.
-- This block is able to receive up to 9-bit bitstreams per cycle.
-- The main limitation of this block is that it is only able to propagate until _i-3_ (generating 2 bitstreams), or _i-2_ (generating 1 bitstream), where _i_ represents the last bitstream generated.
-- This block generates outputs according to demand and according to what is stored in the internal registers.
-- The idea is to keep the just generated bitstream and release the one(s) already in stand-by.
-##### Internal Architecture
-- 2 main registers: stand-by and previous
-- **Previous**: saves the previous bitstream generated.
-- **Stand-by**: this register is used to treat the 255 exception (explained below). Briefly, when receiving 255 as input, saves here the previos bitstreams.
-- Below are the equations for normal operation for 1 input:
-[Equation 1](https://render.githubusercontent.com/render/math?math=Out_1=B_{PREV}[7:0]+B_{IN_1}[8])
-[Equation 2](https://render.githubusercontent.com/render/math?math=B_{PREV}=B_{IN_1}[7:0])
-- Below are the equations for normal operation for 2 inputs:
-[Equation 3](https://render.githubusercontent.com/render/math?math=Out_1=B_{PREV}[7:0]+B_{IN_1}[8])
-[Equation 4](https://render.githubusercontent.com/render/math?math=Out_2=B_{IN_1}[7:0]+B_{IN_2}[8])
-[Equation 5](https://render.githubusercontent.com/render/math?math=B_{PREV}=B_{IN_2}[7:0])
-- Below are the equations when receiving 255:
-[Equation 6](https://render.githubusercontent.com/render/math?math=B_{STAND-BY}=B_{PREV}[7:0])
-[Equation 7](https://render.githubusercontent.com/render/math?math=B_{PREV}=B_{IN_1}[7:0])
-[Equation 8](https://render.githubusercontent.com/render/math?math=Out_1=0)
-- When using the _stand-by_ register, do the same operation that are used during normal operations. The only different is that _stand-by_ comes before _previous_.
-
-##### The 255 exception
-- The architecture under normal conditions only needs to propagate the carry to the bitstream generated right before the current one (_i-1_).
-- However, when receiving 255 followed by _B[8] = 1_ bitstream, it is necessary to propagate the carry to _i-2_.
-- The Main carry propagation architecture has the limit of handling only one 255 at the time.
-- Auxiliary carry propagation is able to handle the _2^x_ 255s, where _x_ is the _255_counter_'s width.  
-
-#### Auxiliary Carry Propagation
-- When more than one 255 is received in a row, this block is activated.
-- This block takes control of the output pins and start couting the number of 255s received.
-- This block also saves the bitstream received just before the first 255 into a buffer.
-- When a number different than 255 (_B != 255_) is received, this block starts to release all values saved so far.
-- This block is able to release up to four 8-bit bitstreams per cycles (all of them with the carry already propagated).
-- This block is also able to save new bitstreams if not possible to release them at the same clock cycle.
+#### Carry Propagation block
+- Always when (B_in > 255) -> B_out = B_prev[7:0] + B_in[15:8]
+- Therefore, this block will save the last generated 8-bit bistream (B_prev) and propagate the carry of the following bitstreams (B_in).
+- B_in = B_prev[7:0] + B_in[15:8]; B_prev = B_in[7:0]
+- This block is also able to count the number of 255s received in sequence and release n 255s at the same time using OUT_BIT_2 (255 or 0) and OUT_BIT_3 (number saved in the counter).
+- This block is able to release up to five 8-bit arrays when necessary.
 
 #### Last Bitstreams generation
 - When the frame execution is over, it is necessary to release bitstreams according to the _low_ and _cnt_ values.
