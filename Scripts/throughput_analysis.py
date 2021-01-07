@@ -27,12 +27,16 @@
 
 import csv
 import sys
+import os
 import time
+import platform
 
 import threading
 
 num_videos = 6  # set the number of videos to be analyzed with this script
-main_path_files = "/media/tulio/HD/y4m_files/generated_files/"     # set the main path
+main_path_files_windows = "F:/y4m_files/generated_files/"
+main_path_files_linux = "/media/tulio/HD/y4m_files/generated_files/"     # set the main path
+main_path_files = ""
                                                                     # In this path, it must be possible to find the folders cq_55 and cq_20
 
 general_num_bits = 0
@@ -155,6 +159,13 @@ def check_final_data(bits, cycles):
 
 my_threads = []
 counter = 0
+
+if(platform.system() == "Windows"):
+    print("-> Using Windows")
+    main_path_files = main_path_files_windows  # used for windows.
+elif(platform.system() == "Linux"):
+    print("-> Using Linux")
+    main_path_files = main_path_files_linux                       # used for linux
 
 # reset the output files (create new empty files)
 f = open(main_path_files + "statistics/cq55_statistics", "w+")
