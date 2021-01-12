@@ -35,7 +35,7 @@ import threading
 
 num_videos = 6  # set the number of videos to be analyzed with this script
 main_path_files_windows = "F:/y4m_files/generated_files/"
-main_path_files_linux = "/media/tulio/HD/y4m_files/generated_files/"     # set the main path
+main_path_files_linux = "/media/tulio/HD1/y4m_files/generated_files/"     # set the main path
 main_path_files = ""
                                                                     # In this path, it must be possible to find the folders cq_55 and cq_20
 
