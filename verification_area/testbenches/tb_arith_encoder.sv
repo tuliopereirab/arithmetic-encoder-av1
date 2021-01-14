@@ -5,7 +5,7 @@ module tb_arith_encoder_full #(
     parameter TB_LUT_ADDR_WIDTH = 8,        // All changes on these parameters must be analyzed before and change some internal defaults in the architecture
     parameter TB_LUT_DATA_WIDTH = 16,
     parameter TB_D_SIZE = 5,
-    parameter SELECT_VIDEO = 9,         // 0- Miss America 150frames 176x144 (Only 100 rows)
+    parameter SELECT_VIDEO = 7,         // 0- Miss America 150frames 176x144 (Only 100 rows)
                                         // 1- Miss America 150frames 176x144 (Entire Video)
                                         // 2- Akiyo 300frames 176x144 (Entire Video)
                                         // 3- Akiyo 300frames 176x144 (Only 100 rows)
@@ -58,7 +58,7 @@ module tb_arith_encoder_full #(
     wire [(TB_RANGE_WIDTH-1):0] tb_range;
     wire [(TB_LOW_WIDTH-1):0] tb_low;
     wire [(TB_D_SIZE-1):0] tb_cnt_output;
-    wire [(TB_RANGE_WIDTH-1):0] tb_bit_out_1, tb_bit_out_2, tb_out_offs;
+    wire [(TB_RANGE_WIDTH-1):0] tb_bit_out_1, tb_bit_out_2;
     wire [1:0] tb_flag_out;
     // ---------------------------------
     // Architecture declaration
@@ -83,8 +83,7 @@ module tb_arith_encoder_full #(
             .CNT_OUTPUT (tb_cnt_output),
             .OUT_BIT_1 (tb_bit_out_1),
             .OUT_BIT_2 (tb_bit_out_2),
-            .OUT_FLAG_BITSTREAM (tb_flag_out),
-            .OUT_OFFS (tb_out_offs)
+            .OUT_FLAG_BITSTREAM (tb_flag_out)
         );
     // ---------------------------------
 
@@ -122,7 +121,7 @@ module tb_arith_encoder_full #(
             end
             7 : begin
                 $display("\t-> Video selected: Beauty 1920x1080 120fps 420 8bit YUV\n");
-                fd = $fopen("C:/Users/Tulio/Desktop/arithmetic_encoder_av1/verification_area/simulation_data/entropy_encoder/1080p/Beauty_1920x1080_120fps_420_8bit_YUV_main_data.csv", "r");
+                fd = $fopen("F:/y4m_files/generated_files/cq_55/Beauty_1920x1080_120fps_420_8bit_YUV_cq55_main_data.csv", "r");
             end
             8 : begin
                 $display("\t-> Video selected: Bosphorus 1920x1080 120fps 420 8bit YUV\n");

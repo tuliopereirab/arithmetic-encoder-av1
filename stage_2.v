@@ -28,7 +28,7 @@ module stage_2 #(
         output wire [RANGE_WIDTH:0] u, v_bool,
         output wire [(RANGE_WIDTH-1):0] initial_range, out_range,
         output wire [(D_SIZE-1):0] out_d,
-        output wire [1:0] bool_symbol,
+        output wire bool_out, lsb_symbol,
         output wire COMP_mux_1_out
     );
     wire [(RANGE_WIDTH-1):0] RR, range_1, range_2, range_bool, range_not_bool;
@@ -94,8 +94,8 @@ module stage_2 #(
     assign initial_range = in_range;
     assign out_d = d;
     assign out_range = range << d;
-    assign bool_symbol = {bool, symbol[0]};         // this input is a mix between the least significant bit of symbol and the bool flag
-                                                    // [1]: bool flag; [0]: symbol[0]
+    assign bool_out = bool;
+    assign lsb_symbol = symbol[0];    // The definition of Low_bool uses the lsb symbol.     
     assign COMP_mux_1_out = COMP_mux_1;
     //-----------------------------------------
 endmodule
