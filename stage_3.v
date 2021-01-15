@@ -18,9 +18,31 @@ module stage_3 #(
     wire [(LOW_WIDTH-1):0] low_1, low_bool, low_not_bool;
     wire [(LOW_WIDTH-1):0] low;
 
-    assign low_1 = in_low + (in_range - u[(RANGE_WIDTH-1):0]);
+    // ==================================
+    // Operand Isolation for Low Update
+    wire [(LOW_WIDTH-1):0] op_iso_and_bool, op_iso_and_lsb_symbol, op_iso_and_comp_mux_1;
+    wire [(RANGE_WIDTH-1):0] op_iso_bool_range, op_iso_v_bool;
+    wire [(LOW_WIDTH-1):0] op_iso_bool_low, op_iso_low_1;
+    wire [(RANGE_WIDTH-1):0] op_iso_range_1, op_iso_u_1;
 
-    assign low_bool = (lsb_symbol == 1'b1) ? (in_low + (in_range - v_bool[(RANGE_WIDTH-1):0])) :
+    assign op_iso_and_bool = (bool) ? 24'd16777215 :
+                            24'd0;
+    assign op_iso_and_lsb_symbol = (lsb_symbol) ? 24'd16777215 :
+                                    24'd0;
+    assign op_iso_and_comp_mux_1 = (COMP_mux_1) ? 24'd16777215 :
+                                    24'd0;
+
+    assign op_iso_bool_range = in_range & (op_iso_and_lsb_symbol[(RANGE_WIDTH-1):0] & op_iso_and_bool);     // Operand Isolation targeting the in_range in low_bool assignment
+    assign op_iso_v_bool = v_bool & (op_iso_and_lsb_symbol[(RANGE_WIDTH-1):0] & op_iso_and_bool);         // Op Isolation targeting v_bool in low_bool assignment
+    assign op_iso_bool_low = in_low & (op_iso_and_lsb_symbol & op_iso_and_bool);        // Operand Isolation targeting in_low in low_bool assignement when (lsb_symbol == 1)
+    assign op_iso_low_1 = in_low & (op_iso_and_comp_mux_1 & ~op_iso_and_bool);   // Operand Isolation targeting in_low in low_1 assignment
+    assign op_iso_range_1 = in_range & (op_iso_and_comp_mux_1[(RANGE_WIDTH-1):0] & ~op_iso_and_bool);    // Operand Isolating targeting in_range in low_1 assignment
+    assign op_iso_u_1 = u & (op_iso_and_comp_mux_1[(RANGE_WIDTH-1):0] & ~op_iso_and_bool);       // Operand Isolation targeting u in low_1 assignment
+    // ==================================
+
+    assign low_1 = op_iso_low_1 + (op_iso_range_1 - op_iso_u_1[(RANGE_WIDTH-1):0]);
+
+    assign low_bool = (lsb_symbol == 1'b1) ? (op_iso_bool_low + (op_iso_bool_range - op_iso_v_bool[(RANGE_WIDTH-1):0])) :
                         in_low;
 
     // ------------------------------------------------------
