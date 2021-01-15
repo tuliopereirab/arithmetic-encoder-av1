@@ -16,7 +16,11 @@ module control_unit (
     localparam main = 3;
     reg [2:0] state;
 
-    always @ (posedge clk) begin
+    // clock gating
+    wire clock_gating_control;
+    assign clock_gating_control = ((state != 3) || reset_ctrl) && clk;
+
+    always @ (posedge clock_gating_control) begin
         if(reset_ctrl)
             state <= start_1;
         else begin
