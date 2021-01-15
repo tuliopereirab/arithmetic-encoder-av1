@@ -32,19 +32,40 @@ module stage_2 #(
         output wire COMP_mux_1_out
     );
     wire [(RANGE_WIDTH-1):0] RR, range_1, range_2, range_bool, range_not_bool;
+    // ==========================================================================================
+    // Operand isolation
+    wire [(RANGE_WIDTH-1):0] op_iso_and_comp_mux_1, op_iso_and_bool, op_iso_and_symbol;
+    wire [(RANGE_WIDTH-1):0] op_iso_lut_u, op_iso_lut_v;
+    wire [(RANGE_WIDTH-1):0] op_iso_UU, op_iso_range_in;
 
+    assign op_iso_and_comp_mux_1 =  (COMP_mux_1) ? 16'd65535 :
+                                    16'd0;
+
+    assign op_iso_and_bool = (bool) ? 16'd65535 :
+                            16'd0;
+
+    assign op_iso_and_symbol = (symbol[0]) ? 16'd65535 :
+                                16'd0;
+
+    assign op_iso_lut_u = lut_u & (~op_iso_and_bool & op_iso_and_comp_mux_1);  // Isolating Lut_u
+    assign op_iso_UU = UU & (~op_iso_and_bool & op_iso_and_comp_mux_1); // Isolating UU - Bool = 0 and COMP_mux_1 = 1
+    assign op_iso_lut_v = lut_v & (~op_iso_and_bool);  // Isolating lut_v in std V
+    assign op_iso_range_in = in_range & (op_iso_and_bool & ~op_iso_and_symbol);   // Isolating in_range in boolean, symbol = 1
+    // ==========================================================================================
 
     // former stage 3 input
     wire [(RANGE_WIDTH-1):0] range;
 
     // -------------------------------
 
-    wire [(RANGE_WIDTH):0] v;
+    wire [(RANGE_WIDTH):0] v, RV;
+
 
     assign RR = in_range >> 8;
+    assign RV = (RR * VV >> 1);
 
-    assign u = (RR * UU >> 1) + lut_u;
-    assign v = (RR * VV >> 1) + lut_v;
+    assign u = (RR * op_iso_UU >> 1) + op_iso_lut_u;    // Using Operand Isolation
+    assign v = RV + op_iso_lut_v;                       // Using Operand Isolation
 
 
     assign range_1 = u[(RANGE_WIDTH-1):0] - v[(RANGE_WIDTH-1):0];
@@ -57,10 +78,10 @@ module stage_2 #(
                     range_2;
 
     // bool
-    assign v_bool = (RR * VV >> 1) + 16'd4;
+    assign v_bool = RV + 16'd4;
 
     assign range_bool = (symbol[0] == 1'b1) ? v_bool[(RANGE_WIDTH-1):0] :
-                        in_range - v_bool[(RANGE_WIDTH-1):0];
+                        op_iso_range_in - v_bool[(RANGE_WIDTH-1):0];   // Using Operand Isolation
     // -------------------
 
     // final stage 2
@@ -95,7 +116,7 @@ module stage_2 #(
     assign out_d = d;
     assign out_range = range << d;
     assign bool_out = bool;
-    assign lsb_symbol = symbol[0];    // The definition of Low_bool uses the lsb symbol.     
+    assign lsb_symbol = symbol[0];    // The definition of Low_bool uses the lsb symbol.
     assign COMP_mux_1_out = COMP_mux_1;
     //-----------------------------------------
 endmodule
