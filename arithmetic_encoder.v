@@ -117,7 +117,9 @@ module arithmetic_encoder #(
     // Clock Gating for Register 1-2
     // This clock gating is activated by the output bool_flag from Stage 1
     // Always when it is boolean (bool_out = 1), UU, lut_u and COMP_mux_1 won't be saved
-    assign boolean_s2_clk_gating = ~bool_output && general_clk;
+    assign boolean_s2_clk_gating = ~bool_output && general_bool && general_clk;
+    // For the clock gating correctly work, it is necessary to use the input values for the boolean flag
+
     always @ (posedge boolean_s2_clk_gating) begin
         if(ctrl_reg_1_2) begin
             reg_UU <= uu_out;
@@ -175,8 +177,9 @@ module arithmetic_encoder #(
         // Clock gating for s3 targets the registers:
             // Standard: modify U and COMP_mux_1
             // Boolean: modify v_bool and lsb_symbol
-        assign boolean_s3_clk_gating_std = ~bool_out_s2 && general_clk;
-        assign boolean_s3_clk_gating_bool = bool_out_s2 && general_clk;
+        assign boolean_s3_clk_gating_std = ~bool_out_s2 && ~reg_bool && general_clk;
+        assign boolean_s3_clk_gating_bool = bool_out_s2 && reg_bool && general_clk;
+        // For the clock gating correctly work, it is necessary to use the input values for the boolean flag
 
         always @ (posedge boolean_s3_clk_gating_std) begin
             if(ctrl_reg_2_3) begin
@@ -228,27 +231,27 @@ module arithmetic_encoder #(
 
     // Clock gating implementation for the output bitstreams
     // As flag defines whether to save or not bitstreams, it is possible to use it to also set the clk gating
-    assign bit_1_clk_gating = (out_flag_bitstream[0] || out_flag_bitstream[1]) && general_clk; // activates when flag 01 or 10
-    assign bit_2_clk_gating = out_flag_bitstream[1] && general_clk;     // activates only when flag 10
-
-    always @ (posedge bit_1_clk_gating) begin
-        if(ctrl_reg_final) begin
-            reg_pre_bitstream_1 <= pre_bitstream_out_1;
-        end
-    end
-
-    always @ (posedge bit_2_clk_gating) begin
-        if(ctrl_reg_final) begin
-            reg_pre_bitstream_2 <= pre_bitstream_out_2;
-        end
-    end
+    // assign bit_1_clk_gating = (out_flag_bitstream[0] || out_flag_bitstream[1]) && general_clk; // activates when flag 01 or 10
+    // assign bit_2_clk_gating = out_flag_bitstream[1] && general_clk;     // activates only when flag 10
+    //
+    // always @ (posedge bit_1_clk_gating) begin
+    //     if(ctrl_reg_final) begin
+    //         reg_pre_bitstream_1 <= pre_bitstream_out_1;
+    //     end
+    // end
+    //
+    // always @ (posedge bit_2_clk_gating) begin
+    //     if(ctrl_reg_final) begin
+    //         reg_pre_bitstream_2 <= pre_bitstream_out_2;
+    //     end
+    // end
 
     // As the flag always updates, clk gating isn't necessary
     always @ (posedge general_clk) begin
         if(ctrl_reg_final) begin
             reg_flag_bitstream <= out_flag_bitstream;
-            // reg_pre_bitstream_1 <= pre_bitstream_out_1;
-            // reg_pre_bitstream_2 <= pre_bitstream_out_2;
+            reg_pre_bitstream_1 <= pre_bitstream_out_1;
+            reg_pre_bitstream_2 <= pre_bitstream_out_2;
         end
     end
 endmodule
