@@ -1,3 +1,5 @@
+import os
+
 BINARY_WIDTH = 16       # change this value will change the number of bits generated in each memory position
 mif_mem = 2             # define the type of file to be generated
                         # 1- for .mif; 2- for .mem
@@ -7,25 +9,29 @@ def padded_bin(i, width):
     return s.zfill(width)
 
 def mif_creation(lut):
+    if not os.path.exists("../lut/"):
+        os.makedirs("../lut/")
     if (lut == 1):  # lut_u
-        file = open("../lut/lut_u.mif", "w")
+        file = open("../lut/lut_u.mif", "w+")
     else:
-        file = open("../lut/lut_v.mif", "w")
+        file = open("../lut/lut_v.mif", "w+")
     file.write("WIDTH=8;\nDEPTH=256;\n\nADDRESS_RADIX=UNS.\nDATA_RADIX=BIN;\n\nCONTENT BEGIN\n")
     file.close()
 
 def mem_creation(lut):              # just add the numbers sequentialy
+    if not os.path.exists("../lut/"):
+        os.makedirs("../lut/")
     if (lut == 1):  # lut_u
-        file = open("../lut/lut_u.mem", "w")
+        file = open("../lut/lut_u.mem", "w+")
     else:
-        file = open("../lut/lut_v.mem", "w")
+        file = open("../lut/lut_v.mem", "w+")
     file.close()
 
 def mif_insertion(lut, index, bin):
     if (lut == 1):  # lut_u
-        file = open("../lut/lut_u.mif", "a")
+        file = open("../lut/lut_u.mif", "a+")
     else:
-        file = open("../lut/lut_v.mif", "a")
+        file = open("../lut/lut_v.mif", "a+")
     file.write("\t" + str(index) + "\t:\t" + bin + ";\n")
     if(index == 255):
         file.write("END;\n")
