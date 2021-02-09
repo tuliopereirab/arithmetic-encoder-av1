@@ -46,17 +46,39 @@ module carry_propagation #(
     wire [(OUTPUT_DATA_WIDTH-1):0] out_4_c1, out_5_c1;
     wire [2:0] flag_c0, flag_c1, flag_c0_final, flag_c0_not_final, flag_c1_final, flag_c1_not_final;
 
-    always @ (posedge clk) begin
+    // clock gating
+    wire clk_gating_1s_bitstream;
+
+    // ------------------------
+    assign clk_gating_1s_bitstream = ((reset || flag_first) || (reg_1st_bitstream != 0)) && clk;    // clk_gating
+    always @ (posedge clk_gating_1s_bitstream) begin
         if(reset || flag_first)
             reg_1st_bitstream <= 1'b1;
         else
             reg_1st_bitstream <= flag_1st_bitstream;
     end
+    // --------------------
     always @ (posedge clk) begin
-        reg_previous = previous;
-        reg_counter = counter;
+        if((flag_first) ||
+        ((reg_1st_bitstream) && (flag_in == 0)) ||
+        ((reg_1st_bitstream) && (flag_in == 1)) ||
+        ((reg_1st_bitstream) && (flag_in == 2)) ||
+        (flag_in != 0))
+            reg_previous = previous;
+    end
+    // --------------------
+    always @ (posedge clk) begin
+        if((reg_counter != 0) ||
+        ((!flag_final) && (flag_in == 0)) ||
+        ((!flag_final) && (flag_in == 1) && (in_bitstream_1 == 255)) ||
+        ((!flag_final) && (flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ||
+        ((!flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255))) begin
+            reg_counter = counter;
+        end
     end
 
+
+    // -------------------------------------
     assign flag_1st_bitstream =     ((reg_1st_bitstream) && (flag_in == 0)) ? 1'b1 :    // The explanation for this variable in locate where the variable is declared
                                     1'b0;
 
