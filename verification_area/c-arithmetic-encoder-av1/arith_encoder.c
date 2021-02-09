@@ -16,7 +16,7 @@
 #define EC_MIN_PROB 4
 #define CDF_PROB_TOP 32768
 
-#define MAX_INPUTS 20
+#define MAX_INPUTS 200000000
 
 int16_t cnt;
 uint16_t range;
@@ -26,12 +26,16 @@ int stop_after_reset_flag;
 int reset_counter, bitstream_counter;
 
 // ---------------------
-int range_analyzer_file = 1;  // This variable defines wheather to create the file to analyze the range or not
+int range_analyzer_file = 0;  // This variable defines wheather to create the file to analyze the range or not
           // This file comprises different values that are related to the range generation
           // This is a CSV file containing:
                // range_in; uv_bool_def; fl, fh; range_without_lut; range_raw;
           // Where:
                // uv_bool_def is the definition of the equation used for the range_raw generation
+
+int save_multiplication = 1;  // this variable allows the saving of the multiplication inputs
+int print_rate = 100;         // This variable helps to print in different rates.
+                              // if((counter % print) == 0), set 1 to print all
 // ---------------------
 
 
@@ -73,6 +77,15 @@ void setup(){
      bitstream_counter = 0;
      if((stat("output-files/", &sb) != 0) || !S_ISDIR(sb.st_mode))
      mkdir("output-files", 0700);
+
+     if(save_multiplication){
+          if((arq = fopen("output-files/mult_inputs.csv", "w+")) == NULL){
+               printf("Unable to create mult_input file.\n");
+               exit(EXIT_FAILURE);
+          }else{
+               fclose(arq);
+          }
+     }
 
      if(range_analyzer_file){
           if((arq = fopen("output-files/range_analyzer.csv", "w+")) == NULL){
@@ -152,12 +165,13 @@ int run_simulation(){
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
      int s, nsyms, bool;
-     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_55/Beauty_1920x1080_120fps_420_8bit_YUV_cq55_main_data.csv", "r")) != NULL){
+     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_20/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_main_data.csv", "r")) != NULL){
           i = 0;
           status = 1;
           reset = 0;
           while((i <= MAX_INPUTS) && (final_flag != 1) && (status != 0) && (reset != 1)){
-               printf("\rInput # %d, Reset # %d, Bitstream # %d, cnt: %d, Time: %.2lf ms, Range: %d, Low: %d ", i, reset_counter, bitstream_counter, cnt, get_total_time(), range, low);
+               if((i%print_rate) == 0)
+                    printf("\rInput # %d, Reset # %d, Bitstream # %d, cnt: %d, Time: %.2lf ms, Range: %d, Low: %d ", i, reset_counter, bitstream_counter, cnt, get_total_time(), range, low);
                num_input_read_file = fscanf(arq_input, "%i;%i;%i;%i;%i;%i;%i;%" SCNd16 ";%" SCNd32 ";%" SCNd16 ";%" SCNd32 ";\n",
                                              &bool, &temp_range, &temp_low, &fl, &fh, &s, &nsyms, &file_in_norm_range, &file_in_norm_low, &file_output_range, &file_output_low);
                if(num_input_read_file == 11){
@@ -213,6 +227,16 @@ int run_simulation(){
      return 0;
 }
 
+void save_mult_inputs(unsigned r, uint32_t other){
+     FILE *arq;
+     if((arq = fopen("output-files/mult_inputs.csv", "a+")) != NULL){
+          fprintf(arq, "%"PRIu16";%"PRIu32";\n", r, other);
+          fclose(arq);
+     }else{
+          printf("Unable to save into the mult_inputs file\n");
+          exit(EXIT_FAILURE);
+     }
+}
 
 void add_to_file(int bool_flag, unsigned range_in, char equation[], unsigned fl, unsigned fh, unsigned u, unsigned v){
      FILE *arq;
@@ -242,6 +266,10 @@ void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      const int N = nsyms - 1;
      u = ((r >> 8) * (uint32_t)(fl >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s - 1));
      v = ((r >> 8) * (uint32_t)(fh >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s + 0));
+     if(save_multiplication){
+          save_mult_inputs((r >> 8), (uint32_t)(fl >> EC_PROB_SHIFT));
+          save_mult_inputs((r >> 8), (uint32_t)(fh >> EC_PROB_SHIFT));
+     }
      if (fl < CDF_PROB_TOP) {
           l += r - u;
           r = u - v;
@@ -267,6 +295,9 @@ void od_ec_encode_bool_q15(int val, unsigned f) {
      r = range;
      assert(32768U <= r);
      v = ((r >> 8) * (uint32_t)(f >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT));
+     if(save_multiplication){
+          save_mult_inputs((r >> 8), (uint32_t)(f >> EC_PROB_SHIFT));
+     }
      v += EC_MIN_PROB;
      if (val)
           l += r - v;
