@@ -36,7 +36,8 @@ module stage_1 #(
 
     lut #(
         .DATA_WIDTH (LUT_DATA_WIDTH),
-        .ADDR_WIDTH (LUT_ADDR_WIDTH)
+        .ADDR_WIDTH (LUT_ADDR_WIDTH),
+        .MEM_INDICATION(0)
         ) lut_u (
             .clk (clk_stage_1),
             .addr (lut_addr),
@@ -44,7 +45,8 @@ module stage_1 #(
         );
     lut #(
         .DATA_WIDTH (LUT_DATA_WIDTH),
-        .ADDR_WIDTH (LUT_ADDR_WIDTH)
+        .ADDR_WIDTH (LUT_ADDR_WIDTH),
+        .MEM_INDICATION(1)
         ) lut_v (
             .clk (clk_stage_1),
             .addr (lut_addr),
