@@ -25,19 +25,19 @@ TARGET_FRAME = 5        # choose a frame to be saved in another file. This varia
                         # The first frame of the video will always be expressed by 1 and the last one will variate
                         # If TARGET_FRAME presents a number greater than max. frames, no frame will be saved and an error message will be shown
 
-VIDEO_NAME = "Bosphorus_1920x1080_120fps_420_8bit_YUV_cq55_main_data"             # Fill up this variable with the file name of the video target
+VIDEO_NAME = "Jockey_1920x1080_120fps_420_8bit_YUV_cq20_main_data"             # Fill up this variable with the file name of the video target
                             # This variable will also be used to compose the output file's name
                             # Output file's name: NEW_FILE = VIDEO_NAME + "_" + str(TARGET_FRAME)
 
 
 # Windows Paths
-ORIGINAL_FILE_PATH_windows = "F:/y4m_files/generated_files/cq_55"       # Path that takes to the folder of the original file
+ORIGINAL_FILE_PATH_windows = "F:/y4m_files/generated_files/cq_20"       # Path that takes to the folder of the original file
                                                                 # The full path for the video file is: ORIGINAL_FILE_PATH + "/" + VIDEO_NAME
 DEST_FILE_PATH_windows = "F:/y4m_files/generated_files/1-frame_files"         # This variables will identify the destination path for the video file created
                                                                             # The full path will be: DEST_FILE_PATH + "/" + NEW_FILE
-TEMP_FILE_PATH_windows = ""
+TEMP_FILE_PATH_windows = "C:/Users/Tulio/Desktop/arquivos_antigos"
 # Linux Paths
-ORIGINAL_FILE_PATH_linux = "/media/tulio/HD1/y4m_files/generated_files/cq_55"
+ORIGINAL_FILE_PATH_linux = "/media/tulio/HD1/y4m_files/generated_files/cq_20"
 DEST_FILE_PATH_linux = "/media/tulio/HD1/y4m_files/generated_files/1-frame_files"
 TEMP_FILE_PATH_linux = "/home/tulio/Downloads"
 
