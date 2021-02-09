@@ -84,6 +84,7 @@ module stage_4 #(
         ) final_bits (
             .in_cnt (in_arith_cnt),
             .in_low (in_arith_low),
+            .in_flag_final (s4_final_flag_2_3),
             .flag (out_final_bits_flag),
             .out_bit_1 (out_final_bits_1),
             .out_bit_2 (out_final_bits_2)
