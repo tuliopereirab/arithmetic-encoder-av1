@@ -1,6 +1,6 @@
 module lut_v_module #(
     parameter DATA_WIDTH=16,
-    parameter ADDR_WIDTH=8,
+    parameter ADDR_WIDTH=8
     )(
           input [(ADDR_WIDTH-1):0] addr,
           output wire [(DATA_WIDTH-1):0] q
