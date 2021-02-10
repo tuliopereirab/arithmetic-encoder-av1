@@ -21,8 +21,6 @@ module entropy_encoder #(
         output wire OUT_FLAG_LAST
     );
 
-    // clock gating
-    wire clock_gating_flag_first, clock_gating_final_flag;
 
     // In order to ensure that all the necessary flags in the Carry propagation block will be correctly initiated,
     // I will propagate a flag called flag_first able to set all flags to zero without requiring any other flag
@@ -30,35 +28,25 @@ module entropy_encoder #(
         // The following lines will just propagate this signal between the blocks
     reg reg_first_1_2, reg_first_2_3, reg_first_3_4;
 
-    // The clock gating here avoids the architecture to keep saving useless values.
-    // These registers here are only useful during the 4 clk cycles after each reset.
-    assign clock_gating_flag_first = (top_flag_first || reg_first_1_2 || reg_first_2_3 || reg_first_3_4) && top_clk;
 
-    always @ (posedge clock_gating_flag_first) begin
-        reg_first_1_2 <= top_flag_first;
-        reg_first_2_3 <= reg_first_1_2;
-        reg_first_3_4 <= reg_first_2_3;     // This last register is also the input for the Stage_4
+    always @ (posedge top_clk) begin
+        if(top_flag_first || reg_first_1_2 || reg_first_2_3 || reg_first_3_4) begin
+            reg_first_1_2 <= top_flag_first;
+            reg_first_2_3 <= reg_first_1_2;
+            reg_first_3_4 <= reg_first_2_3;     // This last register is also the input for the Stage_4
+        end
     end
 //  ======================================================================
 
     // The 3 following registers will be used to keep the final 1 flag
     reg reg_final_exec_1_2, reg_final_exec_2_3, reg_final_exec_3_4;
 
-
-    // Supposing that the input values always change during the negedge, the clock gating assign must be delayed for 0.5ns in order to avoid updating before it was supposed to
-    // The statement below presents:
-        // 0.5ns delay for POSEDGE (0 -> 1), and
-        // 0ns delay for NEGEDGE (1 -> 0)
-    // This delay is possible only because these values are only passed forward from here and used in a few things only.
-    // Probably, if necessary, this clock gating will be removed because of possible overall delay in the architecture or frequency dropping.
-    assign #(0.5,0) clock_gating_flag_final = (top_reset || top_final_flag || reg_final_exec_1_2 || reg_final_exec_2_3 || reg_final_exec_3_4) && top_clk;
-
-    always @ (posedge clock_gating_flag_final) begin
+    always @ (posedge top_clk) begin
         if(top_reset) begin
             reg_final_exec_1_2 <= 1'b0;
             reg_final_exec_2_3 <= 1'b0;
             reg_final_exec_3_4 <= 1'b0;
-        end else begin
+        end else if(top_final_flag || reg_final_exec_1_2 || reg_final_exec_2_3 || reg_final_exec_3_4) begin
             reg_final_exec_1_2 <= top_final_flag;
             reg_final_exec_2_3 <= reg_final_exec_1_2;
             reg_final_exec_3_4 <= reg_final_exec_2_3;

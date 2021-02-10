@@ -74,10 +74,6 @@ module arithmetic_encoder #(
     wire [(GENERAL_RANGE_WIDTH-1):0] pre_bitstream_out_1, pre_bitstream_out_2;      // this is the output for the stage 3.
     wire [1:0] out_flag_bitstream;
     // ---------------------------------------------------
-    // Clock Gating
-    wire bit_1_clk_gating, bit_2_clk_gating;
-    wire boolean_s2_clk_gating, boolean_s3_clk_gating_std, boolean_s3_clk_gating_bool;
-    // ---------------------------------------------------
     // reset
     always @ (posedge general_clk) begin
         if(reset) begin
@@ -114,14 +110,9 @@ module arithmetic_encoder #(
             .out_symbol (symbol_output)
         );
 
-    // Clock Gating for Register 1-2
-    // This clock gating is activated by the output bool_flag from Stage 1
-    // Always when it is boolean (bool_out = 1), UU, lut_u and COMP_mux_1 won't be saved
-    assign boolean_s2_clk_gating = ~bool_output && general_bool && general_clk;
-    // For the clock gating correctly work, it is necessary to use the input values for the boolean flag
 
-    always @ (posedge boolean_s2_clk_gating) begin
-        if(ctrl_reg_1_2) begin
+    always @ (posedge general_clk) begin
+        if(ctrl_reg_1_2 && ~bool_output) begin
             reg_UU <= uu_out;
             reg_lut_u <= lut_u_output;
             reg_COMP_mux_1 <= COMP_mux_1_out;
@@ -174,22 +165,15 @@ module arithmetic_encoder #(
             end
         end
 
-        // Clock gating for s3 targets the registers:
-            // Standard: modify U and COMP_mux_1
-            // Boolean: modify v_bool and lsb_symbol
-        assign boolean_s3_clk_gating_std = ~bool_out_s2 && ~reg_bool && general_clk;
-        assign boolean_s3_clk_gating_bool = bool_out_s2 && reg_bool && general_clk;
-        // For the clock gating correctly work, it is necessary to use the input values for the boolean flag
-
-        always @ (posedge boolean_s3_clk_gating_std) begin
-            if(ctrl_reg_2_3) begin
+        always @ (posedge general_clk) begin
+            if(~bool_out_s2 && ~reg_bool && ctrl_reg_2_3) begin
                 reg_u = u_out;
                 reg_COMP_mux_1_s2 = COMP_mux_1_out_s2;
             end
         end
 
-        always @ (posedge boolean_s3_clk_gating_bool) begin
-            if(ctrl_reg_2_3) begin
+        always @ (posedge general_clk) begin
+            if(bool_out_s2 && reg_bool && ctrl_reg_2_3) begin
                 reg_v_bool = v_bool_out;
                 reg_lsb_symbol = lsb_symbol_out;
             end
@@ -229,28 +213,19 @@ module arithmetic_encoder #(
             .out_s (s_out_s3)
         );
 
-    // Clock gating implementation for the output bitstreams
-    // As flag defines whether to save or not bitstreams, it is possible to use it to also set the clk gating
-    // assign bit_1_clk_gating = (out_flag_bitstream[0] || out_flag_bitstream[1]) && general_clk; // activates when flag 01 or 10
-    // assign bit_2_clk_gating = out_flag_bitstream[1] && general_clk;     // activates only when flag 10
-    //
-    // always @ (posedge bit_1_clk_gating) begin
-    //     if(ctrl_reg_final) begin
-    //         reg_pre_bitstream_1 <= pre_bitstream_out_1;
-    //     end
-    // end
-    //
-    // always @ (posedge bit_2_clk_gating) begin
-    //     if(ctrl_reg_final) begin
-    //         reg_pre_bitstream_2 <= pre_bitstream_out_2;
-    //     end
-    // end
-
     // As the flag always updates, clk gating isn't necessary
     always @ (posedge general_clk) begin
         if(ctrl_reg_final) begin
             reg_flag_bitstream <= out_flag_bitstream;
+        end
+    end
+    always @ (posedge general_clk) begin
+        if(ctrl_reg_final && (out_flag_bitstream[0] || out_flag_bitstream[1])) begin
             reg_pre_bitstream_1 <= pre_bitstream_out_1;
+        end
+    end
+    always @ (posedge general_clk) begin
+        if(ctrl_reg_final && out_flag_bitstream[1]) begin
             reg_pre_bitstream_2 <= pre_bitstream_out_2;
         end
     end

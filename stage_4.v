@@ -67,10 +67,6 @@ module stage_4 #(
     assign out_carry_flag_bitstream = reg_carry_flag;
     assign output_flag_last = reg_flag_last_output;
 
-    // clock gating
-    wire clock_gating_flag_final, clock_gating_carry_reg;
-
-
     top_control control_top (
         .clk (s4_clk),
         .reset_ctrl (s4_reset),
@@ -119,19 +115,15 @@ module stage_4 #(
     assign mux_flag_final = (s4_final_flag) ? reg_flag_final :
                             in_arith_flag;
 
-    // =============================================================
-    // This stage has a ctrl that keeps, for a few clock cycles, the ctrl_carry_reg off
-    // Moreover, it is possible to predict when the output pins need to be set by analyzing in_arith_flag and s4_final_flag
-        // in_arith_flag: everytime this flag is != 2'b00, it's most likely something is coming out
-        // s4_final_flag: is this flag is 1, something always comes out
-    assign clock_gating_carry_reg = ctrl_carry_reg && ((in_arith_flag[0] || in_arith_flag[1]) || s4_final_flag) && s4_clk;
 
-    always @ (posedge clock_gating_carry_reg) begin
-        reg_out_bitstream_1 <= out_carry_bitstream_1;
-        reg_out_bitstream_2 <= out_carry_bitstream_2;
-        reg_out_bitstream_3 <= out_carry_bitstream_3;
-        reg_out_bitstream_4 <= out_carry_bitstream_4;
-        reg_out_bitstream_5 <= out_carry_bitstream_5;
+    always @ (posedge s4_clk) begin
+        if(ctrl_carry_reg && ((in_arith_flag[0] || in_arith_flag[1]) || s4_final_flag)) begin
+            reg_out_bitstream_1 <= out_carry_bitstream_1;
+            reg_out_bitstream_2 <= out_carry_bitstream_2;
+            reg_out_bitstream_3 <= out_carry_bitstream_3;
+            reg_out_bitstream_4 <= out_carry_bitstream_4;
+            reg_out_bitstream_5 <= out_carry_bitstream_5;
+        end
     end
 
     // Unable to use clock gating because of the reset.
@@ -149,14 +141,12 @@ module stage_4 #(
         end
     end
 
-    // The final bitstreams are only used when the final flag in registers 2-3 is 1.
-    // Therefore, it is possible to save only when this flag is on.
-    assign clock_gating_flag_final = s4_final_flag_2_3 && s4_clk;
-
-    always @ (posedge clock_gating_flag_final) begin
-        reg_flag_final <= out_final_bits_flag;
-        reg_final_bit_1 <= out_final_bits_1;
-        reg_final_bit_2 <= out_final_bits_2;
+    always @ (posedge s4_clk) begin
+        if(s4_final_flag_2_3) begin
+            reg_flag_final <= out_final_bits_flag;
+            reg_final_bit_1 <= out_final_bits_1;
+            reg_final_bit_2 <= out_final_bits_2;
+        end
     end
 
 endmodule
