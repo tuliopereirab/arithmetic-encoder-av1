@@ -32,12 +32,12 @@ module stage_3 #(
     assign op_iso_and_comp_mux_1 = (COMP_mux_1) ? 24'd16777215 :
                                     24'd0;
 
-    assign op_iso_bool_range = in_range & (op_iso_and_lsb_symbol[(RANGE_WIDTH-1):0] & op_iso_and_bool);     // Operand Isolation targeting the in_range in low_bool assignment
-    assign op_iso_v_bool = v_bool & (op_iso_and_lsb_symbol[(RANGE_WIDTH-1):0] & op_iso_and_bool);         // Op Isolation targeting v_bool in low_bool assignment
+    assign op_iso_bool_range = in_range & (op_iso_and_lsb_symbol[(RANGE_WIDTH-1):0] & op_iso_and_bool[(RANGE_WIDTH-1):0]);     // Operand Isolation targeting the in_range in low_bool assignment
+    assign op_iso_v_bool = v_bool[(RANGE_WIDTH-1):0] & (op_iso_and_lsb_symbol[(RANGE_WIDTH-1):0] & op_iso_and_bool[(RANGE_WIDTH-1):0]);         // Op Isolation targeting v_bool in low_bool assignment
     assign op_iso_bool_low = in_low & (op_iso_and_lsb_symbol & op_iso_and_bool);        // Operand Isolation targeting in_low in low_bool assignement when (lsb_symbol == 1)
     assign op_iso_low_1 = in_low & (op_iso_and_comp_mux_1 & ~op_iso_and_bool);   // Operand Isolation targeting in_low in low_1 assignment
-    assign op_iso_range_1 = in_range & (op_iso_and_comp_mux_1[(RANGE_WIDTH-1):0] & ~op_iso_and_bool);    // Operand Isolating targeting in_range in low_1 assignment
-    assign op_iso_u_1 = u & (op_iso_and_comp_mux_1[(RANGE_WIDTH-1):0] & ~op_iso_and_bool);       // Operand Isolation targeting u in low_1 assignment
+    assign op_iso_range_1 = in_range & (op_iso_and_comp_mux_1[(RANGE_WIDTH-1):0] & ~op_iso_and_bool[(RANGE_WIDTH-1):0]);    // Operand Isolating targeting in_range in low_1 assignment
+    assign op_iso_u_1 = u[(RANGE_WIDTH-1):0] & (op_iso_and_comp_mux_1[(RANGE_WIDTH-1):0] & ~op_iso_and_bool[(RANGE_WIDTH-1):0]);       // Operand Isolation targeting u in low_1 assignment
     // ==================================
 
     assign low_1 = op_iso_low_1 + (op_iso_range_1 - op_iso_u_1[(RANGE_WIDTH-1):0]);
@@ -95,8 +95,8 @@ module stage_3 #(
     assign op_iso_c_bit_s8 = c_bit_s8 & op_iso_and_greater_17;  // Used in out_bit_2
     assign op_iso_low_bit_s0 = low & op_iso_and_greater_9;  // Used in out_bit_1
     assign op_iso_low_s0_bit_s8 = low_s0 & op_iso_and_greater_17;   // Used in out_bit_2
-    assign op_iso_in_s_c_bit_s0 = in_s & op_iso_and_greater_9;  // Used in c_bit_s0
-    assign op_iso_in_s_c_bit_s8 = in_s & op_iso_and_greater_17; // Used in c_bit_s8
+    assign op_iso_in_s_c_bit_s0 = in_s & op_iso_and_greater_9[(D_SIZE-1):0];  // Used in c_bit_s0
+    assign op_iso_in_s_c_bit_s8 = in_s & op_iso_and_greater_17[(D_SIZE-1):0]; // Used in c_bit_s8
     // ==================================
 
 
