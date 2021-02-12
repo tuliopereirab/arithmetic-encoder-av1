@@ -10,7 +10,7 @@ module lut_u_module #(
 
     always @ ( * ) begin
         if(enable) begin
-            case(addr) 
+            case(addr)
                 8'd0 : q = 16'd4;
                 8'd16 : q = 16'd8;
                 8'd17 : q = 16'd4;

@@ -17,13 +17,13 @@ module final_bits_generator #(
     // =======================
     // Operand Isolation
     wire [(LOW_WIDTH-1):0] op_iso_and;
-    wire [(LOW_WIDTH-1):0] op_iso_in_cnt, op_iso_in_low, op_iso_in_n, op_iso_e_1, op_iso_e_2;
-    wire [(D_SIZE-1):0] op_iso_c_1, op_iso_c_2;
+    wire [(LOW_WIDTH-1):0] op_iso_in_low, op_iso_in_n, op_iso_e_1, op_iso_e_2;
+    wire [(D_SIZE-1):0] op_iso_in_cnt, op_iso_c_1, op_iso_c_2;
 
     assign op_iso_and = (in_flag_final) ? 24'b1111_1111_1111_1111_1111_1111 :
                         24'd0;
 
-    assign op_iso_in_cnt = in_cnt & op_iso_and;   // Used in n, c_1, c_2, s
+    assign op_iso_in_cnt = in_cnt & op_iso_and[(D_SIZE-1):0];   // Used in n, c_1, c_2, s
     assign op_iso_in_low = in_low & op_iso_and; // Used in e_1
     assign op_iso_e_1 = e_1 & op_iso_and;   // Used in e_2
     assign op_iso_e_2 = e_2 & op_iso_and;    // Used in out_bit_2
