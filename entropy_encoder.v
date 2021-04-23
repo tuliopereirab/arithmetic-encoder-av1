@@ -21,25 +21,32 @@ module entropy_encoder #(
         output wire OUT_FLAG_LAST
     );
 
+
     // In order to ensure that all the necessary flags in the Carry propagation block will be correctly initiated,
     // I will propagate a flag called flag_first able to set all flags to zero without requiring any other flag
     // This is a temporary way to ensure that all flags are correctly defined when the first bitstream comes through
         // The following lines will just propagate this signal between the blocks
     reg reg_first_1_2, reg_first_2_3, reg_first_3_4;
+
+
     always @ (posedge top_clk) begin
-        reg_first_1_2 <= top_flag_first;
-        reg_first_2_3 <= reg_first_1_2;
-        reg_first_3_4 <= reg_first_2_3;     // This last register is also the input for the Stage_4
+        if(top_flag_first || reg_first_1_2 || reg_first_2_3 || reg_first_3_4) begin
+            reg_first_1_2 <= top_flag_first;
+            reg_first_2_3 <= reg_first_1_2;
+            reg_first_3_4 <= reg_first_2_3;     // This last register is also the input for the Stage_4
+        end
     end
+//  ======================================================================
 
     // The 3 following registers will be used to keep the final 1 flag
     reg reg_final_exec_1_2, reg_final_exec_2_3, reg_final_exec_3_4;
+
     always @ (posedge top_clk) begin
         if(top_reset) begin
             reg_final_exec_1_2 <= 1'b0;
             reg_final_exec_2_3 <= 1'b0;
             reg_final_exec_3_4 <= 1'b0;
-        end else begin
+        end else if(top_final_flag || reg_final_exec_1_2 || reg_final_exec_2_3 || reg_final_exec_3_4) begin
             reg_final_exec_1_2 <= top_final_flag;
             reg_final_exec_2_3 <= reg_final_exec_1_2;
             reg_final_exec_3_4 <= reg_final_exec_2_3;

@@ -29,9 +29,6 @@ module stage_4 #(
 
     reg [1:0] reg_flag_final;
     reg [(S4_RANGE_WIDTH-1):0] reg_final_bit_1, reg_final_bit_2;
-    // ARITHMETIC ENCODER OUTPUT CONNECTIONS
-        // ALl arithmetic encoder outputs come from registers
-        // Therefore, it isn't necessary to create more registers here
 
     // Mux bitstream to carry
     // The MUX is necessary to define if it is being generated the final bitstream or a normal one
@@ -70,7 +67,6 @@ module stage_4 #(
     assign out_carry_flag_bitstream = reg_carry_flag;
     assign output_flag_last = reg_flag_last_output;
 
-
     top_control control_top (
         .clk (s4_clk),
         .reset_ctrl (s4_reset),
@@ -84,6 +80,7 @@ module stage_4 #(
         ) final_bits (
             .in_cnt (in_arith_cnt),
             .in_low (in_arith_low),
+            .in_flag_final (s4_final_flag_2_3),
             .flag (out_final_bits_flag),
             .out_bit_1 (out_final_bits_1),
             .out_bit_2 (out_final_bits_2)
@@ -118,31 +115,34 @@ module stage_4 #(
     assign mux_flag_final = (s4_final_flag) ? reg_flag_final :
                             in_arith_flag;
 
-    // =============================================================
 
     always @ (posedge s4_clk) begin
-        if(ctrl_carry_reg) begin
+        if(ctrl_carry_reg && ((in_arith_flag[0] || in_arith_flag[1]) || s4_final_flag)) begin
             reg_out_bitstream_1 <= out_carry_bitstream_1;
             reg_out_bitstream_2 <= out_carry_bitstream_2;
             reg_out_bitstream_3 <= out_carry_bitstream_3;
             reg_out_bitstream_4 <= out_carry_bitstream_4;
             reg_out_bitstream_5 <= out_carry_bitstream_5;
-            reg_flag_last_output <= out_carry_flag_last;
         end
     end
+
+    // Unable to use clock gating because of the reset.
+    // Flag is required to go back to zero when a reset occur
+    // Furthermore, flag need to update every cycle as some kind of insurance
+        // FLag is the variable that tells the outside world what to read and, then, it needs to be right all the time
+        // If some garbage is kept in the flag, it'll likely tell the outside world to read wrong values
+    // The flag_last also need to be updated all the time to show the outside world that something is still inside the architecture
     always @ (posedge s4_clk) begin
         if(s4_reset) begin
             reg_carry_flag <= 3'b000;
         end else if(ctrl_carry_reg) begin
+            reg_flag_last_output <= out_carry_flag_last;
             reg_carry_flag <= out_carry_flag;
         end
     end
+
     always @ (posedge s4_clk) begin
-        if(s4_reset) begin
-            reg_flag_final <= 1'b0;
-            reg_final_bit_1 <= 1'b0;
-            reg_final_bit_2 <= 1'b0;
-        end else if(s4_final_flag_2_3) begin
+        if(s4_final_flag_2_3) begin
             reg_flag_final <= out_final_bits_flag;
             reg_final_bit_1 <= out_final_bits_1;
             reg_final_bit_2 <= out_final_bits_2;

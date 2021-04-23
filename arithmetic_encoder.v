@@ -10,7 +10,8 @@ module arithmetic_encoder #(
         input [(GENERAL_RANGE_WIDTH-1):0] general_fl, general_fh,
         input [(GENERAL_SYMBOL_WIDTH-1):0] general_symbol,
         input [GENERAL_SYMBOL_WIDTH:0] general_nsyms,
-        input general_bool,
+        input general_bool,     // This flag is inverted. Stage 1 is responsible for inverting it
+                                // 0- boolean operation; 1- standard operation
         output wire [(GENERAL_RANGE_WIDTH-1):0] RANGE_OUTPUT,
         output wire [(GENERAL_LOW_WIDTH-1):0] LOW_OUTPUT,
         output wire [(GENERAL_D_SIZE-1):0] CNT_OUTPUT,
@@ -58,12 +59,12 @@ module arithmetic_encoder #(
     wire [GENERAL_RANGE_WIDTH:0] u_out, v_out;
     wire [(GENERAL_D_SIZE-1):0] d_out;
     wire [GENERAL_RANGE_WIDTH:0] v_bool_out;
-    wire [1:0] bool_symbol_out;
+    wire bool_out_s2, lsb_symbol_out;
     wire COMP_mux_1_out_s2;
     reg [(GENERAL_RANGE_WIDTH-1):0] reg_initial_range, reg_range_ready;
     reg [GENERAL_RANGE_WIDTH:0] reg_u, reg_v_bool;
     reg [(GENERAL_D_SIZE-1):0] reg_d;
-    reg [1:0] reg_bool_symbol;
+    reg reg_bool_s2, reg_lsb_symbol;
     reg reg_COMP_mux_1_s2;
     // --------------------------------------------------
     // Stage 3
@@ -109,13 +110,19 @@ module arithmetic_encoder #(
             .out_symbol (symbol_output)
         );
 
+
+    always @ (posedge general_clk) begin
+        if(ctrl_reg_1_2 && ~bool_output) begin
+            reg_UU <= uu_out;
+            reg_lut_u <= lut_u_output;
+            reg_COMP_mux_1 <= COMP_mux_1_out;
+        end
+    end
+
     always @ (posedge general_clk) begin
         if(ctrl_reg_1_2) begin
-            reg_lut_u <= lut_u_output;
-            reg_lut_v <= lut_v_output;
-            reg_UU <= uu_out;
             reg_VV <= vv_out;
-            reg_COMP_mux_1 <= COMP_mux_1_out;
+            reg_lut_v <= lut_v_output;
             reg_bool <= bool_output;
             reg_symbol <= symbol_output;
         end
@@ -144,7 +151,8 @@ module arithmetic_encoder #(
             .initial_range (initial_range_out),
             .out_range (range_ready_out),
             .out_d (d_out),
-            .bool_symbol (bool_symbol_out),
+            .bool_out (bool_out_s2),
+            .lsb_symbol (lsb_symbol_out),
             .COMP_mux_1_out (COMP_mux_1_out_s2)
         );
 
@@ -156,14 +164,26 @@ module arithmetic_encoder #(
                 reg_range_ready = range_ready_out;
             end
         end
+
+        always @ (posedge general_clk) begin
+            if(~bool_out_s2 && ~reg_bool && ctrl_reg_2_3) begin
+                reg_u = u_out;
+                reg_COMP_mux_1_s2 = COMP_mux_1_out_s2;
+            end
+        end
+
+        always @ (posedge general_clk) begin
+            if(bool_out_s2 && reg_bool && ctrl_reg_2_3) begin
+                reg_v_bool = v_bool_out;
+                reg_lsb_symbol = lsb_symbol_out;
+            end
+        end
+
         always @ (posedge general_clk) begin
             if(ctrl_reg_2_3) begin
-                reg_u = u_out;
-                reg_v_bool = v_bool_out;
                 reg_initial_range = initial_range_out;
                 reg_d = d_out;
-                reg_bool_symbol = bool_symbol_out;
-                reg_COMP_mux_1_s2 = COMP_mux_1_out_s2;
+                reg_bool_s2 = bool_out_s2;
             end
         end
 
@@ -173,7 +193,8 @@ module arithmetic_encoder #(
         .LOW_WIDTH (GENERAL_LOW_WIDTH),
         .D_SIZE (GENERAL_D_SIZE)
         ) stage_pipeline_3 (
-            .bool_symbol (reg_bool_symbol),
+            .bool (reg_bool_s2),
+            .lsb_symbol (reg_lsb_symbol),
             .in_range (reg_initial_range),
             .range_ready (reg_range_ready),
             .d (reg_d),
@@ -191,10 +212,20 @@ module arithmetic_encoder #(
             .out_range (range_out_s3),
             .out_s (s_out_s3)
         );
+
+    // As the flag always updates, clk gating isn't necessary
     always @ (posedge general_clk) begin
         if(ctrl_reg_final) begin
             reg_flag_bitstream <= out_flag_bitstream;
+        end
+    end
+    always @ (posedge general_clk) begin
+        if(ctrl_reg_final && (out_flag_bitstream[0] || out_flag_bitstream[1])) begin
             reg_pre_bitstream_1 <= pre_bitstream_out_1;
+        end
+    end
+    always @ (posedge general_clk) begin
+        if(ctrl_reg_final && out_flag_bitstream[1]) begin
             reg_pre_bitstream_2 <= pre_bitstream_out_2;
         end
     end
