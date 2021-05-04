@@ -21,11 +21,12 @@ flag_file_creation = 1  # this flag is used to create a new file or reset an exi
 print_interval_searching = 10000      # this value will be used in an IF statement with the equation: if((line_counter % print_internal) == 0): print
 print_interval_saving = 100      # Saving process is slower than searching, therefore it isn't required to wait long until print
 
-TARGET_FRAME = 5        # choose a frame to be saved in another file. This variable must be set as a number within range 1-120
+TARGET_FRAME = 49        # choose a frame to be saved in another file. This variable must be set as a number within range 1-120
                         # The first frame of the video will always be expressed by 1 and the last one will variate
                         # If TARGET_FRAME presents a number greater than max. frames, no frame will be saved and an error message will be shown
+                        # If TARGET_FRAME < 1 or TARGET_FRAME > 120, then set random value.
 
-VIDEO_NAME = "Jockey_1920x1080_120fps_420_8bit_YUV_cq20_main_data"             # Fill up this variable with the file name of the video target
+VIDEO_NAME = "YachtRide_3840x2160_120fps_420_10bit_YUV_cq55_main_data"             # Fill up this variable with the file name of the video target
                             # This variable will also be used to compose the output file's name
                             # Output file's name: NEW_FILE = VIDEO_NAME + "_" + str(TARGET_FRAME)
 
@@ -37,26 +38,28 @@ DEST_FILE_PATH_windows = "F:/y4m_files/generated_files/1-frame_files"         # 
                                                                             # The full path will be: DEST_FILE_PATH + "/" + NEW_FILE
 TEMP_FILE_PATH_windows = "C:/Users/Tulio/Desktop/arquivos_antigos"
 # Linux Paths
-ORIGINAL_FILE_PATH_linux = "/media/tulio/HD1/y4m_files/generated_files/cq_20"
-DEST_FILE_PATH_linux = "/media/tulio/HD1/y4m_files/generated_files/1-frame_files"
+ORIGINAL_FILE_PATH_linux = "/media/tulio/HD1/y4m_files/generated_files/cq_55"
+DEST_FILE_PATH_linux = "/home/tulio/Desktop/lp_analysis/input_data/cq_55"
 TEMP_FILE_PATH_linux = "/home/tulio/Downloads"
 
-# Global to be used
+# Global to be used -- Leave them blank
 ORIGINAL_FILE_PATH = ""
 DEST_FILE_PATH = ""
 TEMP_FILE_PATH = ""
+# -------------
 
 class threadMonitor(threading.Thread):
     def __init__(self, threadID):
         threading.Thread.__init__(self)
         self.threadID = threadID
     def run(self):
+        print("--------------------\n\t-> Writing pointer: write into a buffer.\n\t-> Reading pointer: reads from the buffer and saves into the file.\n--------------------")
         while(1):
             if(my_threads[0].is_alive() and flag_done_saving == 0):
                 time.sleep(.05)
-                print("Writing pointer: " + str(buffer_write_pointer) + "\tReading Pointer: " + str(buffer_read_pointer), end='\r')
+                print("Writing pointer: " + str(buffer_write_pointer) + "\t||\tReading Pointer: " + str(buffer_read_pointer), end='\r')
             else:
-                print("-> Finishing the Monitor Thread.")
+                print("\n-> Finishing the Monitor Thread.")
                 quit()
 
 class threadSaving(threading.Thread):
@@ -139,6 +142,8 @@ elif(platform.system() == "Linux"):
 else:
     print("Error to define the OS")
     quit()
+
+
 with open(ORIGINAL_FILE_PATH + "/" + VIDEO_NAME + ".csv", "r+") as org_file:
     flag_file_creation = 1
     org_reader = csv.reader(org_file, delimiter=";")
@@ -146,9 +151,11 @@ with open(ORIGINAL_FILE_PATH + "/" + VIDEO_NAME + ".csv", "r+") as org_file:
     line_counter = 0
     prev_range = 0
     flag_thread_creation = 1
-    TARGET_FRAME = random.randrange(1,120)
+    if(TARGET_FRAME < 1 or TARGET_FRAME > 120):
+        TARGET_FRAME = random.randrange(1,120)
     #TARGET_FRAME = 3
     print("-> Looking for frame " + str(TARGET_FRAME))
+    print("-> Video name: " + VIDEO_NAME)
     for row in org_reader:
         if(frames_counter < TARGET_FRAME):
             if((line_counter % print_interval_searching) == 0):
