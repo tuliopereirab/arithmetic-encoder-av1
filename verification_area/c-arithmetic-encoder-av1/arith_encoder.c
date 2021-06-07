@@ -16,16 +16,36 @@
 #define EC_MIN_PROB 4
 #define CDF_PROB_TOP 32768
 
-#define MAX_INPUTS 200000000
+#define MAX_INPUTS 100000000
+
+#define PRINT_RATE 1000         // This variable helps to print in different rates.
+// if((counter % print) == 0), set 1 to print all
+
+// ------------------------------------------------------
+// Variables for the NEW Carry Propagation
+#define SUB_BITSTREAM 256
+
+
+void add_to_final(uint16_t val);
+void serial_release(int val, int times);
+void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2);
+
+uint16_t previous, bit1, bit2;
+int counter_255 = 0, flag_first = 1, flag_bit, bitstream_generated = 0, bitstream_2 = 0;
+
+// -----------------------------------------------------
+
 
 int16_t cnt;
 uint16_t range;
 uint32_t low;
+uint16_t previous;
 int offs = 0;
 int stop_after_reset_flag;
 int reset_counter, bitstream_counter;
 
 // ---------------------
+void print_bar(int current, int total);           // This function is only used to print a progress bar
 int range_analyzer_file = 0;  // This variable defines wheather to create the file to analyze the range or not
           // This file comprises different values that are related to the range generation
           // This is a CSV file containing:
@@ -34,8 +54,7 @@ int range_analyzer_file = 0;  // This variable defines wheather to create the fi
                // uv_bool_def is the definition of the equation used for the range_raw generation
 
 int save_multiplication = 1;  // this variable allows the saving of the multiplication inputs
-int print_rate = 100;         // This variable helps to print in different rates.
-                              // if((counter % print) == 0), set 1 to print all
+
 // ---------------------
 
 
@@ -48,6 +67,7 @@ clock_t total_time = 0, total_time_carry = 0;
 void timing_analyzer();
 int run_simulation();
 void setup();
+void final_bits();
 void reset_function();
 uint32_t get_Low();
 uint16_t get_Range();
@@ -56,7 +76,6 @@ void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms);;
 void od_ec_encode_bool_q15(int val, unsigned f);
 void od_ec_enc_normalize(uint32_t low_norm, unsigned rng);
 void add_bitstream_file(uint16_t bitstream);
-void carry_propagation();
 double get_total_time();
 
 uint32_t get_Low(){
@@ -96,6 +115,7 @@ void setup(){
                fclose(arq);
           }
      }
+
 
      reset_function();
      arq = fopen("output-files/final_bitstream.csv", "w+");
@@ -165,13 +185,13 @@ int run_simulation(){
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
      int s, nsyms, bool;
-     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_20/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_main_data.csv", "r")) != NULL){
+     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_20/Bosphorus_1920x1080_120fps_420_8bit_YUV_cq20_main_data.csv", "r")) != NULL){
           i = 0;
           status = 1;
           reset = 0;
           while((i <= MAX_INPUTS) && (final_flag != 1) && (status != 0) && (reset != 1)){
-               if((i%print_rate) == 0)
-                    printf("\rInput # %d, Reset # %d, Bitstream # %d, cnt: %d, Time: %.2lf ms, Range: %d, Low: %d ", i, reset_counter, bitstream_counter, cnt, get_total_time(), range, low);
+               if((i%PRINT_RATE) == 0)
+                    printf("\rInput # %d, Reset # %d, Bitstream # %d, cnt: %d, Time: %.2lf ms, Bitstream: %i, Range: %d, Low: %d", i, reset_counter, bitstream_counter, cnt, get_total_time(), bitstream_generated, range, low);
                num_input_read_file = fscanf(arq_input, "%i;%i;%i;%i;%i;%i;%i;%" SCNd16 ";%" SCNd32 ";%" SCNd16 ";%" SCNd32 ";\n",
                                              &bool, &temp_range, &temp_low, &fl, &fh, &s, &nsyms, &file_in_norm_range, &file_in_norm_low, &file_output_range, &file_output_low);
                if(num_input_read_file == 11){
@@ -183,7 +203,9 @@ int run_simulation(){
                     if((i>1) && (temp_low == 0) && (temp_range == 32768) && ((temp_range != range) || (temp_low != low))){            // reset detection
                          reset_counter++;
                          begin = clock();
-                         //carry_propagation();
+                         //printf("Reset Detected!\n");
+                         final_bits();
+                         flag_first = 1;
                          end = clock();
                          reset_function();
                          total_time_carry = total_time_carry + (end-begin);
@@ -214,8 +236,12 @@ int run_simulation(){
                printf("--------------------------------------------------\n");
                return -2;
           }else if(reset == 1){
-               printf("=========================\nFinished with reset\n");
+               printf("\n=========================\nFinished with reset\n");
+               final_bits();
+               printf("\nBitstream 2: %i\n", bitstream_2);
           }else{
+               final_bits();
+               printf("\nBitstream 2: %i\n", bitstream_2);
                printf("\n=========================\nNo error found.\n");
           }
      }else{
@@ -316,6 +342,8 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
      int d;
      int c;
      int s;
+     uint16_t b1, b2;
+     int flag = 0;
      c = cnt;
      assert(rng <= 65535U);
      d = 16 - (1 + (31 ^ __builtin_clz(rng)));
@@ -325,26 +353,32 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
           c += 16;
           m = (1 << c) - 1;
           if (s >= 8) {
-               // assert(offs < storage);
-               // buf[offs++] = (uint16_t)(low >> c);
-               offs++;
-               add_bitstream_file((uint16_t)(low_norm >> c));
-               bitstream_counter++;
+               flag++;
+               b1 = (uint16_t)(low_norm >> c);
+               bitstream_2++;
                low_norm &= m;
                c -= 8;
                m >>= 8;
           }
           // assert(offs < storage);
-          // buf[offs++] = (uint16_t)(low >> c);
-          offs++;
-          add_bitstream_file((uint16_t)(low_norm >> c));
-          bitstream_counter++;
+          //printf("Low: %" PRIu32 "\tc = %i\td = %i\tcnt = %i\n", low, c, d, cnt );
+          if(flag == 1){
+               flag++;
+               b2 = (uint16_t)(low_norm >> c);
+          }else{
+               flag++;
+               b1 = (uint16_t)(low_norm >> c);
+               b2 = 0;
+          }
+          bitstream_2++;
           s = c + d - 24;
           low_norm &= m;
      }
      low = low_norm << d;
      range = rng << d;
      cnt = s;
+     if(flag != 0)
+          new_carry_propag(0, flag, b1, b2);
 }
 
 
@@ -360,13 +394,12 @@ void add_bitstream_file(uint16_t bitstream){
         printf("Unable to open the bitstream file\n");
 }
 
-void carry_propagation(){
-     FILE *arq, *arq_reference;
+void final_bits(){
      uint16_t temp_bitstream;
      uint16_t *buf;
      unsigned char *out;
      uint32_t l, e, m;
-     int c, s, start = 1, counter = 0, out_size, i;
+     int c, s;
      l = low;
      c = cnt;
      s = 10;
@@ -375,55 +408,198 @@ void carry_propagation(){
      s += c;
      if(s > 0){
           unsigned n;
-          if((arq = fopen("output-files/pre_bitstream.csv", "a+")) != NULL){
-               n = (1 << (c + 16)) - 1;
-               do{
-                    temp_bitstream = (uint16_t)(e >> (c + 16));
-                    offs++;
-                    fprintf(arq, "%" PRIu16 ";\n", temp_bitstream);
-                    e &= n;
-                    s -= 8;
-                    c -= 8;
-                    n >>= 8;
-               } while(s > 0);
-               fclose(arq);
-          }else{
-               printf("Unable to open the bitstream file.\n");
-               exit(EXIT_FAILURE);
+          n = (1 << (c + 16)) - 1;
+          do{
+               temp_bitstream = (uint16_t)(e >> (c + 16));
+               e &= n;
+               s -= 8;
+               if(s > 0)
+                    new_carry_propag(0, 1, temp_bitstream, 0);
+               else
+                    new_carry_propag(1, 1, temp_bitstream, 0);
+
+               bitstream_2++;
+               c -= 8;
+               n >>= 8;
+          }while(s > 0);
+     }
+}
+
+void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
+     //printf("-> Flag_First = %i\t-> Flag = %i\t-> B1 = %" PRIu16 "\t-> B2 = %" PRIu16 "\t-> Prev = %" PRIu16 "\n", flag_first, flag, b1, b2, previous);
+     if(flag_first == 1 && flag != 0){
+          flag_first = 0;
+          if(flag == 1){
+               if(b1 > 255)
+                    previous = b1 - SUB_BITSTREAM;
+               else
+                    previous = b1;
+          }else if(flag == 2 && b2 != 255){
+               if(b2 > 255){
+                    if(b1 > 255)
+                         add_to_final(b1-SUB_BITSTREAM+1);
+                    else
+                         add_to_final(b1+1);
+                    previous = b2 - SUB_BITSTREAM;
+               }else{
+                    if(b1 > 255)
+                         add_to_final(b1-SUB_BITSTREAM);
+                    else
+                         add_to_final(b1);
+                    previous = b2;
+               }
+               counter_255 = 0;
+          }else if(flag == 2 && b2 == 255){
+               counter_255 = 1;
+               if(b1 > 255)
+                    previous = b1 - SUB_BITSTREAM;
+               else
+                    previous = b1;
+          }
+     }else{
+          if(flag == 1 && b1 != 255 && counter_255 == 0){
+               if(b1 > 255){
+                    add_to_final(previous+1);
+                    previous = b1 - SUB_BITSTREAM;
+               }else{
+                    add_to_final(previous);
+                    previous = b1;
+               }
+          }else if(flag == 2 && b2 != 255 && counter_255 == 0){
+               if(b1 == 255){
+                    if(b2 > 255){
+                         add_to_final(previous+1);
+                         add_to_final(0);
+                         previous = b2-SUB_BITSTREAM;
+                    }else{
+                         add_to_final(previous);
+                         add_to_final(b1);
+                         previous = b2;
+                    }
+               }else{
+                    if(b1 > 255){
+                         add_to_final(previous+1);
+                         b1 = b1 - SUB_BITSTREAM;
+                    }else
+                         add_to_final(previous);
+                    if(b2 > 255){
+                         add_to_final(b1+1);
+                         previous = b2 - SUB_BITSTREAM;
+                    }else{
+                         add_to_final(b1);
+                         previous = b2;
+                    }
+               }
+          }else if(flag == 1 && b1 == 255){
+               counter_255++;
+          }else if(flag == 2 && b1 == 255 && b2 == 255){
+               counter_255 = counter_255 + 2;
+          }else if(flag == 2 && b2 == 255 && b1 != 255 && counter_255 == 0){
+               if(b1 > 255){
+                    add_to_final(previous+1);
+                    previous = b1 - SUB_BITSTREAM;
+               }else{
+                    add_to_final(previous);
+                    previous = b1;
+               }
+               counter_255 = 1;
+          }else if(flag == 1 && b1 != 255 && counter_255 > 0){
+               if(b1 > 255){
+                    add_to_final(previous+1);
+                    serial_release(0, counter_255);
+                    counter_255 = 0;
+                    previous = b1 - SUB_BITSTREAM;
+               }else{
+                    add_to_final(previous);
+                    serial_release(255, counter_255);
+                    counter_255 = 0;
+                    previous = b1;
+               }
+          }else if(flag == 2 && b2 != 255 && counter_255 > 0){
+               if(b1 == 255){
+                    counter_255++;
+                    if(b2 > 255){
+                         add_to_final(previous+1);
+                         serial_release(0, counter_255);
+                         counter_255 = 0;
+                         previous = b2 - SUB_BITSTREAM;
+                    }else{
+                         add_to_final(previous);
+                         serial_release(255, counter_255);
+                         counter_255 = 0;
+                         previous = b2;
+                    }
+               }else{
+                    if(b1 > 255){
+                         add_to_final(previous+1);
+                         serial_release(0, counter_255);
+                         counter_255 = 0;
+                         if(b2 > 255){
+                              add_to_final(b1 - SUB_BITSTREAM + 1);
+                              previous = b2 - SUB_BITSTREAM;
+                         }else{
+                              add_to_final(b1 - SUB_BITSTREAM);
+                              previous = b2;
+                         }
+                    }else{
+                         add_to_final(previous);
+                         serial_release(255, counter_255);
+                         counter_255 = 0;
+                         if(b2 > 255){
+                              add_to_final(b1 + 1);
+                              previous = b2 - SUB_BITSTREAM;
+                         }else{
+                              add_to_final(b1);
+                              previous = b2;
+                         }
+                    }
+               }
           }
      }
-     if((arq = fopen("output-files/pre_bitstream.csv", "r")) != NULL){
-          buf = (uint16_t *)malloc(sizeof(uint16_t));
-          counter++;
-          while((fscanf(arq, "%" SCNd16 "\n", &buf[counter-1])) != EOF){
-               counter++;
-               buf = (uint16_t *)realloc(buf, sizeof(uint16_t) * counter);
-          }
-          counter--;
+     if(final_flag == 1 && counter_255 == 0){
+          add_to_final(previous);
+     }else if(final_flag == 1 && counter_255 > 0){
+          add_to_final(previous);
+          serial_release(255, counter_255);
+          counter_255 = 0;
+     }
+}
+
+void add_to_final(uint16_t val){
+     FILE *arq;
+     if((arq = fopen("output-files/final_bitstream.csv", "a+")) != NULL){
+          fprintf(arq, "%" PRIu16 ";\n", val);
+          fclose(arq);
+          bitstream_generated++;
      }else{
-          printf("Unable to open the bitstream file.\n");
+          printf("Unable to open the final bitstream file.\n");
           exit(EXIT_FAILURE);
      }
+     //printf("Val: %" PRIu16 "\n", val);
+}
 
-     // carry propagation itself
-     out_size = offs;
-     out = (unsigned char*)malloc(sizeof(unsigned char) * out_size);
-     c = 0;
-     while(offs > 0){
-          offs--;
-          c = buf[offs] + c;
-          //printf("%" PRIu16 "\n", buf[offs]);
-          out[offs] = (unsigned char)c;
-          c >>= 8;
+void serial_release(int val, int times){
+     do{
+          add_to_final(val);
+          times--;
+     }while(times > 0);
+}
+
+void print_bar(int current, int total){
+     char *str_print;
+     str_print = (char*)malloc(sizeof(char)*50);
+     int i;
+     float p;
+     int num_hashs;
+     p = (((float)current)/((float)total))*100;
+     num_hashs = (int)(p);
+     //printf("Num: %i\n", num_hashs);
+     for(i=0;i<50;i++){
+          if(i <= num_hashs)
+               str_print[i] = '#';
+          else
+               str_print[i] = '_';
      }
-
-     // if((arq = fopen("output-files/final_bitstream.csv", "a")) != NULL){
-     //      for(i=0; i<out_size; i++){
-     //           fprintf(arq, "%u;\n", out[i]);
-     //      }
-     //      fclose(arq);
-     // }else{
-     //      printf("Unable to open the final bitstream file.\n");
-     //      exit(EXIT_FAILURE);
-     // }
+     printf("\r[%s] %.2f %% \t %d/%d", str_print, p, current, total);
+     fflush(stdin);
 }
