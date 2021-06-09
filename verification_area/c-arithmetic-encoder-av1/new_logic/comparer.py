@@ -65,7 +65,7 @@ def analyzer():
 
     for i in range(0,max_lines):
         if((matches+mismatches) > 0 and ((matches+mismatches)%print_rate) == 0):
-            print("\t" + str((matches/(matches+mismatches))*100) + "% of matches. \t Total bits analyzed: " + str(matches+mismatches), end='\r')
+            print("\t" + str(round((matches/(matches+mismatches))*100, 5)) + "% of matches. \tMismatches: " + str(mismatches) + " \t Total bits analyzed: " + str(matches+mismatches), end='\r')
         for j in range(0,8):
             if(new_array[i][j] == original_array[i][j]):
                 matches += 1
