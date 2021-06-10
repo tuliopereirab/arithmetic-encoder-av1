@@ -24,14 +24,51 @@
 // ------------------------------------------------------
 // Variables for the NEW Carry Propagation
 #define SUB_BITSTREAM 256
+// ------------------------------------------------------
+#define FLAG_NEW_LOGIC 2      // 2: encode both arithmetic encoder logics
+                              // 1: use only the NEW arithmetic encoder logic
+                              // 0: use only the ORIGINAL arithmetic encoder logic
+// The new arithmetic encoder logic was based on the paper below
+     // @ARTICLE{7930427,
+     //      author={Belyaev, Evgeny and Forchhammer, Søren and Liu, Kai},
+     //      journal={IEEE Signal Processing Letters},
+     //      title={An Adaptive Multialphabet Arithmetic Coding Based on Generalized Virtual Sliding Window},
+     //      year={2017},
+     //      volume={24},
+     //      number={7},
+     //      pages={1034-1038},
+     //      doi={10.1109/LSP.2017.2705250}}
+     // ----------------------------------------
+     // @ARTICLE{8986834,
+     //      author={Chen, Boyang and Liu, Kai and Belyaev, Evgeny},
+     //      journal={IEEE Transactions on Very Large Scale Integration (VLSI) Systems},
+     //      title={An Efficient Hardware Implementation of Multialphabet Adaptive Arithmetic Encoder Based on Generalized Virtual Sliding Window},
+     //      year={2020},
+     //      volume={28},
+     //      number={5},
+     //      pages={1326-1330},
+     //      doi={10.1109/TVLSI.2020.2966306}}
+// Its main goal is to update range and low without a multiplier
+// ============
+// These definitions are used within the NEW logic for range/low updating.
+#define NEW_K 3
+#define NEW_W 9
+#define NEW_B 28
+
+char new_filename[50];
+uint16_t range_new, previous_new;
+uint32_t low_new;
+int16_t cnt_new;
+int bitstream_new = 0, flag_first_new = 1, counter_255_new = 0;
+// ------------------------------------------------------
 
 
-void add_to_final(uint16_t val);
-void serial_release(int val, int times);
-void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2);
+void add_to_final_original(uint16_t val);
+void serial_release(int op, int val, int times);
+void carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2);
 
 uint16_t previous, bit1, bit2;
-int counter_255 = 0, flag_first = 1, flag_bit, bitstream_generated = 0, bitstream_2 = 0;
+int counter_255 = 0, flag_first = 1, bitstream_generated = 0;
 
 // -----------------------------------------------------
 
@@ -53,7 +90,7 @@ int range_analyzer_file = 0;  // This variable defines wheather to create the fi
           // Where:
                // uv_bool_def is the definition of the equation used for the range_raw generation
 
-int save_multiplication = 1;  // this variable allows the saving of the multiplication inputs
+int save_multiplication = 0;  // this variable allows the saving of the multiplication inputs
 
 // ---------------------
 
@@ -62,7 +99,13 @@ int save_multiplication = 1;  // this variable allows the saving of the multipli
 // -------------------
 clock_t total_time = 0, total_time_carry = 0;
 // -------------------
-
+// New Logic Functions
+void add_to_final_new(uint16_t val);
+void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2);
+void new_q15(unsigned fl, unsigned fh, int s, int nsyms);
+void new_bool_q15(int val, unsigned f);
+void new_normalize(uint32_t low_norm, unsigned rng);
+void final_bits_new();
 // --------------------------------
 void timing_analyzer();
 int run_simulation();
@@ -75,7 +118,6 @@ int16_t get_cnt();
 void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms);;
 void od_ec_encode_bool_q15(int val, unsigned f);
 void od_ec_enc_normalize(uint32_t low_norm, unsigned rng);
-void add_bitstream_file(uint16_t bitstream);
 double get_total_time();
 
 uint32_t get_Low(){
@@ -92,6 +134,7 @@ int16_t get_cnt(){
 
 void setup(){
      FILE *arq;
+     char temp_str[50];
      struct stat sb;
      bitstream_counter = 0;
      if((stat("output-files/", &sb) != 0) || !S_ISDIR(sb.st_mode))
@@ -100,6 +143,18 @@ void setup(){
      if(save_multiplication){
           if((arq = fopen("output-files/mult_inputs.csv", "w+")) == NULL){
                printf("Unable to create mult_input file.\n");
+               exit(EXIT_FAILURE);
+          }else{
+               fclose(arq);
+          }
+     }
+
+     if(FLAG_NEW_LOGIC == 1 || FLAG_NEW_LOGIC == 2){
+          strcpy(new_filename, "output-files/new_");
+          sprintf(temp_str, "%d_%d_%d.csv", NEW_K, NEW_W, NEW_B);
+          strcat(new_filename, temp_str);
+          if((arq = fopen(new_filename, "w+")) == NULL){
+               printf("Unable to create the NEW_LOGIC file.\n");
                exit(EXIT_FAILURE);
           }else{
                fclose(arq);
@@ -118,33 +173,51 @@ void setup(){
 
 
      reset_function();
-     arq = fopen("output-files/final_bitstream.csv", "w+");
+     arq = fopen("output-files/original_bitstream.csv", "w+");
      fclose(arq);
 }
 
 void reset_function(){
-     FILE *arq;
-     cnt = -9;
-     range = 32768;
-     low = 0;
-     arq = fopen("output-files/pre_bitstream.csv", "w+");
-     fclose(arq);
+     if(FLAG_NEW_LOGIC == 0 || FLAG_NEW_LOGIC == 2){
+          cnt = -9;
+          range = 32768;
+          low = 0;
+     }
+     if(FLAG_NEW_LOGIC == 1 || FLAG_NEW_LOGIC == 2){
+          range_new = 32768;
+          low_new = 0;
+          cnt_new = -9;
+     }
+     if(FLAG_NEW_LOGIC != 0 && FLAG_NEW_LOGIC != 1 && FLAG_NEW_LOGIC != 2){
+          printf("ERROR: FLAG_NEW_LOGIC is invalid.\n");
+          exit(EXIT_FAILURE);
+     }
 }
 
 
 int main(int argc, char **argv){
      int status;
      if(argc <= 0){
-          printf("Config: Don't stop after first reset (no argument)\n");
+          printf("\t-> CONFIG: Don't stop after first reset (no argument)\n");
           stop_after_reset_flag = 0;
      }else{
           if((strcmp(argv[1], "1")) == 0){
                stop_after_reset_flag = 1;
-               printf("Config: Stop after first reset\n");
+               printf("\t-> CONFIG: Stop after first reset\n");
           }else{
                stop_after_reset_flag = 0;
-               printf("Config: Don't stop after first reset\n");
+               printf("\t-> CONFIG: Don't stop after first reset\n");
           }
+     }
+     if(FLAG_NEW_LOGIC == 2)
+          printf("\t-> CONFIG: Running both logics.\n");
+     else if(FLAG_NEW_LOGIC == 1)
+          printf("\t-> CONFIG: Running only the NEW logic.\n");
+     else if(FLAG_NEW_LOGIC == 0)
+          printf("\t-> CONFIG: Running only the ORIGINAL logic.\n");
+     else{
+          printf("\t-> ERROR: FLAG_NEW_LOGIC invalid.\n");
+          exit(EXIT_FAILURE);
      }
      printf("=========================\n");
      setup();
@@ -191,7 +264,8 @@ int run_simulation(){
           reset = 0;
           while((i <= MAX_INPUTS) && (final_flag != 1) && (status != 0) && (reset != 1)){
                if((i%PRINT_RATE) == 0)
-                    printf("\rInput # %d, Reset # %d, Bitstream # %d, cnt: %d, Time: %.2lf ms, Bitstream: %i, Range: %d, Low: %d", i, reset_counter, bitstream_counter, cnt, get_total_time(), bitstream_generated, range, low);
+                    printf("\rInput # %d, Reset # %d, Time: %.2lf ms, Original Bitstream: %i, New Bitstream: %i. Range Original: %d, Range New: %d",
+                         i, reset_counter, get_total_time(), bitstream_generated, bitstream_new, range, range_new);
                num_input_read_file = fscanf(arq_input, "%i;%i;%i;%i;%i;%i;%i;%" SCNd16 ";%" SCNd32 ";%" SCNd16 ";%" SCNd32 ";\n",
                                              &bool, &temp_range, &temp_low, &fl, &fh, &s, &nsyms, &file_in_norm_range, &file_in_norm_low, &file_output_range, &file_output_low);
                if(num_input_read_file == 11){
@@ -204,7 +278,11 @@ int run_simulation(){
                          reset_counter++;
                          begin = clock();
                          //printf("Reset Detected!\n");
-                         final_bits();
+                         if(FLAG_NEW_LOGIC == 1 || FLAG_NEW_LOGIC == 2)
+                              final_bits_new();
+                         if(FLAG_NEW_LOGIC == 0 || FLAG_NEW_LOGIC == 2)
+                              final_bits();
+                         flag_first_new = 1;
                          flag_first = 1;
                          end = clock();
                          reset_function();
@@ -213,11 +291,18 @@ int run_simulation(){
                               reset = 1;
                     }
                     begin = clock();
-                    if(bool)
-                         od_ec_encode_q15(fl, fh, s, nsyms);
-                    else
-                         od_ec_encode_bool_q15(s, fh);
-
+                    if(bool){
+                         if(FLAG_NEW_LOGIC == 0 || FLAG_NEW_LOGIC == 2)
+                              od_ec_encode_q15(fl, fh, s, nsyms);
+                         if(FLAG_NEW_LOGIC == 1 || FLAG_NEW_LOGIC == 2)
+                              new_q15(fl, fh, s, nsyms);
+                    }else{
+                         if(FLAG_NEW_LOGIC == 0 || FLAG_NEW_LOGIC == 2)
+                              od_ec_encode_bool_q15(s, fh);
+                         if(FLAG_NEW_LOGIC == 1 || FLAG_NEW_LOGIC == 2)
+                              new_bool_q15(s, fh);
+                    }
+                    assert(low == low_new);
                     end = clock();
                     total_time = total_time + (end - begin);
 
@@ -237,11 +322,15 @@ int run_simulation(){
                return -2;
           }else if(reset == 1){
                printf("\n=========================\nFinished with reset\n");
-               final_bits();
-               printf("\nBitstream 2: %i\n", bitstream_2);
+               if(FLAG_NEW_LOGIC == 1 || FLAG_NEW_LOGIC == 2)
+                    final_bits_new();
+               if(FLAG_NEW_LOGIC == 0 || FLAG_NEW_LOGIC == 2)
+                    final_bits();
           }else{
-               final_bits();
-               printf("\nBitstream 2: %i\n", bitstream_2);
+               if(FLAG_NEW_LOGIC == 1 || FLAG_NEW_LOGIC == 2)
+                    final_bits_new();
+               if(FLAG_NEW_LOGIC == 0 || FLAG_NEW_LOGIC == 2)
+                    final_bits();
                printf("\n=========================\nNo error found.\n");
           }
      }else{
@@ -278,6 +367,259 @@ void add_to_file(int bool_flag, unsigned range_in, char equation[], unsigned fl,
      }
 }
 
+void new_q15(unsigned fl, unsigned fh, int s, int nsyms) {
+     uint32_t l;
+     unsigned r;
+     unsigned u;
+     unsigned v;
+     l = low_new;
+     r = range_new;
+     assert(32768U <= r);
+     assert(fh <= fl);
+     assert(fl <= 32768U);
+     assert(7 - EC_PROB_SHIFT - CDF_SHIFT >= 0);
+     const int N = nsyms - 1;
+     u = ((r >> 8) * (uint32_t)(fl >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s - 1));
+     v = ((r >> 8) * (uint32_t)(fh >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s + 0));
+
+     if (fl < CDF_PROB_TOP) {
+          l += r - u;
+          r = u - v;
+     } else
+          r -= v;
+     new_normalize(l, r);
+}
+
+void new_bool_q15(int val, unsigned f) {
+     uint32_t l;
+     unsigned r;
+     unsigned v;
+     assert(0 < f);
+     assert(f < 32768U);
+     l = low_new;
+     r = range_new;
+     assert(32768U <= r);
+     v = ((r >> 8) * (uint32_t)(f >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT));
+
+     v += EC_MIN_PROB;
+     if (val)
+          l += r - v;
+     r = val ? v : r - v;
+
+     new_normalize(l, r);
+}
+
+void new_normalize(uint32_t low_norm, unsigned rng) {
+     int d;
+     int c;
+     int s;
+     uint16_t b1, b2;
+     int flag = 0;
+     c = cnt_new;
+     assert(rng <= 65535U);
+     d = 16 - (1 + (31 ^ __builtin_clz(rng)));
+     s = c + d;
+     if (s >= 0) {
+          unsigned m;
+          c += 16;
+          m = (1 << c) - 1;
+          if (s >= 8) {
+               flag++;
+               b1 = (uint16_t)(low_norm >> c);
+               low_norm &= m;
+               c -= 8;
+               m >>= 8;
+          }
+          // assert(offs < storage);
+          //printf("Low: %" PRIu32 "\tc = %i\td = %i\tcnt = %i\n", low, c, d, cnt );
+          if(flag == 1){
+               flag++;
+               b2 = (uint16_t)(low_norm >> c);
+          }else{
+               flag++;
+               b1 = (uint16_t)(low_norm >> c);
+               b2 = 0;
+          }
+          s = c + d - 24;
+          low_norm &= m;
+     }
+     low_new = low_norm << d;
+     range_new = rng << d;
+     cnt_new = s;
+     if(flag != 0)
+          new_carry_propag(0, flag, b1, b2);
+}
+
+void final_bits_new(){
+     uint16_t temp_bitstream;
+     uint16_t *buf;
+     unsigned char *out;
+     uint32_t l, e, m;
+     int c, s;
+     l = low_new;
+     c = cnt_new;
+     s = 10;
+     m = 0x3FFF;
+     e = ((l + m) & ~m) | (m + 1);
+     s += c;
+     if(s > 0){
+          unsigned n;
+          n = (1 << (c + 16)) - 1;
+          do{
+               temp_bitstream = (uint16_t)(e >> (c + 16));
+               e &= n;
+               s -= 8;
+               if(s > 0)
+                    new_carry_propag(0, 1, temp_bitstream, 0);
+               else
+                    new_carry_propag(1, 1, temp_bitstream, 0);
+
+               c -= 8;
+               n >>= 8;
+          }while(s > 0);
+     }
+}
+
+void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
+     //printf("-> Flag_First = %i\t-> Flag = %i\t-> B1 = %" PRIu16 "\t-> B2 = %" PRIu16 "\t-> Prev = %" PRIu16 "\n", flag_first, flag, b1, b2, previous_new);
+     if(flag_first_new == 1 && flag != 0){
+          flag_first_new = 0;
+          if(flag == 1){
+               if(b1 > 255)
+                    previous_new = b1 - SUB_BITSTREAM;
+               else
+                    previous_new = b1;
+          }else if(flag == 2 && b2 != 255){
+               if(b2 > 255){
+                    if(b1 > 255)
+                         add_to_final_new(b1-SUB_BITSTREAM+1);
+                    else
+                         add_to_final_new(b1+1);
+                    previous_new = b2 - SUB_BITSTREAM;
+               }else{
+                    if(b1 > 255)
+                         add_to_final_new(b1-SUB_BITSTREAM);
+                    else
+                         add_to_final_new(b1);
+                    previous_new = b2;
+               }
+               counter_255_new = 0;
+          }else if(flag == 2 && b2 == 255){
+               counter_255_new = 1;
+               if(b1 > 255)
+                    previous_new = b1 - SUB_BITSTREAM;
+               else
+                    previous_new = b1;
+          }
+     }else{
+          if(flag == 1 && b1 != 255 && counter_255_new == 0){
+               if(b1 > 255){
+                    add_to_final_new(previous_new+1);
+                    previous_new = b1 - SUB_BITSTREAM;
+               }else{
+                    add_to_final_new(previous_new);
+                    previous_new = b1;
+               }
+          }else if(flag == 2 && b2 != 255 && counter_255_new == 0){
+               if(b1 == 255){
+                    if(b2 > 255){
+                         add_to_final_new(previous_new+1);
+                         add_to_final_new(0);
+                         previous_new = b2-SUB_BITSTREAM;
+                    }else{
+                         add_to_final_new(previous_new);
+                         add_to_final_new(b1);
+                         previous_new = b2;
+                    }
+               }else{
+                    if(b1 > 255){
+                         add_to_final_new(previous_new+1);
+                         b1 = b1 - SUB_BITSTREAM;
+                    }else
+                         add_to_final_new(previous_new);
+                    if(b2 > 255){
+                         add_to_final_new(b1+1);
+                         previous_new = b2 - SUB_BITSTREAM;
+                    }else{
+                         add_to_final_new(b1);
+                         previous_new = b2;
+                    }
+               }
+          }else if(flag == 1 && b1 == 255){
+               counter_255_new++;
+          }else if(flag == 2 && b1 == 255 && b2 == 255){
+               counter_255_new = counter_255_new + 2;
+          }else if(flag == 2 && b2 == 255 && b1 != 255 && counter_255_new == 0){
+               if(b1 > 255){
+                    add_to_final_new(previous_new+1);
+                    previous_new = b1 - SUB_BITSTREAM;
+               }else{
+                    add_to_final_new(previous_new);
+                    previous_new = b1;
+               }
+               counter_255_new = 1;
+          }else if(flag == 1 && b1 != 255 && counter_255_new > 0){
+               if(b1 > 255){
+                    add_to_final_new(previous_new+1);
+                    serial_release(1, 0, counter_255_new);
+                    counter_255_new = 0;
+                    previous_new = b1 - SUB_BITSTREAM;
+               }else{
+                    add_to_final_new(previous_new);
+                    serial_release(1, 255, counter_255_new);
+                    counter_255_new = 0;
+                    previous_new = b1;
+               }
+          }else if(flag == 2 && b2 != 255 && counter_255_new > 0){
+               if(b1 == 255){
+                    counter_255_new++;
+                    if(b2 > 255){
+                         add_to_final_new(previous_new+1);
+                         serial_release(1, 0, counter_255_new);
+                         counter_255_new = 0;
+                         previous_new = b2 - SUB_BITSTREAM;
+                    }else{
+                         add_to_final_new(previous_new);
+                         serial_release(1, 255, counter_255_new);
+                         counter_255_new = 0;
+                         previous_new = b2;
+                    }
+               }else{
+                    if(b1 > 255){
+                         add_to_final_new(previous_new+1);
+                         serial_release(1, 0, counter_255_new);
+                         counter_255_new = 0;
+                         if(b2 > 255){
+                              add_to_final_new(b1 - SUB_BITSTREAM + 1);
+                              previous_new = b2 - SUB_BITSTREAM;
+                         }else{
+                              add_to_final_new(b1 - SUB_BITSTREAM);
+                              previous_new = b2;
+                         }
+                    }else{
+                         add_to_final_new(previous_new);
+                         serial_release(1, 255, counter_255_new);
+                         counter_255_new = 0;
+                         if(b2 > 255){
+                              add_to_final_new(b1 + 1);
+                              previous_new = b2 - SUB_BITSTREAM;
+                         }else{
+                              add_to_final_new(b1);
+                              previous_new = b2;
+                         }
+                    }
+               }
+          }
+     }
+     if(final_flag == 1 && counter_255_new == 0){
+          add_to_final_new(previous_new);
+     }else if(final_flag == 1 && counter_255_new > 0){
+          add_to_final_new(previous_new);
+          serial_release(1, 255, counter_255_new);
+          counter_255_new = 0;
+     }
+}
+
 void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      uint32_t l;
      unsigned r;
@@ -292,22 +634,11 @@ void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      const int N = nsyms - 1;
      u = ((r >> 8) * (uint32_t)(fl >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s - 1));
      v = ((r >> 8) * (uint32_t)(fh >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s + 0));
-     if(save_multiplication){
-          save_mult_inputs((r >> 8), (uint32_t)(fl >> EC_PROB_SHIFT));
-          save_mult_inputs((r >> 8), (uint32_t)(fh >> EC_PROB_SHIFT));
-     }
      if (fl < CDF_PROB_TOP) {
           l += r - u;
           r = u - v;
-          // Beyond this point, only if range_analyzer_file is 1
-          if(range_analyzer_file)
-               add_to_file(0, range, "u-v", fl, fh, ((u-(EC_MIN_PROB*(N- s-1)))), (v-(EC_MIN_PROB*(N-(s+0)))));
-     } else {
+     } else
           r -= v;
-          if(range_analyzer_file)
-               add_to_file(0, range, "range_in - v", fl, fh, (u-(EC_MIN_PROB*(N- s-1))), (v-(EC_MIN_PROB*(N-(s+0)))));
-     }
-
      od_ec_enc_normalize(l, r);
 }
 
@@ -355,7 +686,6 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
           if (s >= 8) {
                flag++;
                b1 = (uint16_t)(low_norm >> c);
-               bitstream_2++;
                low_norm &= m;
                c -= 8;
                m >>= 8;
@@ -370,7 +700,6 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
                b1 = (uint16_t)(low_norm >> c);
                b2 = 0;
           }
-          bitstream_2++;
           s = c + d - 24;
           low_norm &= m;
      }
@@ -378,21 +707,11 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
      range = rng << d;
      cnt = s;
      if(flag != 0)
-          new_carry_propag(0, flag, b1, b2);
+          carry_propag(0, flag, b1, b2);
 }
 
 
-void add_bitstream_file(uint16_t bitstream){
-    FILE *arq;
-    if(bitstream >= 256)
-          //printf("\nCarry!\n");
-    if((arq = fopen("output-files/pre_bitstream.csv", "a+")) != NULL){
-        //printf("\nAdding bitstream: %" PRIu16 "\n", bitstream);
-        fprintf(arq, "%" PRIu16 ";\n", bitstream);
-        fclose(arq);
-    }else
-        printf("Unable to open the bitstream file\n");
-}
+
 
 void final_bits(){
      uint16_t temp_bitstream;
@@ -414,18 +733,17 @@ void final_bits(){
                e &= n;
                s -= 8;
                if(s > 0)
-                    new_carry_propag(0, 1, temp_bitstream, 0);
+                    carry_propag(0, 1, temp_bitstream, 0);
                else
-                    new_carry_propag(1, 1, temp_bitstream, 0);
+                    carry_propag(1, 1, temp_bitstream, 0);
 
-               bitstream_2++;
                c -= 8;
                n >>= 8;
           }while(s > 0);
      }
 }
 
-void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
+void carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
      //printf("-> Flag_First = %i\t-> Flag = %i\t-> B1 = %" PRIu16 "\t-> B2 = %" PRIu16 "\t-> Prev = %" PRIu16 "\n", flag_first, flag, b1, b2, previous);
      if(flag_first == 1 && flag != 0){
           flag_first = 0;
@@ -437,15 +755,15 @@ void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
           }else if(flag == 2 && b2 != 255){
                if(b2 > 255){
                     if(b1 > 255)
-                         add_to_final(b1-SUB_BITSTREAM+1);
+                         add_to_final_original(b1-SUB_BITSTREAM+1);
                     else
-                         add_to_final(b1+1);
+                         add_to_final_original(b1+1);
                     previous = b2 - SUB_BITSTREAM;
                }else{
                     if(b1 > 255)
-                         add_to_final(b1-SUB_BITSTREAM);
+                         add_to_final_original(b1-SUB_BITSTREAM);
                     else
-                         add_to_final(b1);
+                         add_to_final_original(b1);
                     previous = b2;
                }
                counter_255 = 0;
@@ -459,34 +777,34 @@ void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
      }else{
           if(flag == 1 && b1 != 255 && counter_255 == 0){
                if(b1 > 255){
-                    add_to_final(previous+1);
+                    add_to_final_original(previous+1);
                     previous = b1 - SUB_BITSTREAM;
                }else{
-                    add_to_final(previous);
+                    add_to_final_original(previous);
                     previous = b1;
                }
           }else if(flag == 2 && b2 != 255 && counter_255 == 0){
                if(b1 == 255){
                     if(b2 > 255){
-                         add_to_final(previous+1);
-                         add_to_final(0);
+                         add_to_final_original(previous+1);
+                         add_to_final_original(0);
                          previous = b2-SUB_BITSTREAM;
                     }else{
-                         add_to_final(previous);
-                         add_to_final(b1);
+                         add_to_final_original(previous);
+                         add_to_final_original(b1);
                          previous = b2;
                     }
                }else{
                     if(b1 > 255){
-                         add_to_final(previous+1);
+                         add_to_final_original(previous+1);
                          b1 = b1 - SUB_BITSTREAM;
                     }else
-                         add_to_final(previous);
+                         add_to_final_original(previous);
                     if(b2 > 255){
-                         add_to_final(b1+1);
+                         add_to_final_original(b1+1);
                          previous = b2 - SUB_BITSTREAM;
                     }else{
-                         add_to_final(b1);
+                         add_to_final_original(b1);
                          previous = b2;
                     }
                }
@@ -496,22 +814,22 @@ void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
                counter_255 = counter_255 + 2;
           }else if(flag == 2 && b2 == 255 && b1 != 255 && counter_255 == 0){
                if(b1 > 255){
-                    add_to_final(previous+1);
+                    add_to_final_original(previous+1);
                     previous = b1 - SUB_BITSTREAM;
                }else{
-                    add_to_final(previous);
+                    add_to_final_original(previous);
                     previous = b1;
                }
                counter_255 = 1;
           }else if(flag == 1 && b1 != 255 && counter_255 > 0){
                if(b1 > 255){
-                    add_to_final(previous+1);
-                    serial_release(0, counter_255);
+                    add_to_final_original(previous+1);
+                    serial_release(0, 0, counter_255);
                     counter_255 = 0;
                     previous = b1 - SUB_BITSTREAM;
                }else{
-                    add_to_final(previous);
-                    serial_release(255, counter_255);
+                    add_to_final_original(previous);
+                    serial_release(0, 255, counter_255);
                     counter_255 = 0;
                     previous = b1;
                }
@@ -519,37 +837,37 @@ void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
                if(b1 == 255){
                     counter_255++;
                     if(b2 > 255){
-                         add_to_final(previous+1);
-                         serial_release(0, counter_255);
+                         add_to_final_original(previous+1);
+                         serial_release(0, 0, counter_255);
                          counter_255 = 0;
                          previous = b2 - SUB_BITSTREAM;
                     }else{
-                         add_to_final(previous);
-                         serial_release(255, counter_255);
+                         add_to_final_original(previous);
+                         serial_release(0, 255, counter_255);
                          counter_255 = 0;
                          previous = b2;
                     }
                }else{
                     if(b1 > 255){
-                         add_to_final(previous+1);
-                         serial_release(0, counter_255);
+                         add_to_final_original(previous+1);
+                         serial_release(0, 0, counter_255);
                          counter_255 = 0;
                          if(b2 > 255){
-                              add_to_final(b1 - SUB_BITSTREAM + 1);
+                              add_to_final_original(b1 - SUB_BITSTREAM + 1);
                               previous = b2 - SUB_BITSTREAM;
                          }else{
-                              add_to_final(b1 - SUB_BITSTREAM);
+                              add_to_final_original(b1 - SUB_BITSTREAM);
                               previous = b2;
                          }
                     }else{
-                         add_to_final(previous);
-                         serial_release(255, counter_255);
+                         add_to_final_original(previous);
+                         serial_release(0, 255, counter_255);
                          counter_255 = 0;
                          if(b2 > 255){
-                              add_to_final(b1 + 1);
+                              add_to_final_original(b1 + 1);
                               previous = b2 - SUB_BITSTREAM;
                          }else{
-                              add_to_final(b1);
+                              add_to_final_original(b1);
                               previous = b2;
                          }
                     }
@@ -557,17 +875,17 @@ void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
           }
      }
      if(final_flag == 1 && counter_255 == 0){
-          add_to_final(previous);
+          add_to_final_original(previous);
      }else if(final_flag == 1 && counter_255 > 0){
-          add_to_final(previous);
-          serial_release(255, counter_255);
+          add_to_final_original(previous);
+          serial_release(0, 255, counter_255);
           counter_255 = 0;
      }
 }
 
-void add_to_final(uint16_t val){
+void add_to_final_original(uint16_t val){
      FILE *arq;
-     if((arq = fopen("output-files/final_bitstream.csv", "a+")) != NULL){
+     if((arq = fopen("output-files/original_bitstream.csv", "a+")) != NULL){
           fprintf(arq, "%" PRIu16 ";\n", val);
           fclose(arq);
           bitstream_generated++;
@@ -578,9 +896,26 @@ void add_to_final(uint16_t val){
      //printf("Val: %" PRIu16 "\n", val);
 }
 
-void serial_release(int val, int times){
+void add_to_final_new(uint16_t val){
+     FILE *arq;
+     if((arq = fopen(new_filename, "a+")) != NULL){
+          fprintf(arq, "%" PRIu16 ";\n", val);
+          fclose(arq);
+          bitstream_new++;
+     }else{
+          printf("Unable to open the final bitstream file.\n");
+          exit(EXIT_FAILURE);
+     }
+     //printf("Val: %" PRIu16 "\n", val);
+}
+
+
+void serial_release(int op, int val, int times){
      do{
-          add_to_final(val);
+          if(op == 1)
+               add_to_final_new(val);
+          else
+               add_to_final_original(val);
           times--;
      }while(times > 0);
 }

@@ -23,7 +23,7 @@ status = [0, 0]
 
 first_path = "/home/tulio/Desktop/arithmetic-encoder-av1/verification_area/c-arithmetic-encoder-av1/output-files/"
 original_bitstream_path = first_path + "original_bitstream.csv"
-new_bitstream_path = first_path + "new_bitstream.csv"
+new_bitstream_path = first_path + "new_3_9_28.csv"
 
 class data_acquirement(threading.Thread):
     def __init__(self, op):
@@ -52,7 +52,7 @@ def analyzer():
     global matches, mismatches
     matches = 0
     mismatches = 0
-    print("=============== Analysis Results ===============")
+    print("=============== Running Analysis ===============")
     if(counter_new == counter_original):
         print("\t-> Counters match!")
         max_lines = counter_new
@@ -71,7 +71,18 @@ def analyzer():
                 matches += 1
             else:
                 mismatches += 1
+    print_report()
+
+def print_report():
+    print("\n=============== Final Report ===============")
+    if((matches+mismatches) > 0):
+        print("\t-> Match rate: " + str(round((matches/(matches+mismatches))*100 , 5)) + " %")
+    else:
+        print("\t-> ERROR: No bitstream analyzed.")
+    print("\t-> Total Matches: " + str(matches) + "\n\t-> Total mismatches: " + str(mismatches))
+    print("\t-> Counter Original: " + str(counter_original) + "\n\t-> Counter New: " + str(counter_new))
     print("\n=============== Done ===============\n")
+
 
 
 
