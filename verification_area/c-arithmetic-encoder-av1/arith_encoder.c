@@ -18,7 +18,7 @@
 
 #define MAX_INPUTS 1000000000
 
-#define PRINT_RATE 1000         // This variable helps to print in different rates.
+#define PRINT_RATE 3000         // This variable helps to print in different rates.
 // if((counter % print) == 0), set 1 to print all
 
 // ------------------------------------------------------
@@ -94,6 +94,12 @@ int save_multiplication = 0;  // this variable allows the saving of the multipli
 
 // ---------------------
 
+int verify_bitstream_counter;
+int last_final_flag, last_flag;
+uint16_t last_b1, last_b2;
+int last_counter_255;
+int last_flag_first;
+uint16_t last_previous;
 
 
 // -------------------
@@ -137,6 +143,8 @@ void setup(){
      char temp_str[50];
      struct stat sb;
      bitstream_counter = 0;
+     verify_bitstream_counter = 0;
+     bitstream_generated = 0;
      if((stat("output-files/", &sb) != 0) || !S_ISDIR(sb.st_mode))
      mkdir("output-files", 0700);
 
@@ -302,7 +310,16 @@ int run_simulation(){
                          if(FLAG_NEW_LOGIC == 1 || FLAG_NEW_LOGIC == 2)
                               new_bool_q15(s, fh);
                     }
-                    assert(low == low_new);
+                    if(verify_bitstream_counter>0 && flag_first != 1){
+                         if((verify_bitstream_counter-1-counter_255) != bitstream_generated){
+                              printf("\nBitstreams: %d\nVerifier: %d\n", bitstream_generated, verify_bitstream_counter);
+                              printf("\nLast Inputs into Carry Propag: ");
+                              printf("\t-> Flag_First = %i\n\t-> Flag = %i\n\t-> B1 = %" PRIu16 "\n\t-> B2 = %" PRIu16 "\n\t-> Prev = %" PRIu16 "\n\t-> Counter 255 = %d\n", last_final_flag, last_flag, last_b1, last_b2, previous, counter_255);
+                              printf("\n\t-> Last Counter = %d\n\t-> Last Flag First = %d\n\t-> Last Previous = %" PRIu16 "\n", last_counter_255, last_flag_first, last_previous);
+
+                              assert((verify_bitstream_counter-1-counter_255) == bitstream_generated);
+                         }
+                    }
                     end = clock();
                     total_time = total_time + (end - begin);
 
@@ -609,6 +626,17 @@ void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
                          }
                     }
                }
+          }else if(flag == 2 && b2 == 255 && b1 != 255 && counter_255_new > 0){
+               if(b1 > 255){
+                    add_to_final_new(previous+1);
+                    serial_release(1, 0, counter_255_new);
+                    previous = b1 - SUB_BITSTREAM;
+               }else{
+                    add_to_final_new(previous);
+                    serial_release(1, 255, counter_255_new);
+                    previous = b1;
+               }
+               counter_255_new = 1;
           }
      }
      if(final_flag == 1 && counter_255_new == 0){
@@ -706,6 +734,7 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
      low = low_norm << d;
      range = rng << d;
      cnt = s;
+     verify_bitstream_counter += flag;
      if(flag != 0)
           carry_propag(0, flag, b1, b2);
 }
@@ -732,6 +761,7 @@ void final_bits(){
                temp_bitstream = (uint16_t)(e >> (c + 16));
                e &= n;
                s -= 8;
+               verify_bitstream_counter++;
                if(s > 0)
                     carry_propag(0, 1, temp_bitstream, 0);
                else
@@ -744,6 +774,13 @@ void final_bits(){
 }
 
 void carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
+     last_final_flag = final_flag;
+     last_flag = flag;
+     last_b1 = b1;
+     last_b2 = b2;
+     last_counter_255 = counter_255;
+     last_flag_first = flag_first;
+     last_previous = previous;
      //printf("-> Flag_First = %i\t-> Flag = %i\t-> B1 = %" PRIu16 "\t-> B2 = %" PRIu16 "\t-> Prev = %" PRIu16 "\n", flag_first, flag, b1, b2, previous);
      if(flag_first == 1 && flag != 0){
           flag_first = 0;
@@ -872,6 +909,17 @@ void carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
                          }
                     }
                }
+          }else if(flag == 2 && b2 == 255 && b1 != 255 && counter_255 > 0){
+               if(b1 > 255){
+                    add_to_final_original(previous+1);
+                    serial_release(0, 0, counter_255);
+                    previous = b1 - SUB_BITSTREAM;
+               }else{
+                    add_to_final_original(previous);
+                    serial_release(0, 255, counter_255);
+                    previous = b1;
+               }
+               counter_255 = 1;
           }
      }
      if(final_flag == 1 && counter_255 == 0){

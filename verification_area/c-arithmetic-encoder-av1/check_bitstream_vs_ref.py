@@ -84,7 +84,7 @@ while(monitor_off != 1 or status[0] != 1 or status[1] != 1):
     time.sleep(2)
 print("\nDone reading files.")
 print(bcolors.HEADER + bcolors.BOLD + "\n----------------------------------" + bcolors.ENDC)
-if(counter_comp == counter_ref):
+if(counter_comp != counter_ref):
     print(bcolors.FAIL + bcolors.BOLD + "\nCounters don't match!")
     print("\t-> Ref: " + str(counter_ref) + "\n\t-> Comp: " + str(counter_comp)  + bcolors.ENDC)
     quit()

@@ -63,12 +63,12 @@ def analyzer():
     global matches, mismatches
     matches = 0
     mismatches = 0
-    print("=============== Running Analysis ===============")
+    print(bcolors.HEADER + bcolors.BOLD + "=============== Running Analysis ===============" + bcolors.ENDC)
     if(counter_new == counter_original):
-        print("\t-> Counters match!")
+        print(bcolors.BOLD + bcolors.OKGREEN + "\t-> Counters match!" + bcolors.ENDC)
         max_lines = counter_new
     else:
-        print("\t-> ERROR 0: Counters don't match.\tOriginal: " + str(counter_original) + "\tNew: " + str(counter_new))
+        print(bcolors.FAIL + bcolors.BOLD + "\t-> ERROR 0: Counters don't match.\tOriginal: " + str(counter_original) + "\tNew: " + str(counter_new) + bcolors.ENDC)
         if(counter_new < counter_original):
             max_lines = counter_new
         else:
@@ -76,7 +76,11 @@ def analyzer():
 
     for i in range(0,max_lines):
         if((matches+mismatches) > 0 and ((matches+mismatches)%print_rate) == 0):
-            print("\t" + str(round((matches/(matches+mismatches))*100, 5)) + "% of matches. \tMismatches: " + str(mismatches) + " \t Total bits analyzed: " + str(matches+mismatches), end='\r')
+            if(mismatches == 0):
+                print(bcolors.OKGREEN + "\t" + str(round((matches/(matches+mismatches))*100, 5)) + "% of matches. \tMismatches: " + str(mismatches) + " \t Total bits analyzed: " + str(matches+mismatches) + bcolors.ENDC, end='\r')
+            else:
+                print(bcolors.WARNING + "\t" + str(round((matches/(matches+mismatches))*100, 5)) + "% of matches. \tMismatches: " + str(mismatches) + " \t Total bits analyzed: " + str(matches+mismatches) + bcolors.ENDC, end='\r')
+
         for j in range(0,8):
             if(new_array[i][j] == original_array[i][j]):
                 matches += 1
@@ -85,7 +89,7 @@ def analyzer():
     print_report()
 
 def print_report():
-    print(bcolors.HEADER + "\n=============== Final Report ===============" + bcolors.ENDC)
+    print(bcolors.HEADER + bcolors.BOLD + "\n=============== Final Report ===============" + bcolors.ENDC)
     if((matches+mismatches) > 0):
         print(bcolors.BOLD + bcolors.OKGREEN + "\t-> Match rate: " + str(round((matches/(matches+mismatches))*100 , 5)) + " %"  + bcolors.ENDC)
     else:
@@ -93,7 +97,7 @@ def print_report():
     print(bcolors.OKGREEN + "\t-> Total Matches: " + str(matches))
     print(bcolors.FAIL + "\t-> Total mismatches: " + str(mismatches) + bcolors.ENDC)
     print(bcolors.OKBLUE + "\t-> Counter Original: " + str(counter_original) + "\n\t-> Counter New: " + str(counter_new) + bcolors.ENDC)
-    print(bcolors.HEADER + "=============== Done ===============\n" + bcolors.ENDC)
+    print(bcolors.HEADER + bcolors.BOLD + "=============== Done ===============\n" + bcolors.ENDC)
 
 
 
