@@ -25,6 +25,17 @@ first_path = "/home/tulio/Desktop/arithmetic-encoder-av1/verification_area/c-ari
 original_bitstream_path = first_path + "original_bitstream.csv"
 new_bitstream_path = first_path + "new_3_9_28.csv"
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 class data_acquirement(threading.Thread):
     def __init__(self, op):
         threading.Thread.__init__(self)
@@ -74,14 +85,15 @@ def analyzer():
     print_report()
 
 def print_report():
-    print("\n=============== Final Report ===============")
+    print(bcolors.HEADER + "\n=============== Final Report ===============" + bcolors.ENDC)
     if((matches+mismatches) > 0):
-        print("\t-> Match rate: " + str(round((matches/(matches+mismatches))*100 , 5)) + " %")
+        print(bcolors.BOLD + bcolors.OKGREEN + "\t-> Match rate: " + str(round((matches/(matches+mismatches))*100 , 5)) + " %"  + bcolors.ENDC)
     else:
         print("\t-> ERROR: No bitstream analyzed.")
-    print("\t-> Total Matches: " + str(matches) + "\n\t-> Total mismatches: " + str(mismatches))
-    print("\t-> Counter Original: " + str(counter_original) + "\n\t-> Counter New: " + str(counter_new))
-    print("\n=============== Done ===============\n")
+    print(bcolors.OKGREEN + "\t-> Total Matches: " + str(matches))
+    print(bcolors.FAIL + "\t-> Total mismatches: " + str(mismatches) + bcolors.ENDC)
+    print(bcolors.OKBLUE + "\t-> Counter Original: " + str(counter_original) + "\n\t-> Counter New: " + str(counter_new) + bcolors.ENDC)
+    print(bcolors.HEADER + "=============== Done ===============\n" + bcolors.ENDC)
 
 
 
