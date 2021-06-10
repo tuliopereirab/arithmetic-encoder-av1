@@ -16,6 +16,9 @@ counter_new = 0
 # Analysis
 matches = 0
 mismatches = 0
+error_list = []
+error_list_original = []
+error_list_new = []
 # --------------------
 
 print_rate = 100
@@ -74,6 +77,9 @@ def analyzer():
         else:
             max_lines = counter_original
 
+    if((max_lines*8) > 100000000):
+        print_rate = 1000
+
     for i in range(0,max_lines):
         if((matches+mismatches) > 0 and ((matches+mismatches)%print_rate) == 0):
             if(mismatches == 0):
@@ -86,6 +92,9 @@ def analyzer():
                 matches += 1
             else:
                 mismatches += 1
+                error_list.append(i)
+                error_list_original.append(original_array[i])
+                error_list_new.append(new_array[i])
     print_report()
 
 def print_report():
@@ -97,6 +106,10 @@ def print_report():
     print(bcolors.OKGREEN + "\t-> Total Matches: " + str(matches))
     print(bcolors.FAIL + "\t-> Total mismatches: " + str(mismatches) + bcolors.ENDC)
     print(bcolors.OKBLUE + "\t-> Counter Original: " + str(counter_original) + "\n\t-> Counter New: " + str(counter_new) + bcolors.ENDC)
+    if(mismatches > 0):
+        print(bcolors.HEADER + bcolors.BOLD + "=============== List of Errors ===============\n" + bcolors.ENDC)
+        for i in range(0,mismatches):
+            print(bcolors.FAIL + str(error_list[i]) + ": " + str(error_list_original[i]) + "\tvs.\t" + str(error_list_new[i]) + bcolors.ENDC)
     print(bcolors.HEADER + bcolors.BOLD + "=============== Done ===============\n" + bcolors.ENDC)
 
 

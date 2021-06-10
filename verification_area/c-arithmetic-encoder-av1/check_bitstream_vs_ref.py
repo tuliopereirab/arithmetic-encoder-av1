@@ -15,7 +15,7 @@ comp_data = []
 
 counter_ref = 0
 ref_data = []
-ref_file_path = "/media/tulio/HD1/y4m_files/generated_files/cq_20/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq20_final_bitstream.csv"
+ref_file_path = "/media/tulio/HD1/y4m_files/generated_files/cq_20/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_final_bitstream.csv"
 
 monitor_off = 0
 

@@ -266,7 +266,7 @@ int run_simulation(){
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
      int s, nsyms, bool;
-     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_20/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq20_main_data.csv", "r")) != NULL){
+     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_20/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_main_data.csv", "r")) != NULL){
           i = 0;
           status = 1;
           reset = 0;
@@ -628,13 +628,13 @@ void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
                }
           }else if(flag == 2 && b2 == 255 && b1 != 255 && counter_255_new > 0){
                if(b1 > 255){
-                    add_to_final_new(previous+1);
+                    add_to_final_new(previous_new+1);
                     serial_release(1, 0, counter_255_new);
-                    previous = b1 - SUB_BITSTREAM;
+                    previous_new = b1 - SUB_BITSTREAM;
                }else{
-                    add_to_final_new(previous);
+                    add_to_final_new(previous_new);
                     serial_release(1, 255, counter_255_new);
-                    previous = b1;
+                    previous_new = b1;
                }
                counter_255_new = 1;
           }
