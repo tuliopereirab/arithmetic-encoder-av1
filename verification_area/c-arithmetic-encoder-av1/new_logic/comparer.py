@@ -63,7 +63,7 @@ class data_acquirement(threading.Thread):
             status[self.op] = 1
 
 def analyzer():
-    global matches, mismatches
+    global matches, mismatches, print_rate
     matches = 0
     mismatches = 0
     print(bcolors.HEADER + bcolors.BOLD + "=============== Running Analysis ===============" + bcolors.ENDC)
