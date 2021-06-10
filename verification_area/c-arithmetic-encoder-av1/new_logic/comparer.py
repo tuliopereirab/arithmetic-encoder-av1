@@ -129,6 +129,6 @@ thread_new.start()
 counter_waiting = 0
 while(status[0] != 1 or status[1] != 1):
     counter_waiting += 1
-    print("Waiting... " + str(counter_waiting), end='\r')
+    print("Reading... " + str(counter_waiting), end='\r')
     time.sleep(1)
 analyzer()

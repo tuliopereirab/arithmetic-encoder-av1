@@ -16,7 +16,7 @@
 #define EC_MIN_PROB 4
 #define CDF_PROB_TOP 32768
 
-#define MAX_INPUTS 100000000
+#define MAX_INPUTS 1000000000
 
 #define PRINT_RATE 1000         // This variable helps to print in different rates.
 // if((counter % print) == 0), set 1 to print all
@@ -258,7 +258,7 @@ int run_simulation(){
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
      int s, nsyms, bool;
-     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_20/Bosphorus_1920x1080_120fps_420_8bit_YUV_cq20_main_data.csv", "r")) != NULL){
+     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_20/ReadySetGo_3840x2160_120fps_420_10bit_YUV_cq20_main_data.csv", "r")) != NULL){
           i = 0;
           status = 1;
           reset = 0;

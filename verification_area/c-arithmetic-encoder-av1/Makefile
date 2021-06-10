@@ -12,5 +12,8 @@ bitstream_converter:
 range_analyzer_converter:
 	python binary_range_converter.py
 
-comp:
-	python3 check_bitstream.py
+comp_ref:
+	python3 check_bitstream_vs_ref.py
+
+comp_logic:
+	python3 new_logic/comparer.py
