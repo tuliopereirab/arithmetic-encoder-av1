@@ -394,6 +394,10 @@ void new_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      r = range_new;
      unsigned ft;
      ft = 32768U;
+     // On the AV1 reference code there is an assert that ensures (icdf[nsyms-1] == CDF_PROB_TOP), which is 32,768
+     // Hence, there is not much to do regarding this variable, as the AV1 itself uses it on it's maximum
+     // According to the Daala definition, however, this variable might variate within the range 16,384 <= ft <= 32,768
+     // I don't believe there is anything working with fixing this value at 32,768.
      assert(32768U <= r);
      assert(fh <= fl);
      assert(fl <= 32768U);
