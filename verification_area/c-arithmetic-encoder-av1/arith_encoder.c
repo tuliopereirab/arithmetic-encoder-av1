@@ -51,9 +51,8 @@
 // Its main goal is to update range and low without a multiplier
 // ============
 // These definitions are used within the NEW logic for range/low updating.
-#define NEW_K 3
-#define NEW_W 9
-#define NEW_B 28
+# define OD_EC_REDUCED_OVERHEAD (0)
+
 
 char new_filename[50];
 uint16_t range_new, previous_new;
@@ -140,7 +139,6 @@ int16_t get_cnt(){
 
 void setup(){
      FILE *arq;
-     char temp_str[50];
      struct stat sb;
      bitstream_counter = 0;
      verify_bitstream_counter = 0;
@@ -158,9 +156,7 @@ void setup(){
      }
 
      if(FLAG_NEW_LOGIC == 1 || FLAG_NEW_LOGIC == 2){
-          strcpy(new_filename, "output-files/new_");
-          sprintf(temp_str, "%d_%d_%d.csv", NEW_K, NEW_W, NEW_B);
-          strcat(new_filename, temp_str);
+          strcpy(new_filename, "output-files/new_logic.csv");
           if((arq = fopen(new_filename, "w+")) == NULL){
                printf("Unable to create the NEW_LOGIC file.\n");
                exit(EXIT_FAILURE);
@@ -384,26 +380,53 @@ void add_to_file(int bool_flag, unsigned range_in, char equation[], unsigned fl,
      }
 }
 
+#define OD_SUBSATU(a, b) ((a) - OD_MINI(a, b))
+#define OD_MINI(a, b) ((a) ^ (((b) ^ (a)) & -((b) < (a))))
+
 void new_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      uint32_t l;
      unsigned r;
      unsigned u;
      unsigned v;
+     unsigned d;
+     unsigned ss;
      l = low_new;
      r = range_new;
+     unsigned ft;
+     ft = 32768U;
      assert(32768U <= r);
      assert(fh <= fl);
      assert(fl <= 32768U);
      assert(7 - EC_PROB_SHIFT - CDF_SHIFT >= 0);
      const int N = nsyms - 1;
-     u = ((r >> 8) * (uint32_t)(fl >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s - 1));
-     v = ((r >> 8) * (uint32_t)(fh >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s + 0));
-
-     if (fl < CDF_PROB_TOP) {
-          l += r - u;
+     ss = r - ft >= ft;
+     ft <<= ss;
+     fl <<= ss;
+     fh <<= ss;
+     d = r - ft;
+     // ------------
+     // #if OD_EC_REDUCED_OVERHEAD
+     // {
+          // unsigned e;
+          // e = OD_SUBSATU(2*d, ft);
+          // u = fl + OD_MINI(fl, e) + OD_MINI(OD_SUBSATU(fl, e) >> 1, d);
+          // v = fh + OD_MINI(fh, e) + OD_MINI(OD_SUBSATU(fh, e) >> 1, d);
+     // }
+     // #else
+          u = fl + OD_MINI(fl, d);
+          v = fh + OD_MINI(fh, d);
+     // #endif
+     // ------------
+     if (u > v) {
+          //l += r - u;
           r = u - v;
      } else
           r -= v;
+     // r = u-v;
+     // printf("\n%" PRIu32 "\t%" PRIu32 "\n", u, v);
+     // printf("%" PRIu32 "\t%" PRIu32 "\n", r, range_new);
+     // exit(EXIT_SUCCESS);
+     l += u;
      new_normalize(l, r);
 }
 
@@ -411,17 +434,33 @@ void new_bool_q15(int val, unsigned f) {
      uint32_t l;
      unsigned r;
      unsigned v;
+     unsigned s;
+     unsigned ft;
+     ft = 32768U;
      assert(0 < f);
      assert(f < 32768U);
      l = low_new;
      r = range_new;
-     assert(32768U <= r);
-     v = ((r >> 8) * (uint32_t)(f >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT));
 
-     v += EC_MIN_PROB;
-     if (val)
-          l += r - v;
-     r = val ? v : r - v;
+     assert(32768U <= r);
+     s = r - ft >= ft;
+     ft <<= s;
+     f <<= s;
+     // -------------
+     // #if OD_EC_REDUCED_OVERHEAD
+     // {
+          // unsigned d;
+          // unsigned e;
+          // d = r - ft;
+          // e = OD_SUBSATU(2*d, ft);
+          // v = f + OD_MINI(f, e) + OD_MINI(OD_SUBSATU(f, e) >> 1, d);
+     // }
+     // #else
+          v = f + OD_MINI(f, r - ft);
+     // #endif
+     // -------------
+     if (val) l += v;
+     r = val ? r - v : v;
 
      new_normalize(l, r);
 }

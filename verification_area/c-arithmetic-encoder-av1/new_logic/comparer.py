@@ -26,7 +26,7 @@ status = [0, 0]
 
 first_path = "/home/tulio/Desktop/arithmetic-encoder-av1/verification_area/c-arithmetic-encoder-av1/output-files/"
 original_bitstream_path = first_path + "original_bitstream.csv"
-new_bitstream_path = first_path + "new_3_9_28.csv"
+new_bitstream_path = first_path + "new_logic.csv"
 
 class bcolors:
     HEADER = '\033[95m'
@@ -106,7 +106,7 @@ def print_report():
     print(bcolors.OKGREEN + "\t-> Total Matches: " + str(matches))
     print(bcolors.FAIL + "\t-> Total mismatches: " + str(mismatches) + bcolors.ENDC)
     print(bcolors.OKBLUE + "\t-> Counter Original: " + str(counter_original) + "\n\t-> Counter New: " + str(counter_new) + bcolors.ENDC)
-    if(mismatches > 0):
+    if(mismatches > 0 and mismatches < 20):
         print(bcolors.HEADER + bcolors.BOLD + "=============== List of Errors ===============\n" + bcolors.ENDC)
         for i in range(0,mismatches):
             print(bcolors.FAIL + str(error_list[i]) + ": " + str(error_list_original[i]) + "\tvs.\t" + str(error_list_new[i]) + bcolors.ENDC)

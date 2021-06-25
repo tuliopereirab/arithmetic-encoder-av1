@@ -9,7 +9,7 @@ import csv
 import threading
 import time
 
-comp_file_path = "/home/tulio/Desktop/arithmetic-encoder-av1/verification_area/c-arithmetic-encoder-av1/output-files/original_bitstream.csv"
+comp_file_path = "/home/tulio/Desktop/arithmetic-encoder-av1/verification_area/c-arithmetic-encoder-av1/output-files/new_logic.csv"
 counter_comp = 0
 comp_data = []
 
