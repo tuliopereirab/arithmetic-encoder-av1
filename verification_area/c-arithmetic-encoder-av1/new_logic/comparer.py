@@ -106,6 +106,7 @@ def print_report():
     print(bcolors.OKGREEN + "\t-> Total Matches: " + str(matches))
     print(bcolors.FAIL + "\t-> Total mismatches: " + str(mismatches) + bcolors.ENDC)
     print(bcolors.OKBLUE + "\t-> Counter Original: " + str(counter_original) + "\n\t-> Counter New: " + str(counter_new) + bcolors.ENDC)
+    print(bcolors.OKGREEN + bcolors.BOLD + "\t-> How larger is NEW compared with OLD: " + str(round((((counter_new-counter_original)/counter_original)*100), 2)) + " %" + bcolors.ENDC)
     if(mismatches > 0 and mismatches < 20):
         print(bcolors.HEADER + bcolors.BOLD + "=============== List of Errors ===============\n" + bcolors.ENDC)
         for i in range(0,mismatches):

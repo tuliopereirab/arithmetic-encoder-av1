@@ -28,6 +28,11 @@
 #define FLAG_NEW_LOGIC 2      // 2: encode both arithmetic encoder logics
                               // 1: use only the NEW arithmetic encoder logic
                               // 0: use only the ORIGINAL arithmetic encoder logic
+// ============
+// These definitions are used within the NEW logic for range/low updating.
+# define OD_EC_REDUCED_OVERHEAD 0       // 0: use normal overhead
+                                        // 1: use reduced overhead
+// ============
 // The new arithmetic encoder logic was based on the paper below
      // @ARTICLE{7930427,
      //      author={Belyaev, Evgeny and Forchhammer, Søren and Liu, Kai},
@@ -49,9 +54,7 @@
      //      pages={1326-1330},
      //      doi={10.1109/TVLSI.2020.2966306}}
 // Its main goal is to update range and low without a multiplier
-// ============
-// These definitions are used within the NEW logic for range/low updating.
-# define OD_EC_REDUCED_OVERHEAD (0)
+
 
 
 char new_filename[50];
@@ -91,6 +94,11 @@ int range_analyzer_file = 0;  // This variable defines wheather to create the fi
 
 int save_multiplication = 0;  // this variable allows the saving of the multiplication inputs
 
+// ---------------------
+// Time variables
+clock_t cumulative_time_new = 0, cumulative_time_old = 0;
+clock_t temp_time;
+double get_time(clock_t input);
 // ---------------------
 
 int verify_bitstream_counter;
@@ -143,6 +151,10 @@ void setup(){
      bitstream_counter = 0;
      verify_bitstream_counter = 0;
      bitstream_generated = 0;
+     // --------
+     cumulative_time_new = 0;
+     cumulative_time_old = 0;
+     // --------
      if((stat("output-files/", &sb) != 0) || !S_ISDIR(sb.st_mode))
      mkdir("output-files", 0700);
 
@@ -213,6 +225,7 @@ int main(int argc, char **argv){
                printf("\t-> CONFIG: Don't stop after first reset\n");
           }
      }
+
      if(FLAG_NEW_LOGIC == 2)
           printf("\t-> CONFIG: Running both logics.\n");
      else if(FLAG_NEW_LOGIC == 1)
@@ -223,11 +236,22 @@ int main(int argc, char **argv){
           printf("\t-> ERROR: FLAG_NEW_LOGIC invalid.\n");
           exit(EXIT_FAILURE);
      }
+
+     #if OD_EC_REDUCED_OVERHEAD
+          printf("\t-> CONFIG: using reduced overhead.\n");
+     #else
+          printf("\t-> CONFIG: using normal overhead.\n");
+     #endif
+
      printf("=========================\n");
      setup();
      status = run_simulation();
      timing_analyzer();
      return 0;
+}
+
+double get_time(clock_t input){
+     return (double)(input * 1000 / CLOCKS_PER_SEC);
 }
 
 double get_total_time(){
@@ -262,14 +286,14 @@ int run_simulation(){
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
      int s, nsyms, bool;
-     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_20/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_main_data.csv", "r")) != NULL){
+     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_20/Bosphorus_1920x1080_120fps_420_8bit_YUV_cq20_main_data.csv", "r")) != NULL){
           i = 0;
           status = 1;
           reset = 0;
           while((i <= MAX_INPUTS) && (final_flag != 1) && (status != 0) && (reset != 1)){
                if((i%PRINT_RATE) == 0)
-                    printf("\rInput # %d, Reset # %d, Time: %.2lf ms, Original Bitstream: %i, New Bitstream: %i. Range Original: %d, Range New: %d",
-                         i, reset_counter, get_total_time(), bitstream_generated, bitstream_new, range, range_new);
+                    printf("\rInput # %d, Reset # %d, Time Old: %.2lf ms, Time New: %.2lf ms, Original Bitstream: %i, New Bitstream: %i.",
+                         i, reset_counter, get_time(cumulative_time_old), get_time(cumulative_time_new), bitstream_generated, bitstream_new);
                num_input_read_file = fscanf(arq_input, "%i;%i;%i;%i;%i;%i;%i;%" SCNd16 ";%" SCNd32 ";%" SCNd16 ";%" SCNd32 ";\n",
                                              &bool, &temp_range, &temp_low, &fl, &fh, &s, &nsyms, &file_in_norm_range, &file_in_norm_low, &file_output_range, &file_output_low);
                if(num_input_read_file == 11){
@@ -345,6 +369,8 @@ int run_simulation(){
                if(FLAG_NEW_LOGIC == 0 || FLAG_NEW_LOGIC == 2)
                     final_bits();
                printf("\n=========================\nNo error found.\n");
+               printf("Times:\n\t-> Old logic: %.2lf ms\n\t-> New logic: %.2lf ms\n", get_time(cumulative_time_old), get_time(cumulative_time_new));
+               printf("=========================\n");
           }
      }else{
           printf("Unable to open the input file.\n");
@@ -403,23 +429,27 @@ void new_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      assert(fl <= 32768U);
      assert(7 - EC_PROB_SHIFT - CDF_SHIFT >= 0);
      const int N = nsyms - 1;
+
+     // Time control
+     temp_time = clock();
+     // -------------------
      ss = r - ft >= ft;
      ft <<= ss;
      fl <<= ss;
      fh <<= ss;
      d = r - ft;
      // ------------
-     // #if OD_EC_REDUCED_OVERHEAD
-     // {
-          // unsigned e;
-          // e = OD_SUBSATU(2*d, ft);
-          // u = fl + OD_MINI(fl, e) + OD_MINI(OD_SUBSATU(fl, e) >> 1, d);
-          // v = fh + OD_MINI(fh, e) + OD_MINI(OD_SUBSATU(fh, e) >> 1, d);
-     // }
-     // #else
+     #if OD_EC_REDUCED_OVERHEAD
+     {
+          unsigned e;
+          e = OD_SUBSATU(2*d, ft);
+          u = fl + OD_MINI(fl, e) + OD_MINI(OD_SUBSATU(fl, e) >> 1, d);
+          v = fh + OD_MINI(fh, e) + OD_MINI(OD_SUBSATU(fh, e) >> 1, d);
+     }
+     #else
           u = fl + OD_MINI(fl, d);
           v = fh + OD_MINI(fh, d);
-     // #endif
+     #endif
      // ------------
      if (u > v) {
           //l += r - u;
@@ -431,6 +461,9 @@ void new_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      // printf("%" PRIu32 "\t%" PRIu32 "\n", r, range_new);
      // exit(EXIT_SUCCESS);
      l += u;
+     // Time control
+     cumulative_time_new += clock() - temp_time;
+     // -------------
      new_normalize(l, r);
 }
 
@@ -447,25 +480,30 @@ void new_bool_q15(int val, unsigned f) {
      r = range_new;
 
      assert(32768U <= r);
+     // Time control
+     temp_time = clock();
+     // -------------------
      s = r - ft >= ft;
      ft <<= s;
      f <<= s;
      // -------------
-     // #if OD_EC_REDUCED_OVERHEAD
-     // {
-          // unsigned d;
-          // unsigned e;
-          // d = r - ft;
-          // e = OD_SUBSATU(2*d, ft);
-          // v = f + OD_MINI(f, e) + OD_MINI(OD_SUBSATU(f, e) >> 1, d);
-     // }
-     // #else
+     #if OD_EC_REDUCED_OVERHEAD
+     {
+          unsigned d;
+          unsigned e;
+          d = r - ft;
+          e = OD_SUBSATU(2*d, ft);
+          v = f + OD_MINI(f, e) + OD_MINI(OD_SUBSATU(f, e) >> 1, d);
+     }
+     #else
           v = f + OD_MINI(f, r - ft);
-     // #endif
+     #endif
      // -------------
      if (val) l += v;
      r = val ? r - v : v;
-
+     // Time control
+     cumulative_time_new += clock() - temp_time;
+     // -------------
      new_normalize(l, r);
 }
 
@@ -703,6 +741,9 @@ void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      assert(fl <= 32768U);
      assert(7 - EC_PROB_SHIFT - CDF_SHIFT >= 0);
      const int N = nsyms - 1;
+     // Time control
+     temp_time = clock();
+     // -------------------
      u = ((r >> 8) * (uint32_t)(fl >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s - 1));
      v = ((r >> 8) * (uint32_t)(fh >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT - CDF_SHIFT)) + EC_MIN_PROB * (N - (s + 0));
      if (fl < CDF_PROB_TOP) {
@@ -710,6 +751,9 @@ void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
           r = u - v;
      } else
           r -= v;
+     // Time control
+     cumulative_time_old += clock() - temp_time;
+     // -------------
      od_ec_enc_normalize(l, r);
 }
 
@@ -722,6 +766,9 @@ void od_ec_encode_bool_q15(int val, unsigned f) {
      l = low;
      r = range;
      assert(32768U <= r);
+     // Time control
+     temp_time = clock();
+     // -------------------
      v = ((r >> 8) * (uint32_t)(f >> EC_PROB_SHIFT) >> (7 - EC_PROB_SHIFT));
      if(save_multiplication){
           save_mult_inputs((r >> 8), (uint32_t)(f >> EC_PROB_SHIFT));
@@ -736,7 +783,9 @@ void od_ec_encode_bool_q15(int val, unsigned f) {
           else
                add_to_file(1, range, "bool r-v", f, 0, 1, (v-EC_MIN_PROB));
      }
-
+     // Time control
+     cumulative_time_old += clock() - temp_time;
+     // -------------
      od_ec_enc_normalize(l, r);
 }
 
@@ -778,8 +827,10 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
      range = rng << d;
      cnt = s;
      verify_bitstream_counter += flag;
+
      if(flag != 0)
           carry_propag(0, flag, b1, b2);
+
 }
 
 

@@ -1,10 +1,18 @@
-normal:
-	gcc arith_encoder.c -o arith
-	./arith 0
+encode:
+	gcc arith_encoder.c -o enc
+	./enc 0
 
-reset:
-	gcc arith_encoder.c -o arith
-	./arith 1
+decode:
+	gcc arith_decoder.c -o dec
+	./dec 0
+
+dec_reset:
+	gcc arith_decoder.c -o dec
+	./dec 1
+
+enc_reset:
+	gcc arith_encoder.c -o enc
+	./enc 1
 
 bitstream_converter:
 	python binary_bitstream_generator.py
