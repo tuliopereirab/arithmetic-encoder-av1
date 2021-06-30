@@ -30,7 +30,7 @@
                               // 0: use only the ORIGINAL arithmetic encoder logic
 // ============
 // These definitions are used within the NEW logic for range/low updating.
-# define OD_EC_REDUCED_OVERHEAD 0       // 0: use normal overhead
+# define OD_EC_REDUCED_OVERHEAD 1       // 0: use normal overhead
                                         // 1: use reduced overhead
 // ============
 // The new arithmetic encoder logic was based on the paper below
@@ -451,8 +451,8 @@ void new_q15(unsigned fl, unsigned fh, int s, int nsyms) {
           v = fh + OD_MINI(fh, d);
      #endif
      // ------------
-     if (u > v) {
-          //l += r - u;
+     if (u > v) {     // Comparison created to assert data for the Daala method
+          l += r - u;
           r = u - v;
      } else
           r -= v;
@@ -460,7 +460,7 @@ void new_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      // printf("\n%" PRIu32 "\t%" PRIu32 "\n", u, v);
      // printf("%" PRIu32 "\t%" PRIu32 "\n", r, range_new);
      // exit(EXIT_SUCCESS);
-     l += u;
+     //l += u;      // Daala method to set low
      // Time control
      cumulative_time_new += clock() - temp_time;
      // -------------
@@ -499,8 +499,14 @@ void new_bool_q15(int val, unsigned f) {
           v = f + OD_MINI(f, r - ft);
      #endif
      // -------------
-     if (val) l += v;
-     r = val ? r - v : v;
+     // if (val) l += v;           // Daala method to set low
+     // r = val ? r - v : v;       // Daala method to set range
+     // ------
+     // AV1 original methods to set Range and Low
+     if (val)
+          l += r - v;
+     r = val ? v : r - v;
+     // ------
      // Time control
      cumulative_time_new += clock() - temp_time;
      // -------------

@@ -9,13 +9,13 @@ import csv
 import threading
 import time
 
-comp_file_path = "/home/tulio/Desktop/arithmetic-encoder-av1/verification_area/c-arithmetic-encoder-av1/output-files/new_logic.csv"
+comp_file_path = "/home/tulio/Desktop/arithmetic-encoder-av1/verification_area/c-arithmetic-encoder-av1/output-files/original_bitstream.csv"
 counter_comp = 0
 comp_data = []
 
 counter_ref = 0
 ref_data = []
-ref_file_path = "/media/tulio/HD1/y4m_files/generated_files/cq_20/YachtRide_3840x2160_120fps_420_10bit_YUV_cq20_final_bitstream.csv"
+ref_file_path = "/media/tulio/HD1/y4m_files/generated_files/cq_20/Bosphorus_1920x1080_120fps_420_8bit_YUV_cq20_final_bitstream.csv"
 
 monitor_off = 0
 
