@@ -30,7 +30,7 @@
                               // 0: use only the ORIGINAL arithmetic encoder logic
 // ============
 // These definitions are used within the NEW logic for range/low updating.
-# define OD_EC_REDUCED_OVERHEAD 1       // 0: use normal overhead
+# define OD_EC_REDUCED_OVERHEAD 0       // 0: use normal overhead
                                         // 1: use reduced overhead
 // ============
 // The new arithmetic encoder logic was based on the paper below
@@ -435,8 +435,8 @@ void new_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      // -------------------
      ss = r - ft >= ft;
      ft <<= ss;
-     fl <<= ss;
-     fh <<= ss;
+     // fl <<= ss;
+     // fh <<= ss;
      d = r - ft;
      // ------------
      #if OD_EC_REDUCED_OVERHEAD
@@ -449,6 +449,7 @@ void new_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      #else
           u = fl + OD_MINI(fl, d);
           v = fh + OD_MINI(fh, d);
+          // printf("D: %" PRIu32 "\t\FL: %" PRIu32 "\tFL MINI: %" PRIu32 "\tFH: %" PRIu32 "\tFH MINI: %" PRIu32 "\n", d, fl, OD_MINI(fl, d), fh, OD_MINI(fh,d));
      #endif
      // ------------
      if (u > v) {     // Comparison created to assert data for the Daala method
