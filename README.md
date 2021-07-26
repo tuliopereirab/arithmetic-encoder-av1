@@ -68,6 +68,11 @@
 - This block is also able to count the number of 255s received in sequence and release n 255s at the same time using OUT_BIT_2 (255 or 0) and OUT_BIT_3 (number saved in the counter).
 - This block is able to release up to five 8-bit arrays when necessary.
 
+#### 255 Exception
+- Everytime when 255 is received followed by a number > 255, it is necessary to propagate the carry beyond i-1 (i-2, i-3, i-x).
+- To solve this problem, the _bitstream received just before the first 255_ is kept stored within _Bprev_, while a _255_counter_ counts the number of 255 received in sequence.
+- Once a bitstream != 255 arrives, the architecture releases as follows: _Bout1_ = _Bprev_; _Bout2_ = 255 or 0; _Bout3_ = _255_counter_; _Bprev_ = _Bin1_ or _Bin2_ (_Bin1_ is release as _Bout4_ if _flagIn_ == 2).
+
 #### Last Bitstreams generation
 - When the frame execution is over, it is necessary to release bitstreams according to the _low_ and _cnt_ values.
 - This block basically generates up to two bitstreams once the _final_flag_ (sent by the testbench) reaches the Stage 4.
@@ -79,12 +84,16 @@
 - The architecture's current critical path is the _range_ generation and normalization, which passes through a multiplication and the LZC sub-block.
 
 ### Ways to improve
-1. Find a way to multiply faster (already did some unsuccessful trials with Vedic multiplication method);
-2. Find a way to split the range generation equation and execute some parts in Stage 1;
-3. Use approximate computing to avoid the multiplication of the range.
+1. Find a way to multiply faster (already did some unsuccessful trials with Vedic multiplication method) -- (_not possible_);
+2. Find a way to split the range generation equation and execute some parts in Stage -- (_not possible_)1;
+3. Use approximate computing to avoid the multiplication of the range;
+4. Find a multiplier-free solution for arithmetic encoding and analyze how it behaves when added to the AV1 reference software (_Window Sliding might be a great option_).
 
 **More information about the architecture in [Project](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/Project) folder.**
 
+## Versions
+1. _entropy-encoder_ is the original architecture comprised by stages 1, 2, 3 and 4, as explained above.
+2. _entropy-encoder-lp_ is a low-power version of the architecture. This version uses Operand Isolation and Clock Gating to reduce the power consumption of the architecture. This version aims to prevent useless values from _Boolean Operation_ from being generated and stored.
 
 ## How to run the main testbench?
 1. Generate the simulation data and generate the LUT data ([lut-generator.py](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/lut-generator.py));
