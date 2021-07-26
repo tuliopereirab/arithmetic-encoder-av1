@@ -1,6 +1,6 @@
-module top_control (
+module control_unit (
     input clk, reset_ctrl,
-    output reg carry_ctrl
+    output reg pipeline_reg_1_2, pipeline_reg_2_3, pipeline_reg_final
     );
 
 
@@ -12,7 +12,7 @@ module top_control (
     // As a temporary solution, I put a permanent gap in the whole pipeline, which means that every 2 cycles I'll get an output ready.
     // Hence, because of this restriction, I also need to throw data into the architecture in the same rate (1 data each 2 cycles).
 
-    localparam start_1 = 0, start_2 = 1, start_3 = 2;
+    localparam start_1 = 0, start_2 = 1;
     localparam main = 3;
     reg [2:0] state;
 
@@ -22,8 +22,7 @@ module top_control (
         else begin
             case (state)
                 start_1  : state <= start_2;
-                start_2  : state <= start_3;
-                start_3  : state <= main;
+                start_2  : state <= main;
                 main     : state <= main;
             endcase
         end
@@ -32,16 +31,19 @@ module top_control (
     always @ ( * ) begin
         case (state)
             start_1 : begin
-                carry_ctrl <= 1'b0;
+                pipeline_reg_1_2 <= 1'b1;
+                pipeline_reg_2_3 <= 1'b0;
+                pipeline_reg_final <= 1'b0;
             end
             start_2 : begin
-                carry_ctrl <= 1'b0;
-            end
-            start_3 : begin
-                carry_ctrl <= 1'b0;
+                pipeline_reg_1_2 <= 1'b1;
+                pipeline_reg_2_3 <= 1'b1;
+                pipeline_reg_final <= 1'b0;
             end
             main     : begin
-                carry_ctrl <= 1'b1;
+                pipeline_reg_1_2 <= 1'b1;
+                pipeline_reg_2_3 <= 1'b1;
+                pipeline_reg_final <= 1'b1;
             end
         endcase
     end
