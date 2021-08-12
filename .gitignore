@@ -3,6 +3,7 @@ verification_area/Modelsim/modelsim_project/
 Quartus/
 lut/
 verification_area/c-arithmetic-encoder-av1/output-files/
+Scripts/outputs/
 
 # Ignore for C
 # Prerequisites

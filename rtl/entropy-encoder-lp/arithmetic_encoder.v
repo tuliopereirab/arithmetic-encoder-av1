@@ -99,7 +99,7 @@ module arithmetic_encoder #(
             .FH (general_fh),
             .SYMBOL (general_symbol),
             .NSYMS (general_nsyms),
-            .bool (general_bool),
+            .bool_flag (general_bool),
             // outputs
             .lut_u_out (lut_u_output),
             .lut_v_out (lut_v_output),
@@ -140,7 +140,7 @@ module arithmetic_encoder #(
             .VV (reg_VV),
             .COMP_mux_1 (reg_COMP_mux_1),
             // bool
-            .bool (reg_bool),
+            .bool_flag (reg_bool),
             .symbol (reg_symbol),
             // inputs from stage 3
             .in_range (reg_range_ready),
@@ -193,7 +193,7 @@ module arithmetic_encoder #(
         .LOW_WIDTH (GENERAL_LOW_WIDTH),
         .D_SIZE (GENERAL_D_SIZE)
         ) stage_pipeline_3 (
-            .bool (reg_bool_s2),
+            .bool_flag (reg_bool_s2),
             .lsb_symbol (reg_lsb_symbol),
             .in_range (reg_initial_range),
             .range_ready (reg_range_ready),

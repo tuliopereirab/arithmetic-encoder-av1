@@ -23,7 +23,7 @@ module stage_2 #(
         input COMP_mux_1,
         // bool
         input [(SYMBOL_WIDTH-1):0] symbol,
-        input bool,
+        input bool_flag,
         // former stage 3 outputs
         output wire [RANGE_WIDTH:0] u, v_bool,
         output wire [(RANGE_WIDTH-1):0] initial_range, out_range,
@@ -68,7 +68,7 @@ module stage_2 #(
         // Q15 normal
         // Boolean
 
-    assign range = (bool == 1'b1) ? range_bool :
+    assign range = (bool_flag == 1'b1) ? range_bool :
                     range_not_bool;
 
 
@@ -94,7 +94,7 @@ module stage_2 #(
     assign initial_range = in_range;
     assign out_d = d;
     assign out_range = range << d;
-    assign bool_symbol = {bool, symbol[0]};         // this input is a mix between the least significant bit of symbol and the bool flag
+    assign bool_symbol = {bool_flag, symbol[0]};         // this input is a mix between the least significant bit of symbol and the bool flag
                                                     // [1]: bool flag; [0]: symbol[0]
     assign COMP_mux_1_out = COMP_mux_1;
     //-----------------------------------------

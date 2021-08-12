@@ -23,7 +23,7 @@ module stage_2 #(
         input COMP_mux_1,
         // bool
         input [(SYMBOL_WIDTH-1):0] symbol,
-        input bool,
+        input bool_flag,
         // former stage 3 outputs
         output wire [RANGE_WIDTH:0] u, v_bool,
         output wire [(RANGE_WIDTH-1):0] initial_range, out_range,
@@ -41,7 +41,7 @@ module stage_2 #(
     assign op_iso_and_comp_mux_1 =  (COMP_mux_1) ? 16'd65535 :
                                     16'd0;
 
-    assign op_iso_and_bool = (bool) ? 16'd65535 :
+    assign op_iso_and_bool = (bool_flag) ? 16'd65535 :
                             16'd0;
 
     assign op_iso_and_symbol = (symbol[0]) ? 16'd65535 :
@@ -89,7 +89,7 @@ module stage_2 #(
         // Q15 normal
         // Boolean
 
-    assign range = (bool == 1'b1) ? range_bool :
+    assign range = (bool_flag == 1'b1) ? range_bool :
                     range_not_bool;
 
 
@@ -115,7 +115,7 @@ module stage_2 #(
     assign initial_range = in_range;
     assign out_d = d;
     assign out_range = range << d;
-    assign bool_out = bool;
+    assign bool_out = bool_flag;
     assign lsb_symbol = symbol[0];    // The definition of Low_bool uses the lsb symbol.
     assign COMP_mux_1_out = COMP_mux_1;
     //-----------------------------------------

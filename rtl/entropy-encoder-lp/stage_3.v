@@ -5,7 +5,7 @@ module stage_3 #(
     ) (
         input [(RANGE_WIDTH-1):0] in_range, range_ready,
         input [(D_SIZE-1):0] d,
-        input COMP_mux_1, bool, lsb_symbol,
+        input COMP_mux_1, bool_flag, lsb_symbol,
         input [RANGE_WIDTH:0] u, v_bool,
         input [(D_SIZE-1):0] in_s,
         input [(LOW_WIDTH-1):0] in_low,
@@ -25,7 +25,7 @@ module stage_3 #(
     wire [(LOW_WIDTH-1):0] op_iso_bool_low, op_iso_low_1;
     wire [(RANGE_WIDTH-1):0] op_iso_range_1, op_iso_u_1;
 
-    assign op_iso_and_bool = (bool) ? 24'd16777215 :
+    assign op_iso_and_bool = (bool_flag) ? 24'd16777215 :
                             24'd0;
     assign op_iso_and_lsb_symbol = (lsb_symbol) ? 24'd16777215 :
                                     24'd0;
@@ -48,7 +48,7 @@ module stage_3 #(
     // ------------------------------------------------------
     assign low_not_bool = (COMP_mux_1 == 1'b1) ? low_1 :
                             in_low;
-    assign low = (bool == 1'b1) ? low_bool :
+    assign low = (bool_flag == 1'b1) ? low_bool :
                 low_not_bool;
 
     // =============================================================================

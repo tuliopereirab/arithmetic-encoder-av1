@@ -98,7 +98,7 @@ module arithmetic_encoder #(
             .FH (general_fh),
             .SYMBOL (general_symbol),
             .NSYMS (general_nsyms),
-            .bool (general_bool),
+            .bool_flag (general_bool),
             // outputs
             .lut_u_out (lut_u_output),
             .lut_v_out (lut_v_output),
@@ -133,7 +133,7 @@ module arithmetic_encoder #(
             .VV (reg_VV),
             .COMP_mux_1 (reg_COMP_mux_1),
             // bool
-            .bool (reg_bool),
+            .bool_flag (reg_bool),
             .symbol (reg_symbol),
             // inputs from stage 3
             .in_range (reg_range_ready),

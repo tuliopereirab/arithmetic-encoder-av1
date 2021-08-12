@@ -8,7 +8,7 @@ module stage_1 #(
         input [(RANGE_WIDTH-1):0] FL, FH,
         input [(SYMBOL_WIDTH-1):0] SYMBOL,  // receives the symbol in the range 0 to 15
         input [SYMBOL_WIDTH:0] NSYMS,       // defined as 1 bit longer than SYMBOL; receives the number of symbols used
-        input bool,                         // is the flag showing if it is a bool or not. 0- bool, 1- not bool (this is inverted in this stage)
+        input bool_flag,                         // is the flag showing if it is a bool_flag or not. 0- bool_flag, 1- not bool_flag (this is inverted in this stage)
         output wire COMP_mux_1, bool_out,
         output wire [(LUT_DATA_WIDTH-1):0] lut_u_out, lut_v_out,
         output wire [(SYMBOL_WIDTH-1):0] out_symbol,
@@ -32,14 +32,14 @@ module stage_1 #(
                         1'b0;
 
 
-    assign bool_out = ~bool;
+    assign bool_out = ~bool_flag;
     assign out_symbol = SYMBOL;
 
     lut_u_module #(
         .DATA_WIDTH (LUT_DATA_WIDTH),
         .ADDR_WIDTH (LUT_ADDR_WIDTH)
         ) lut_u (
-            .enable (bool),
+            .enable (bool_flag),
             .addr (lut_addr),
             .q (lut_u_out)
         );
