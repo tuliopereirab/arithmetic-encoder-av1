@@ -1,4 +1,4 @@
-![Full architecture](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/Project/images/Original_Arc.png)
+![Architecture](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Project/images/Original_Arc.png?raw=true)
 
 # Arithmetic Encoder - AV1
 
