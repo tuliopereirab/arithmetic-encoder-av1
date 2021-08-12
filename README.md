@@ -3,20 +3,21 @@
 # Arithmetic Encoder - AV1
 
 ## Description
-- This project's goal is to design, verify, and synthesize to ASIC a high-frequency low-power pipelined arithmetic encoder for the AV1 coding standard.
-- Currently, this project is comprised of a 3-stage pipeline and generates the Low, Range, and pre-bitstream according to the AV1 reference algorithm.
-- As measured in 2020-10-26, this project's frequency, when synthesizing to ASIC, is around **567,85 MHz**.
+- **The Goal**: To accelerate the AV1 Arithmetic Encoder process by creating a pipelined architecture and synthesize it to ASIC.
+- **Current State**: the architecture is completed and, after careful validation, no problems were found.
+- **Versions**: there are two versions of the architecture within this repository: [High-throughput](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/rtl/entropy-encoder) and [Low-power](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/rtl/entropy-encoder-lp).
+- **Features**: The [High-throughput](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/rtl/entropy-encoder) version has the following characteristics: **588 MHz**, **11.7k gates count** and **982 bits/sec** with ST 65 nm PDK. Meanwhile, [Low-power](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/rtl/entropy-encoder-lp) has the following: **562 MHz**, **11.2k gates count** and **951 bits/sec** with ST 65 nm PDK. The [Low-power](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/rtl/entropy-encoder-lp) version saves around **21%** of power, according to analysis made with real-world datasets.
 
 ## What is still missing?
-1. **Fix some problems with the carry propagation block ([stage_4.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/rtl/entropy-encoder/stage_4.v))**: the stage for is a very detailed and complex block that is still missing one specific exception (receiving _B != 255_ followed by _B == 255_).
-2. **Improve frequency and reduce area**: as higher as an architecture's frequency is, there are always ways to make it even higher without increasing the area.
+1. **Improve frequency and reduce area**: as higher as an architecture's frequency is, there are always ways to make it even higher without increasing the area.
+2. **Possible solution**: One of the possible solutions for increasing the throughput rate without increasing the frequency would be to remove the multiplication from the _Boolean Operation_ and create on the testbenches the possibility to execute two or three input lines (from the _.csv_ files) during the same clock cycle. This would only be possible on the _Boolean Operation_ and would required a burst of booleans.
 
 ## Project overview
 ### 4-stage pipeline
-- **Stage 1**: Pre-calculations for the Low and Range generation.
-- **Stage 2**: The main output is the range ready and normalized, among a few other essential values for the Low generation
+- **Stage 1**: Pre-calculations for the _Low_ and _Range_ generation.
+- **Stage 2**: The main output is the _Range_ ready and normalized, among a few other essential values for the _Low_ generation
 - **Stage 3**: Defines the low value, normalizes it, and generates the pre-bitstream.
-- **Stage 4**: Carry propagation block and generation of last 9-bit bitstreams.
+- **Stage 4**: Carry propagation block. Transforms the 9-bit pre-bitstream generated in Stage 3 into an 8-bit final bitstream.
 
 ### Verification
 - This project's testbenches were created in SystemVerilog, and all of them can find any problem with the architecture.
@@ -35,8 +36,7 @@
 
 ##### Other files generated
 - **Input**: this file contains only the input values for the architecture. In the case of a testbench, this file cannot be used because it does not contain the algorithm's outputs.
-- **Bitstream pre-carry**:
-- **Final bitstream**:
+
 #### Testbenches
 - **Entropy encoder testbench**: This is the main testbench for the entire archicture. It validades the bitstreams generated and after the carry propagation process. The file is called [entropy_encoder_tb.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/entropy_encoder_tb.sv)
 - **Arithmetic encoder testbench**: This testbench is used to validade only the stages 1, 2 and 3 of the pipeline together. The file is called [tb_arith_encoder.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/tb_arith_encoder.sv).
@@ -89,10 +89,15 @@
 - The architecture's current critical path is the _range_ generation and normalization, which passes through a multiplication and the LZC sub-block.
 
 ### Ways to improve
-1. Find a way to multiply faster (already did some unsuccessful trials with Vedic multiplication method) -- (_not possible_);
-2. Find a way to split the range generation equation and execute some parts in Stage -- (_not possible_)1;
+1. Find a way to multiply faster (already did some unsuccessful trials with _Vedic multiplication_ method) -- **(_not possible_)**;
+2. Find a way to split the range generation equation and execute some parts in Stage -- **(_not possible_)**;
 3. Use approximate computing to avoid the multiplication of the range;
 4. Find a multiplier-free solution for arithmetic encoding and analyze how it behaves when added to the AV1 reference software (_Window Sliding might be a great option_).
+
+#### Why is it not possible? (_Indexes above_)
+1. When synthesizing the ASIC, the synthesizer will automatically find the best combination of cells possible for the multiplication (usually it's a custom cell specifically made for multiplication). It is just not feasible to beat something designed for multiplications with Verilog code and different multiplication methodologies. The cell itself has state-of-art multiplication methodologies.
+
+2. Splitting the _Range_ or _Low_ generation process in two or more stages would create bubble in the pipeline. It just doesn't make sense to, for example, split _Stage 2_ and send inputs with a 2-cycle gap. Sure the frequency will get better, but the throughput rate will still be the same (or perhaps get lower).
 
 **More information about the architecture in [Project](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/Project) folder.**
 
