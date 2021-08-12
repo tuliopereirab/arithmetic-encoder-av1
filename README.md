@@ -14,9 +14,10 @@
 ## Project overview
 ### 4-stage pipeline
 - **Stage 1**: Pre-calculations for the Low and Range generation.
-- **Stage 2**: The main output is the range ready and normalized, among a few other essential values for the Low generation.
+- **Stage 2**: The main output is the range ready and normalized, among a few other essential values for the Low generation
 - **Stage 3**: Defines the low value, normalizes it, and generates the pre-bitstream.
 - **Stage 4**: Carry propagation block and generation of last 9-bit bitstreams.
+
 ### Verification
 - This project's testbenches were created in SystemVerilog, and all of them can find any problem with the architecture.
 - All files responsible for the verification can be found in the [verification_area](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/verification_area) folder.
@@ -51,6 +52,8 @@
 ### Stage 2
 - This stage basically uses the results coming from the 1st stage and finds the range initial value.
 - Furthermore, this stage normalizes the range using the [LZC.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/rtl/entropy-encoder/LZC.v) block.
+
+![Stage 2](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Project/images/Architecture-Stage_2.jpg?raw=true)
 
 ### Stage 3
 - This stage receives values from the stages 1 and 2.
