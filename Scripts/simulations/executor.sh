@@ -23,6 +23,7 @@ sim_entropy_encoder () {
      then
           # echo "Trying to simulate the original"
           # vvp $OUTPUT_DIR/$OUTPUT_ORIGINAL
+          echo "--------------"
           echo "Currently not compiling the testbench in SystemVerilog."
           echo "Done"
      else
@@ -43,6 +44,7 @@ sim_entropy_encoder_lp () {
      then
           # echo "Trying to simulate the low-power"
           # vvp $OUTPUT_DIR/$OUTPUT_LP
+          echo "--------------"
           echo "Currently not compiling the testbench in SystemVerilog."
           echo "Done"
      else
