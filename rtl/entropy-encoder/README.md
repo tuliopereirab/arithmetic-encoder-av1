@@ -1,3 +1,5 @@
+![Full architecture](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/Project/images/Original_Arc.png)
+
 # Arithmetic Encoder - AV1
 
 ## Description
@@ -6,7 +8,7 @@
 - As measured in 2020-10-26, this project's frequency, when synthesizing to ASIC, is around **567,85 MHz**.
 
 ## What is still missing?
-1. **Fix some problems with the carry propagation block ([stage_4.v](link))**: the stage for is a very detailed and complex block that is still missing one specific exception (receiving _B != 255_ followed by _B == 255_).
+1. **Fix some problems with the carry propagation block ([stage_4.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/rtl/entropy-encoder/stage_4.v))**: the stage for is a very detailed and complex block that is still missing one specific exception (receiving _B != 255_ followed by _B == 255_).
 2. **Improve frequency and reduce area**: as higher as an architecture's frequency is, there are always ways to make it even higher without increasing the area.
 
 ## Project overview
@@ -48,7 +50,7 @@
 
 ### Stage 2
 - This stage basically uses the results coming from the 1st stage and finds the range initial value.
-- Furthermore, this stage normalizes the range using the [LZC.v](link) block.
+- Furthermore, this stage normalizes the range using the [LZC.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/rtl/entropy-encoder/LZC.v) block.
 
 ### Stage 3
 - This stage receives values from the stages 1 and 2.
@@ -58,7 +60,7 @@
 ### Stage 4
 - The output bitstreams are 8-bit arrays.
 - As Stage 3 generates 9-bit bitstreams, the 4th stage propagates the _b[9]_ to previously generated bitstreams.
-- This block is divided in 2 sub-blocks: [carry_propagation.v](link) and [final_bits.v](link).
+- This block is divided in 2 sub-blocks: [carry_propagation.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/rtl/entropy-encoder/carry_propagation.v) and [final_bits.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/rtl/entropy-encoder/final_bits.v).
 - The following subsections explain exactly the blocks' behaviors.
 
 #### Carry Propagation block
@@ -100,6 +102,6 @@
 2. Import the testbench file [entropy_encoder_tb.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/entropy_encoder_tb.sv) and change the simulation file's path;
 3. Import all _.v_ files;
 4. Compile all files in a simulation software (e.g., Modelsim);
-5. Use the scripts in folder [verification_area/modelsim_project/scripts/main_entropy_encoder/](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/verification_area/modelsim_project/scripts/main_entropy_encoder);
+5. Use the scripts in folder [verification_area/modelsim_project/scripts/main_entropy_encoder/](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/verification_area/Modelsim/modelsim_scripts/scripts/main_entropy_encoder);
 6. With the waveform scripts, some waveforms will be imported to the project (**only tested on Modelsim**);
-7. With the [re-run.do](link) file, the LUT memories will be filled with generated data and the simulation will start.
+7. With the [re-run.do](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/Modelsim/modelsim_scripts/scripts/main_entropy_encoder/re-run.do) file, the LUT memories will be filled with generated data and the simulation will start.
