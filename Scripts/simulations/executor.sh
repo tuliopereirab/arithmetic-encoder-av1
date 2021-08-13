@@ -6,6 +6,17 @@ OUTPUT_DIR="outputs/"
 OUTPUT_ORIGINAL="design.out"
 OUTPUT_LP="design-lp.out"
 
+line_space="${red}-------------------${nc}"
+
+red='\033[0;31m'
+boldRed='\033[1;31m'
+boldGreen='\033[1;32m'
+underGreen='\033[4;32m'
+green='\033[0;32m'
+nc='\033[0m'
+cyan='\033[0;36m'
+underCyan='\033[4;36m'
+
 
 sim_entropy_encoder () {
      if [ -f "$OUTPUT_DIR/$OUTPUT_ORIGINAL" ]
@@ -15,20 +26,20 @@ sim_entropy_encoder () {
 
      if [ -n $1  ]
      then
-          echo "No option chosen..."
+          echo -e "${red}No option chosen...${red}"
      fi
-     echo "Running Entropy Encoder: Original version"
+     echo -e "${cyan}Running Entropy Encoder: ${underCyan}Original version${nc}"
      iverilog -o $OUTPUT_DIR/$OUTPUT_ORIGINAL -c $LIST_ORIGINAL
      if [ -f "$OUTPUT_DIR/$OUTPUT_ORIGINAL" ]
      then
           # echo "Trying to simulate the original"
           # vvp $OUTPUT_DIR/$OUTPUT_ORIGINAL
-          echo "--------------"
-          echo "Currently not compiling the testbench in SystemVerilog."
-          echo "Done"
+          echo -e $line_space
+          echo -e "${boldGreen}Successfully compiled: ${underGreen}Original version.${nc}"
+          # echo -e "${green}Done.${nc}"
      else
-          echo "-------------------"
-          echo "Unable to generate the output file for some reason."
+          echo -e $line_space
+          echo -e "${boldRed}Unable to compile. ${red}Check the problems on the log above.${nc}"
      fi
 }
 
@@ -37,19 +48,19 @@ sim_entropy_encoder_lp () {
      then
           rm $OUTPUT_DIR/$OUTPUT_LP
      fi
-     echo "Running Entropy Encoder: Low-power version"
+     echo -e "${cyan}Running Entropy Encoder: ${underCyan}Low-power version${nc}"
      iverilog -o $OUTPUT_DIR/$OUTPUT_LP -c $LIST_LP
 
      if [ -f "$OUTPUT_DIR/$OUTPUT_LP" ]
      then
           # echo "Trying to simulate the low-power"
           # vvp $OUTPUT_DIR/$OUTPUT_LP
-          echo "--------------"
-          echo "Currently not compiling the testbench in SystemVerilog."
-          echo "Done"
+          echo -e $line_space
+          echo -e "${boldGreen}Successfully compiled: ${underGreen}Low-power version.${nc}"
+          # echo -e "${green}Done.${nc}"
      else
-          echo "-------------------"
-          echo "Unable to generate the output file for some reason."
+          echo -e $line_space
+          echo -e "${boldRed}Unable to compile. ${red}Check the problems on the log above.${nc}"
      fi
 }
 

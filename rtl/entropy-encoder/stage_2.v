@@ -83,8 +83,8 @@ module stage_2 #(
         .D_SIZE_LZC (D_SIZE)
         ) lzc (
             .in_range (range),
-            .lzc_out (d),
-            .v (v_lzc)
+            .v (v_lzc),
+            .lzc_out (d)
         );
 
 

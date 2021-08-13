@@ -16,8 +16,8 @@ module leading_zero #(
     parameter D_SIZE_LZC = 4
     )(
         input [(RANGE_WIDTH_LCZ)-1:0] in_range,
-        output wire [(D_SIZE_LZC-1):0] lzc_out,
-        output wire v
+        output wire v,
+        output wire [(D_SIZE_LZC-1):0] lzc_out
     );
 
     wire g1_1, g2_1, g3_1, g4_1;
@@ -68,6 +68,6 @@ module leading_zero #(
     assign lzc_out[1] = !(q4_1 | (q5_1 & q3_2));
     assign lzc_out[2] = !(g4_1 | (q6_1 & g4_3));
     assign lzc_out[3] = !q1_1;
-    // assign lzc_out[4] = 1'b0;
+    assign lzc_out[4] = 1'b0;
 
 endmodule
