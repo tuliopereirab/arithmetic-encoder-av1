@@ -73,7 +73,7 @@ static void add_pre_bitstream(uint16_t bitstream, int option){
 
 static void insert_main_arq(unsigned rng, unsigned low, unsigned fl, unsigned fh, int s, int nsyms, int add_code){
      FILE *arq_main;
-     arq_main = fopen("arith_analysis/main_data.csv", "a");
+     arq_main = fopen("/home/tulio/av1/arith_analysis/main_data.csv", "a");
      // add code:   0- inputs bool; 1- inputs q15; 2- inputs normalize; 3- output normalize
      if(add_code == 0){
           fprintf(arq_main, "0;%"PRIu32";%"PRIu32";0;%"PRIu32";%"PRIu32";0;", rng, low, fh, s);
@@ -186,7 +186,7 @@ void od_ec_enc_reset(od_ec_enc *enc) {
   enc->rng = 0x8000;
   FILE *arq;
   if(first_file == 1){
-       arq = fopen("arith_analysis/main_data.csv", "w+");
+       //arq = fopen("arith_analysis/main_data.csv", "w+");
        //fprintf(arq, "flag_input;init_range;init_low;fl;fh;s;nsyms;norm_in_rng;norm_in_low;final_rng;final_low;\n");
        fclose(arq);
        arq = fopen("arith_analysis/q15/input", "w+");
@@ -196,8 +196,8 @@ void od_ec_enc_reset(od_ec_enc *enc) {
        fclose(arq);
        arq = fopen("arith_analysis/pre_bitstream.csv", "w+");
        fclose(arq);
-       arq = fopen("arith_analysis/complete_final_bitstream.csv", "w+");
-       fclose(arq);
+       //arq = fopen("arith_analysis/complete_final_bitstream.csv", "w+");
+       //fclose(arq);
        first_file = 0;
  }
   /*This is initialized to -9 so that it crosses zero after we've accumulated
