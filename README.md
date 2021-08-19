@@ -27,12 +27,12 @@
 - The simulation data files are generated directly from AV1's algorithm, modified to create output files with important data.
 
 ##### How to generate?
-1. Download the modified file of the AV1's entropy encoder, [entenc.c](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/AV1-reference-info/entenc.c);
+1. Download the modified file of the AV1's entropy encoder, <code>[entenc.c](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/AV1-reference-info/entenc.c)</code>;
 2. Download/clone the [AV1's reference code](https://aomedia.googlesource.com/aom/);
-3. Copy and overwrite the file _entenc.c_ modified into the folder _aom/aom_dsp_;
+3. Copy and overwrite the file <code>entenc.c</code> modified into the folder <code>aom/aom_dsp</code>;
 4. Run any encoding process according to the procedure as specified in the AV1's website;
-5. After the encoding process is completed, access the folder *arith_analysis* created;
-6. The normal data sequence for the testbench is a file called *main_data*.
+5. After the encoding process is completed, access the folder <code>arith_analysis</code> created;
+6. The normal data sequence for the testbench is a file called <code>main_data</code>.
 
 ##### Other files generated
 - **Input**: this file contains only the input values for the architecture. In the case of a testbench, this file cannot be used because it does not contain the algorithm's outputs.
@@ -40,7 +40,7 @@
 #### Testbenches
 - **Entropy encoder testbench**: This is the main testbench for the entire archicture. It validades the bitstreams generated and after the carry propagation process. The file is called [entropy_encoder_tb.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/entropy_encoder_tb.sv)
 - **Arithmetic encoder testbench**: This testbench is used to validade only the stages 1, 2 and 3 of the pipeline together. The file is called [tb_arith_encoder.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/tb_arith_encoder.sv).
-- **Pre-bitstream testbench**: This file also verifies the low and range outputs and the bitstream and a few other values used by the function *od_ec_enc_done* on the AV1's original code. The file is called [tb_bitstream](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/other_tb/pipeline_sv_csv/tb_bitstream.sv).
+- **Pre-bitstream testbench**: This file also verifies the low and range outputs and the bitstream and a few other values used by the function <code>od_ec_enc_done</code> on the AV1's original code. The file is called [tb_bitstream](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/other_tb/pipeline_sv_csv/tb_bitstream.sv).
 - **Component testbenches**: The LZC (Leading Zero Counter) has its own testbench called [tb_lzc.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/components/tb_lzc.sv).
 - **Carry propagation testbench**: The Carry Propagation testbench verifies only the 4th stage of pipeline with random input data and it is called [tb_carry_propagation.sv](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/verification_area/testbenches/components/tb_carry_propagation.sv).
 
@@ -62,21 +62,21 @@
 
 ### Stage 4
 - The output bitstreams are 8-bit arrays.
-- As Stage 3 generates 9-bit bitstreams, the 4th stage propagates the _b[9]_ to previously generated bitstreams.
+- As Stage 3 generates 9-bit bitstreams, the 4th stage propagates the <code>b[9]</code> to previously generated bitstreams.
 - This block is divided in 2 sub-blocks: [carry_propagation.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/rtl/entropy-encoder/carry_propagation.v) and [final_bits.v](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/rtl/entropy-encoder/final_bits.v).
 - The following subsections explain exactly the blocks' behaviors.
 
 #### Carry Propagation block
-- Always when (B_in > 255) -> B_out = B_prev[7:0] + B_in[15:8]
+- Always when <code>(B_in > 255)</code> -> <code>B_out = B_prev[7:0] + B_in[15:8]</code>
 - Therefore, this block will save the last generated 8-bit bistream (B_prev) and propagate the carry of the following bitstreams (B_in).
-- B_in = B_prev[7:0] + B_in[15:8]; B_prev = B_in[7:0]
-- This block is also able to count the number of 255s received in sequence and release n 255s at the same time using OUT_BIT_2 (255 or 0) and OUT_BIT_3 (number saved in the counter).
+- <code>B_in = B_prev[7:0] + B_in[15:8]; B_prev = B_in[7:0]</code>
+- This block is also able to count the number of 255s received in sequence and release n 255s at the same time using <code>OUT_BIT_2</code> (255 or 0) and <code>OUT_BIT_3</code> (number saved in the counter).
 - This block is able to release up to five 8-bit arrays when necessary.
 
 #### 255 Exception
-- Everytime when 255 is received followed by a number > 255, it is necessary to propagate the carry beyond i-1 (i-2, i-3, i-x).
+- Everytime when 255 is received followed by a <code>number > 255</code>, it is necessary to propagate the carry beyond i-1 (<code>i-2, i-3, i-x</code>).
 - To solve this problem, the _bitstream received just before the first 255_ is kept stored within _Bprev_, while a _255_counter_ counts the number of 255 received in sequence.
-- Once a bitstream != 255 arrives, the architecture releases as follows: _Bout1_ = _Bprev_; _Bout2_ = 255 or 0; _Bout3_ = _255_counter_; _Bprev_ = _Bin1_ or _Bin2_ (_Bin1_ is release as _Bout4_ if _flagIn_ == 2).
+- Once a bitstream != 255 arrives, the architecture releases as follows: <code>Bout1_ = _Bprev</code>; <code>Bout2 = 255 or 0</code>; <code>Bout3 = _255_counter</code>; <code>Bprev = Bin1 or Bin2</code> (<code>Bin1</code> is release as <code>Bout4</code> if <code>flagIn == 2</code>).
 
 #### Last Bitstreams generation
 - When the frame execution is over, it is necessary to release bitstreams according to the _low_ and _cnt_ values.
