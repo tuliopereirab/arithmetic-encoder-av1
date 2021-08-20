@@ -10,19 +10,19 @@ module entropy_encoder_tb #(
      parameter TB_D_SIZE = 5
      )();
      // Config variables
-     `define DUMPFILE 1             // Generate a .vcd file as output
-     `define MODELSIM_FLOW 1        // 1 for modelsim_flow.tcl; 0 for specific file (set the SPECIFIC_* variables below)
+     `define DUMPFILE 0             // Generate a .vcd file as output
+     `define MODELSIM_FLOW 0        // 1 for modelsim_flow.tcl; 0 for specific file (set the SPECIFIC_* variables below)
      // The variable below sets the path for the dumpfile. It must contain the name of the file.vcd
      `define DUMPFILE_PATH "/home/vcds/dump.vcd"
      // TARGET_PATH specifies the path where the main_data and bitstream files will be.
      // TARGET_PATH must end with a /
      `define TARGET_PATH "/home/datasets/target/"      // Shouldn't be changed. Used to run with modelsim_flow.tcl
-     `define SPECIFIC_PATH "/home/datasets/Reduced_Datasets/cq20/allintra/"
+     `define SPECIFIC_PATH "/home/datasets/Entire_Files/"
      // TARGET_BITSTREAM and TARGET_MAIN specify the name of the target file
      `define TARGET_MAIN "target-main_data.csv"           // Shouldn't be changed. Used to run with modelsim_flow.tcl
      `define TARGET_BITSTREAM "target-bitstream.csv"      // Shouldn't be changed. Used to run with modelsim_flow.tcl
-     `define SPECIFIC_BITSTREAM "KristenAndSara_1280x720_60_120f-bitstream.csv"
-     `define SPECIFIC_MAIN "KristenAndSara_1280x720_60_120f-main_data.csv"
+     `define SPECIFIC_BITSTREAM "Netflix_RollerCoaster_1280x720_60fps_8bit_420_60f-bitstream.csv"
+     `define SPECIFIC_MAIN "Netflix_RollerCoaster_1280x720_60fps_8bit_420_60f-main_data.csv"
      // The lines below define the number of columns in the -main_data.csv and -bitstream.csv
      `define NUM_COL_MAIN 11
      `define NUM_COL_BITSTREAM 1
