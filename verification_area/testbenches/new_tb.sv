@@ -31,10 +31,10 @@ module entropy_encoder_tb #(
      // Useful macros
      `define INCR(A) A+1
      `define RESET_MSG(A,B,C) $display("%d-> Reset detected: \t-> %d <- \t%d in the frame", A, B, C)
-     `define ERROR(cnt,exp,got,bits_cnt,flag) \
-                         $display("\n------------------------------"); \
-                         $display("MISMATCH at %d:\t Expected %d and got %d.", cnt, exp, got); \
-                         $display("\t-> Bitstreams generated: %d\n\t-> Flag: %d", bits_cnt, flag);    \
+     `define ERROR(A,B,C,D,E) \
+                         $display("------------------------------"); \
+                         $display("MISMATCH at %d:\t Expected %d and got %d.", A, B, C); \
+                         $display("\t-> Bitstreams generated: %d\n\t-> Flag: %d", D, E);    \
                          $display("------------------------------\n"); \
                          $stop;    // A-> counter, B-> expected, C-> got, D-> bistreams counter
      // -------------------------------------
@@ -182,22 +182,26 @@ module entropy_encoder_tb #(
                end
           end else if(tb_out_flag_bitstream > 4) begin
                ReadBitstream();
-               if(tb_out_bit_1 != temp_bitstream)
-                    `ERROR(counter, temp_bitstream, comp, bitstreams_counter, tb_out_flag_bitstream);
+               if(tb_out_bit_1 != temp_bitstream) begin
+                    `ERROR(counter, temp_bitstream, tb_out_bit_1, bitstreams_counter, tb_out_flag_bitstream);
+               end
                for(j=0; j<tb_out_bit_3; j=`INCR(j)) begin
                     ReadBitstream();
-                    if(tb_out_bit_2 != temp_bitstream)
-                         `ERROR(counter, temp_bitstream, comp, bitstreams_counter, tb_out_flag_bitstream);
+                    if(tb_out_bit_2 != temp_bitstream) begin
+                         `ERROR(counter, temp_bitstream, tb_out_bit_2, bitstreams_counter, tb_out_flag_bitstream);
+                    end
                end
                if(tb_out_flag_bitstream > 5) begin
                     ReadBitstream();
-                    if(tb_out_bit_4 != temp_bitstream)
-                         `ERROR(counter, temp_bitstream, comp, bitstreams_counter, tb_out_flag_bitstream);
+                    if(tb_out_bit_4 != temp_bitstream) begin
+                         `ERROR(counter, temp_bitstream, tb_out_bit_4, bitstreams_counter, tb_out_flag_bitstream);
+                    end
                end
                if(tb_out_flag_bitstream == 7) begin
                     ReadBitstream();
-                    if(tb_out_bit_5 != temp_bitstream)
-                         `ERROR(counter, temp_bitstream, comp, bitstreams_counter, tb_out_flag_bitstream);
+                    if(tb_out_bit_5 != temp_bitstream) begin
+                         `ERROR(counter, temp_bitstream, tb_out_bit_5, bitstreams_counter, tb_out_flag_bitstream);
+                    end
                end
           end
      endfunction
