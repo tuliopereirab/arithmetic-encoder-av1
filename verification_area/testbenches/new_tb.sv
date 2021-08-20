@@ -10,18 +10,19 @@ module entropy_encoder_tb #(
      parameter TB_D_SIZE = 5
      )();
      // Config variables
-     `define DUMPFILE 0             // Generate a .vcd file as output
+     `define DUMPFILE 1             // Generate a .vcd file as output
+     `define MODELSIM_FLOW 1        // 1 for modelsim_flow.tcl; 0 for specific file (set the SPECIFIC_* variables below)
      // The variable below sets the path for the dumpfile. It must contain the name of the file.vcd
      `define DUMPFILE_PATH "/home/vcds/dump.vcd"
      // TARGET_PATH specifies the path where the main_data and bitstream files will be.
      // TARGET_PATH must end with a /
-     // `define TARGET_PATH "/home/datasets/target/"
-     `define TARGET_PATH "/home/datasets/Reduced_Datasets/cq20/allintra/"
+     `define TARGET_PATH "/home/datasets/target/"      // Shouldn't be changed. Used to run with modelsim_flow.tcl
+     `define SPECIFIC_PATH "/home/datasets/Reduced_Datasets/cq20/allintra/"
      // TARGET_BITSTREAM and TARGET_MAIN specify the name of the target file
-     // `define TARGET_MAIN "target-main_data.csv"
-     // `define TARGET_BITSTREAM "target-bitstream.csv"
-     `define TARGET_BITSTREAM "KristenAndSara_1280x720_60_120f-bitstream.csv"
-     `define TARGET_MAIN "KristenAndSara_1280x720_60_120f-main_data.csv"
+     `define TARGET_MAIN "target-main_data.csv"           // Shouldn't be changed. Used to run with modelsim_flow.tcl
+     `define TARGET_BITSTREAM "target-bitstream.csv"      // Shouldn't be changed. Used to run with modelsim_flow.tcl
+     `define SPECIFIC_BITSTREAM "KristenAndSara_1280x720_60_120f-bitstream.csv"
+     `define SPECIFIC_MAIN "KristenAndSara_1280x720_60_120f-main_data.csv"
      // The lines below define the number of columns in the -main_data.csv and -bitstream.csv
      `define NUM_COL_MAIN 11
      `define NUM_COL_BITSTREAM 1
@@ -30,7 +31,7 @@ module entropy_encoder_tb #(
      `define HALF_PERIOD #1
      // Useful macros
      `define INCR(A) A+1
-     `define RESET_MSG(A,B,C) $display("%d-> Reset detected: \t-> %d <- \t%d in the frame", A, B, C)
+     `define RESET_MSG(A,B,C) $display("\t%d-> Reset detected: \t-> %d <- \t%d in the frame", A, B, C)
      `define ERROR(A,B,C,D,E) \
                          $display("------------------------------"); \
                          $display("MISMATCH at %d:\t Expected %d and got %d.", A, B, C); \
@@ -95,8 +96,13 @@ module entropy_encoder_tb #(
      // -------------------------------------
 
      function void OpenFiles;
-          file_main = $fopen({`TARGET_PATH, `TARGET_MAIN}, "r");
-          file_bitstream = $fopen({`TARGET_PATH, `TARGET_BITSTREAM}, "r");
+          if(`MODELSIM_FLOW == 1) begin
+               file_main = $fopen({`TARGET_PATH, `TARGET_MAIN}, "r");
+               file_bitstream = $fopen({`TARGET_PATH, `TARGET_BITSTREAM}, "r");
+          end else begin
+               file_main = $fopen({`SPECIFIC_PATH, `SPECIFIC_MAIN}, "r");
+               file_bitstream = $fopen({`SPECIFIC_PATH, `SPECIFIC_BITSTREAM}, "r");
+          end
      endfunction
 
      function void ReadMain;
@@ -206,15 +212,27 @@ module entropy_encoder_tb #(
           end
      endfunction
 
+     function void CheckConfig;
+          if(`DUMPFILE == 1) begin
+               $display("\tCONFIG 1: Generating VCD file. File name '%s'", `DUMPFILE_PATH);
+               $dumpfile(`DUMPFILE_PATH);
+               $dumpvars;
+          end else begin
+               $display("\tCONFIG 1: No VCD set.");
+          end
+          if(`MODELSIM_FLOW == 1) begin
+               $display("\tCONFIG 2: Running with Modelsim_Flow.");
+          end else begin
+               $display("\tCONFIG 2: Running specific file: %s", `SPECIFIC_MAIN);
+          end
+     endfunction
+
      always `HALF_PERIOD tb_clk <= ~tb_clk;
 
      initial begin
           $display("-> Starting testbench...");
-          if(`DUMPFILE == 1) begin
-               $display("\tCONFIG: Generating VCD file. File name '%s'", `DUMPFILE_PATH);
-               $dumpfile(`DUMPFILE_PATH);
-               $dumpvars;
-          end
+          CheckConfig();
+          $display("-> Starting simulation...");
           tb_clk <= 1'b0;
           counter = 0;             // Counts the number of current inputs
           resets_counter = -1;     // It's incremented inside SetReset()
@@ -253,6 +271,7 @@ module entropy_encoder_tb #(
           $display("==================");
           $display("\t-> Total inputs: %d\n\t-> Total resets: %d\n\tTotal bitstreams: %d",
                     counter, resets_counter, bitstreams_counter);
+          $display("==================");
           $stop;
      end
 

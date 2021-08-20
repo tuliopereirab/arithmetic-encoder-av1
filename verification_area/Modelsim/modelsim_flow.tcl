@@ -4,6 +4,7 @@
      # for each round of execution, a different dataset is moved into this target directory
 
 # Configurations
+set dump_vcd 1
 set datasets_path "/home/datasets/Reduced_Datasets"
 set cqs [list cq20 cq32 cq43 cq55]
 set configs [list allintra good]
@@ -23,7 +24,7 @@ set target_name "target"
 set counter 0
 
 # Start the simulation
-do start_dut.do
+do DUT_ent_enc/start_dut.do
 
 foreach cq $cqs {
      foreach config $configs {
@@ -39,7 +40,9 @@ foreach cq $cqs {
                file rename -force ${target_path}/${video}-${final_bitstream} ${target_path}/${target_name}-${final_bitstream}
                puts "Running simulation..."
                do run.do
-               file rename -force ${dump_path}/${dump_name} ${dump_path}/${video}_${config}_${cq}.vcd
+               if {$dump_vcd == 1} {
+                    file rename -force ${dump_path}/${dump_name} ${dump_path}/${video}_${config}_${cq}.vcd
+               }
                puts "Done."
           }
      }
