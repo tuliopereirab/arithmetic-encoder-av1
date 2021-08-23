@@ -41,7 +41,7 @@ module entropy_encoder_tb #(
      // -------------------------------------
 
      // Testbench variables
-     int i, counter, resets_counter, from_last_reset, bitstreams_counter;     // Control variables
+     int counter, resets_counter, from_last_reset, bitstreams_counter;     // Control variables
      int prev_range, prev_low;
      int file_main, file_bitstream;     // File variables
      // From main_data
@@ -233,7 +233,7 @@ module entropy_encoder_tb #(
           $display("-> Starting testbench...");
           CheckConfig();
           $display("-> Starting simulation...");
-          tb_clk <= 1'b0;
+          tb_clk <= 1'b1;          // Clk initiation value
           counter = 0;             // Counts the number of current inputs
           resets_counter = -1;     // It's incremented inside SetReset()
           prev_range = -1;
