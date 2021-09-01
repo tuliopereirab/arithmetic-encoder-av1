@@ -1,10 +1,12 @@
 #!/bin/bash
 LIST_ORIGINAL="lists/list_entropy_encoder.txt"
 LIST_LP="lists/list_entropy_encoder-lp.txt"
+LIST_IMPROVED="lists/list_entropy_encoder_improved.txt"
 
 OUTPUT_DIR="outputs/"
 OUTPUT_ORIGINAL="design.out"
 OUTPUT_LP="design-lp.out"
+OUTPUT_IMPROVED="design-improved.out"
 
 line_space="${red}-------------------${nc}"
 
@@ -64,6 +66,27 @@ sim_entropy_encoder_lp () {
      fi
 }
 
+sim_entropy_encoder_improved () {
+     if [ -f "$OUTPUT_DIR/$OUTPUT_IMPROVED" ]
+     then
+          rm $OUTPUT_DIR/$OUTPUT_IMPROVED
+     fi
+
+     echo -e "${cyan}Running Entropy Encoder: ${underCyan}Improved version${nc}"
+     iverilog -o $OUTPUT_DIR/$OUTPUT_IMPROVED -c $LIST_IMPROVED
+     if [ -f "$OUTPUT_DIR/$OUTPUT_IMPROVED" ]
+     then
+          # echo "Trying to simulate the original"
+          # vvp $OUTPUT_DIR/$OUTPUT_ORIGINAL
+          echo -e $line_space
+          echo -e "${boldGreen}Successfully compiled: ${underGreen}Improved version.${nc}"
+          # echo -e "${green}Done.${nc}"
+     else
+          echo -e $line_space
+          echo -e "${boldRed}Unable to compile. ${red}Check the problems on the log above.${nc}"
+     fi
+}
+
 if [ ! -d "$OUTPUT_DIR/" ]
 then
      mkdir outputs
@@ -78,4 +101,7 @@ then
 elif [ $1 = "2" ]
 then
      sim_entropy_encoder_lp
+elif [ $1 = "3" ]
+then
+     sim_entropy_encoder_improved
 fi
