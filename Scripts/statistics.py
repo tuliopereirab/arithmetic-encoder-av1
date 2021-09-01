@@ -15,20 +15,20 @@ total = 0
 boolean_counter = 0
 
 for i in onlyfiles:
-    if(platform.system() == "Windows"):
-        path = windows_path
-    else:
-        path = linux_path_folder + "/" + i
+   if(platform.system() == "Windows"):
+      path = windows_path
+   else:
+      path = linux_path_folder + "/" + i
 
-    print("File: " + i)
+   print("File: " + i)
 
-    with open(path, "r+") as file:
-        fread = csv.reader(file, delimiter=';')
-        for row in fread:
-            total += 1
-            if(row[0] == '0'):
-                boolean_counter += 1
-            if((total % 100000) == 0):
-                print("Boolean: " + str(round((boolean_counter/total)*100,2)) + "%\tTotal: " + str(total), end='\r')
-    print("\n-------------\nFinal:\n\t-> % Boolean: " + str(round((boolean_counter/total)*100,2)) + "%\n\t-> General Total: " + str(total) + "\n\t-> Total Boolean: " + str(boolean_counter))
-    print("================================")
+   with open(path, "r+") as file:
+      fread = csv.reader(file, delimiter=';')
+      for row in fread:
+         total += 1
+         if(row[0] == '0'):
+            boolean_counter += 1
+         if((total % 100000) == 0):
+            print("Boolean: " + str(round((boolean_counter/total)*100,2)) + "%\tTotal: " + str(total), end='\r')
+   print("\n-------------\nFinal:\n\t-> % Boolean: " + str(round((boolean_counter/total)*100,2)) + "%\n\t-> General Total: " + str(total) + "\n\t-> Total Boolean: " + str(boolean_counter))
+   print("================================")
