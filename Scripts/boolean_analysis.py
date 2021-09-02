@@ -19,7 +19,7 @@ import time
 ##############################
 # 'path' represents the path that takes to the video datasets
 path = "/media/tulio/HD1/objective-2/Datasets"
-
+suffix = "-main_data.csv"   # file name suffix: video + suffix
 # 'target_path' and 'target_fname' represent (together) the path where the
 # output data will be saved.
 target_path = "/home/tulio/Desktop/arithmetic-encoder-av1/Scripts/outputs/"
@@ -74,7 +74,7 @@ class color:
     UNDERLINE = '\033[4m'
 # ----------------------------------------------------------
 
-class run_video(threading.Thread):
+class run_video(threading.Thread):  # Thread for each video
     def __init__(self, video_id):
         threading.Thread.__init__(self)
         self.video_id = video_id
@@ -90,7 +90,7 @@ class run_video(threading.Thread):
             + " is done." + color.CYAN + " Total Inputs: " +
             total_inputs[self.video_id] + color.END)
 
-def analyze_video(id):
+def analyze_video(id):  # Make the video analysis
     global video_names, bool_probability, bool_max_burst, bool_avg_burst
     global total_inputs
     prev_bool = False   # Flag indicating a burst
@@ -119,13 +119,13 @@ def analyze_video(id):
                     prev_bool = False
                     current_burst = 0
     sem_arrays.acquire()
-    bool_probability[id] = str(round((bool_counter/total_rounds)*100, 5))
+    bool_probability[id] = str((bool_counter/total_rounds))
     bool_max_burst[id] = str(max_burst)
     bool_avg_burst[id] = str(get_avg(all_bursts))
     total_inputs[id] = "{:,}".format(total_rounds)
     sem_arrays.release()
 
-def get_avg(data):
+def get_avg(data):  # Gets the average from an array
     sum = 0
     counter = 0
     for i in data:
@@ -133,12 +133,16 @@ def get_avg(data):
         sum += int(i)
     return round(sum/counter, 5)
 
-def to_csv():
+def wait_videos(to_wait):   # Waits until all videos within the CQ dir are done
+    while(videos_executed < to_wait):
+        time.sleep(5)
+
+def to_csv():   # Saves the analyzed data into a CSV file
     with open(target_path + target_fname, "w") as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=',')
         csv_writer.writerow(("CQ", "Config", "Video","Probability","AVG Burst",
             "Max Burst", "Total Inputs"))
-        for i in range(0, current_id):
+        for i in range(0, current_id+1):
             csv_writer.writerow((video_names[i][0], video_names[i][1],
                 video_names[i][2], bool_probability[i], bool_avg_burst[i],
                 bool_max_burst[i], total_inputs[i]))
@@ -158,7 +162,7 @@ for cq in tqdm(cqs, desc='CQs'):    # Looking at the first directory
     for config in configs:  # Looking at second directory
         for video in videos:    # Using the video names as file name
             temp_path = path + "/" + cq + "/" + config + "/"
-            temp_path += video + "-main_data.csv"
+            temp_path += video + suffix
             video_paths.append(temp_path)
             video_names.append((cq, config, video))
             ################################
@@ -173,7 +177,6 @@ for cq in tqdm(cqs, desc='CQs'):    # Looking at the first directory
             thread.start()
             tqdm.write(color.BLUE + "\t\t-> Started video: " + cq + "/" + config
                 + "/" + video + color.END)
-    while(videos_executed < to_wait):
-        time.sleep(5)
+    wait_videos(to_wait)
 to_csv()
 print(color.GREEN + "Done with everything." + color.END)
