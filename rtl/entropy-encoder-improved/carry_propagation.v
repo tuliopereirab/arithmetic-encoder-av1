@@ -20,12 +20,14 @@ module carry_propagation #(
     input clk, reset,
     input [1:0] flag_in,       // 01: save only bit_1; 10: save both
     input flag_final, flag_first,
+    input [(OUTPUT_DATA_WIDTH-1):0] in_counter, in_previous,
     /*
     Bitstreams:
       in_bitstream_1- first and sometimes the only,
       in_bitstream_2- only used when 2 bitstreams are being generated
     */
     input [(INPUT_DATA_WIDTH-1):0] in_bitstream_1, in_bitstream_2,
+    output wire [(OUTPUT_DATA_WIDTH-1):0] previous, counter,
     output wire [(OUTPUT_DATA_WIDTH-1):0] out_bitstream_1, out_bitstream_2,
     output wire [(OUTPUT_DATA_WIDTH-1):0] out_bitstream_3, out_bitstream_4,
     output wire [(OUTPUT_DATA_WIDTH-1):0] out_bitstream_5,
@@ -35,7 +37,6 @@ module carry_propagation #(
   assign out_flag_last = flag_final;
 
   // Internal variables
-  reg [(OUTPUT_DATA_WIDTH-1):0] reg_previous, reg_counter;
   reg reg_1st_bitstream;
   wire flag_1st_bitstream;
   /*
@@ -43,12 +44,12 @@ module carry_propagation #(
   the reg_1st_bitstream goes to 0.
   reg_1st_bitstream avoid the counter to start counting when the first bitstream is 255.
 
-  All variables with suffix _c0 are used when reg_counter == 0
-  In the other hand, suffix _c1 is used with reg_counter != 0
+  All variables with suffix _c0 are used when counter == 0
+  In the other hand, suffix _c1 is used with counter != 0
 
   When the variable has a suffix _final or _not_final, it means that it considers the flag_final
   */
-  wire [(OUTPUT_DATA_WIDTH-1):0] previous, previous_c0, previous_c1, counter;
+  wire [(OUTPUT_DATA_WIDTH-1):0] previous_c0, previous_c1;
   wire [(OUTPUT_DATA_WIDTH-1):0] counter_c0, counter_c1;
   wire [(OUTPUT_DATA_WIDTH-1):0] out_1_c0, out_1_c1, out_1_c0_final;
   wire [(OUTPUT_DATA_WIDTH-1):0] out_1_c0_not_final, out_1_c1_not_final;
@@ -69,10 +70,6 @@ module carry_propagation #(
     else
       reg_1st_bitstream <= flag_1st_bitstream;
   end
-  always @ (posedge clk) begin
-    reg_previous = previous;
-    reg_counter = counter;
-  end
 
   // The explanation for this variable in locate where the variable is declared
   assign flag_1st_bitstream = ((reg_1st_bitstream) && (flag_in == 0)) ? 1'b1 :
@@ -82,67 +79,67 @@ module carry_propagation #(
                     ((reg_1st_bitstream) && (flag_in == 0)) ? 8'd0 :
                     ((reg_1st_bitstream) && (flag_in == 1)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                     ((reg_1st_bitstream) && (flag_in == 2)) ? in_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
-                    (reg_counter == 8'd0) ? previous_c0 :
+                    (in_counter == 8'd0) ? previous_c0 :
                     previous_c1;
 
   assign counter =  (flag_first) ? 8'd0 :
                     (reg_1st_bitstream) ? 8'd0 :
-                    (reg_counter == 8'd0) ? counter_c0 :
+                    (in_counter == 8'd0) ? counter_c0 :
                     counter_c1;
 
   assign out_bitstream_1 =  ((reg_1st_bitstream) && (flag_in != 2)) ? 8'd0 :
                             ((reg_1st_bitstream) && (flag_in == 2)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                            (reg_counter == 8'd0) ? out_1_c0 :
+                            (in_counter == 8'd0) ? out_1_c0 :
                             out_1_c1;
-  assign out_bitstream_2 =  (reg_counter == 8'd0) ? out_2_c0 :
+  assign out_bitstream_2 =  (in_counter == 8'd0) ? out_2_c0 :
                             out_2_c1;
-  assign out_bitstream_3 =  (reg_counter == 8'd0) ? out_3_c0 :
+  assign out_bitstream_3 =  (in_counter == 8'd0) ? out_3_c0 :
                             out_3_c1;
 
   assign out_flag = ((reg_1st_bitstream) && (flag_in != 2)) ? 3'd0 :
                     ((reg_1st_bitstream) && (flag_in == 2)) ? 3'd1 :
-                    (reg_counter == 8'd0) ? flag_c0 :
+                    (in_counter == 8'd0) ? flag_c0 :
                     flag_c1;
 
   // -------------------------------------
-  assign out_bitstream_4 =  ((reg_counter != 0) && (!flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                            ((reg_counter != 0) && (flag_final) && (flag_in == 1) && (in_bitstream_1 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
-                            ((reg_counter != 0) && (flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && ((in_bitstream_2 != 255) || (in_bitstream_2 == 255))) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                            ((reg_counter != 0) && (flag_final) && (flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
+  assign out_bitstream_4 =  ((in_counter != 0) && (!flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                            ((in_counter != 0) && (flag_final) && (flag_in == 1) && (in_bitstream_1 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
+                            ((in_counter != 0) && (flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && ((in_bitstream_2 != 255) || (in_bitstream_2 == 255))) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                            ((in_counter != 0) && (flag_final) && (flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
                             8'd0;
 
   assign out_bitstream_5 =  ((flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && ((in_bitstream_2 == 255) || (in_bitstream_2 != 255))) ? in_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
                             8'd0;
   // -------------------------------------
   assign previous_c0 =  (flag_final) ? 8'd0 :
-                        (flag_in == 0) ? reg_previous :
+                        (flag_in == 0) ? in_previous :
                         ((flag_in == 1) && (in_bitstream_1 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                         ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
-                        ((flag_in == 1) && (in_bitstream_1 == 255)) ? reg_previous :
-                        ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? reg_previous :
+                        ((flag_in == 1) && (in_bitstream_1 == 255)) ? in_previous :
+                        ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? in_previous :
                         ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                         ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
                         8'd0;
 
   assign previous_c1 =  (flag_final) ? 8'd0 :
-                        (flag_in == 0) ? reg_previous :
-                        ((flag_in == 1) && (in_bitstream_1 == 255)) ? reg_previous :
-                        ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? reg_previous :
+                        (flag_in == 0) ? in_previous :
+                        ((flag_in == 1) && (in_bitstream_1 == 255)) ? in_previous :
+                        ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? in_previous :
                         ((flag_in == 1) && (in_bitstream_1 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                         ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
                         ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_bitstream_2[(OUTPUT_DATA_WIDTH-1):0] :
                         ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] :
                         8'd0;
   // -------------------------------------
-  assign counter_c0 = ((!flag_final) && (flag_in == 0)) ? reg_counter :
+  assign counter_c0 = ((!flag_final) && (flag_in == 0)) ? in_counter :
                       ((!flag_final) && (flag_in == 1) && (in_bitstream_1 == 255)) ? 8'd1 :
                       ((!flag_final) && (flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? 8'd2 :
                       ((!flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? 8'd1 :
                       8'd0;
 
-  assign counter_c1 = ((!flag_final) && (flag_in == 0)) ? reg_counter :
-                      ((!flag_final) && (flag_in == 1) && (in_bitstream_1 == 255)) ? reg_counter + 8'd1 :
-                      ((!flag_final) && (flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? reg_counter + 8'd2 :
+  assign counter_c1 = ((!flag_final) && (flag_in == 0)) ? in_counter :
+                      ((!flag_final) && (flag_in == 1) && (in_bitstream_1 == 255)) ? in_counter + 8'd1 :
+                      ((!flag_final) && (flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? in_counter + 8'd2 :
                       ((!flag_final) && (flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? 8'd1 :
                       8'd0;
   // -------------------------------------
@@ -166,28 +163,28 @@ module carry_propagation #(
                     flag_c1_not_final;
   // -------------------------------------
 
-  assign out_1_c0_not_final = ((flag_in == 1) && (in_bitstream_1 != 255)) ? reg_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? reg_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? reg_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                              ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? reg_previous + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+  assign out_1_c0_not_final = ((flag_in == 1) && (in_bitstream_1 != 255)) ? in_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? in_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                              ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_previous + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                               8'd0;
-  assign out_1_c0_final = (flag_in == 0) ? reg_previous :
-                          (flag_in == 1) ? reg_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                          ((flag_in == 2) && (in_bitstream_1 != 255)) ? reg_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                          ((flag_in == 2) && (in_bitstream_1 == 255)) ? reg_previous + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+  assign out_1_c0_final = (flag_in == 0) ? in_previous :
+                          (flag_in == 1) ? in_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                          ((flag_in == 2) && (in_bitstream_1 != 255)) ? in_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                          ((flag_in == 2) && (in_bitstream_1 == 255)) ? in_previous + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                           8'd0;
 
-  assign out_1_c1_not_final = ((flag_in == 1) && (in_bitstream_1 != 255)) ? reg_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? reg_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                              ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? reg_previous + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? reg_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+  assign out_1_c1_not_final = ((flag_in == 1) && (in_bitstream_1 != 255)) ? in_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                              ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_previous + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? in_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                               8'd0;
-  assign out_1_c1_final = (flag_in == 0) ? reg_previous :
-                          ((flag_in == 1) && (in_bitstream_1 == 255)) ? reg_previous :
-                          ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? reg_previous :
-                          ((flag_in == 1) && (in_bitstream_1 != 255)) ? reg_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                          ((flag_in == 2) && (in_bitstream_1 != 255) && ((in_bitstream_2 != 255) || (in_bitstream_2 == 255))) ? reg_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
-                          ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? reg_previous + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+  assign out_1_c1_final = (flag_in == 0) ? in_previous :
+                          ((flag_in == 1) && (in_bitstream_1 == 255)) ? in_previous :
+                          ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? in_previous :
+                          ((flag_in == 1) && (in_bitstream_1 != 255)) ? in_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                          ((flag_in == 2) && (in_bitstream_1 != 255) && ((in_bitstream_2 != 255) || (in_bitstream_2 == 255))) ? in_previous + in_bitstream_1[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
+                          ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_previous + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
                           8'd0;
   // -------------------------------------
   assign out_2_c0_not_final = ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_bitstream_1[(OUTPUT_DATA_WIDTH-1):0] + in_bitstream_2[(INPUT_DATA_WIDTH-1):OUTPUT_DATA_WIDTH] :
@@ -213,17 +210,17 @@ module carry_propagation #(
 
   // -------------------------------------
 
-  assign out_3_c1_not_final = ((flag_in == 1) && (in_bitstream_1 != 255)) ? reg_counter :
-                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? reg_counter :
-                              ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? reg_counter + 8'd1 :
-                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? reg_counter :
+  assign out_3_c1_not_final = ((flag_in == 1) && (in_bitstream_1 != 255)) ? in_counter :
+                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 != 255)) ? in_counter :
+                              ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_counter + 8'd1 :
+                              ((flag_in == 2) && (in_bitstream_1 != 255) && (in_bitstream_2 == 255)) ? in_counter :
                               8'd0;
-  assign out_3_c1_final = (flag_in == 0) ? reg_counter :
-                          ((flag_in == 1) && (in_bitstream_1 == 255)) ? reg_counter + 8'd1 :
-                          ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? reg_counter + 8'd2 :
-                          ((flag_in == 1) && (in_bitstream_1 != 255)) ? reg_counter :
-                          ((flag_in == 2) && (in_bitstream_1 != 255) && ((in_bitstream_2 == 255) || (in_bitstream_2 != 255))) ? reg_counter :
-                          ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? reg_counter + 8'd1 :
+  assign out_3_c1_final = (flag_in == 0) ? in_counter :
+                          ((flag_in == 1) && (in_bitstream_1 == 255)) ? in_counter + 8'd1 :
+                          ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 == 255)) ? in_counter + 8'd2 :
+                          ((flag_in == 1) && (in_bitstream_1 != 255)) ? in_counter :
+                          ((flag_in == 2) && (in_bitstream_1 != 255) && ((in_bitstream_2 == 255) || (in_bitstream_2 != 255))) ? in_counter :
+                          ((flag_in == 2) && (in_bitstream_1 == 255) && (in_bitstream_2 != 255)) ? in_counter + 8'd1 :
                           8'd0;
 
   // -------------------------------------

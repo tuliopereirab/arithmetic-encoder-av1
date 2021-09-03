@@ -68,6 +68,8 @@ module stage_4 #(
   // -------------------------
 
   // CARRY PROPAGATION OUTPUT CONNECTIONS
+  wire [(S4_BITSTREAM_WIDTH-1):0] out_previous, out_counter;
+  reg [(S4_BITSTREAM_WIDTH-1):0] reg_previous, reg_counter;
   wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1, out_carry_bitstream_2;
   wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_3, out_carry_bitstream_4;
   wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_5;
@@ -121,6 +123,8 @@ module stage_4 #(
       .flag_in (mux_flag_final),
       .flag_first (s4_flag_first),
       .flag_final (s4_final_flag),
+      .in_counter (reg_counter),
+      .in_previous (reg_previous),
       .in_bitstream_1 (mux_bitstream_1),
       .in_bitstream_2 (mux_bitstream_2),
       // outputs
@@ -129,6 +133,8 @@ module stage_4 #(
       .out_bitstream_3 (out_carry_bitstream_3),
       .out_bitstream_4 (out_carry_bitstream_4),
       .out_bitstream_5 (out_carry_bitstream_5),
+      .previous (out_previous),
+      .counter (out_counter),
       .out_flag (out_carry_flag),
       .out_flag_last (out_carry_flag_last)
     );
@@ -171,4 +177,9 @@ module stage_4 #(
       reg_final_bit_2 <= out_final_bits_2;
     end
   end
+  always @ (posedge s4_clk) begin
+    reg_previous <= out_previous;
+    reg_counter <= out_counter;
+  end
+
 endmodule
