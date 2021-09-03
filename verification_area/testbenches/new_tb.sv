@@ -16,6 +16,10 @@ module entropy_encoder_tb #(
   parameter TB_LUT_DATA_WIDTH = 16,
   parameter TB_D_SIZE = 5
   )();
+  // STOP_MAX_FLAG enables (1) or disables (0) the MAX_ROUNDS
+  // MAX_ROUNDS forces the stop after X number of rounds
+  `define STOP_MAX_FLAG 0
+  `define MAX_ROUNDS 100000
   // Config variables
   `define DUMPFILE 0     // Generate a .vcd file as output
   `define MODELSIM_FLOW 0
@@ -199,34 +203,39 @@ module entropy_encoder_tb #(
            $stop;
          end
        endcase
-       if(comp != temp_bitstream) begin
+       assert(comp == temp_bitstream)
+       else begin
          `ERROR(counter, temp_bitstream, comp, bitstreams_counter,
            tb_out_flag_bitstream);
        end
       end
     end else if(tb_out_flag_bitstream > 4) begin
       ReadBitstream();
-      if(tb_out_bit_1 != temp_bitstream) begin
+      assert(tb_out_bit_1 == temp_bitstream)
+      else begin
        `ERROR(counter, temp_bitstream, tb_out_bit_1, bitstreams_counter,
          tb_out_flag_bitstream);
       end
       for(j=0; j<tb_out_bit_3; j=`INCR(j)) begin
        ReadBitstream();
-       if(tb_out_bit_2 != temp_bitstream) begin
+       assert(tb_out_bit_2 == temp_bitstream)
+       else begin
          `ERROR(counter, temp_bitstream, tb_out_bit_2, bitstreams_counter,
            tb_out_flag_bitstream);
        end
       end
       if(tb_out_flag_bitstream > 5) begin
        ReadBitstream();
-       if(tb_out_bit_4 != temp_bitstream) begin
+       assert(tb_out_bit_4 == temp_bitstream)
+       else begin
          `ERROR(counter, temp_bitstream, tb_out_bit_4, bitstreams_counter,
            tb_out_flag_bitstream);
        end
       end
       if(tb_out_flag_bitstream == 7) begin
        ReadBitstream();
-       if(tb_out_bit_5 != temp_bitstream) begin
+       assert(tb_out_bit_5 == temp_bitstream)
+       else begin
          `ERROR(counter, temp_bitstream, tb_out_bit_5, bitstreams_counter,
            tb_out_flag_bitstream);
        end
@@ -265,29 +274,25 @@ module entropy_encoder_tb #(
     OpenFiles();
     SetReset();
     while(!$feof(file_main)) begin
+      if(`STOP_MAX_FLAG == 1 && counter > `MAX_ROUNDS)
+        break;
       ReadMain();
       if(CheckReset() == 1 && counter > 0) begin
-       `RESET_MSG(counter, `INCR(resets_counter), from_last_reset);
-       SetFlagLast();
-       while(tb_out_flag_last != 1) begin
-         if(tb_out_flag_bitstream != 0)
-           CheckOutput();
-         `FULL_PERIOD;
-       end
-       if(tb_out_flag_bitstream != 0)
-         CheckOutput();
-       SetReset();
-      end else begin
-       if(tb_out_flag_bitstream != 0)
-         CheckOutput();
+        `RESET_MSG(counter, `INCR(resets_counter), from_last_reset);
+        SetFlagLast();
+        while(tb_out_flag_last != 1) begin
+          // Runs until the flag_last arrives at the end of the architecture
+          `FULL_PERIOD;
+        end
+        SetReset();
       end
       if(counter == 0 || from_last_reset == 0)
-       SetArchitectureInputs(1);
+        SetArchitectureInputs(1);
       else
-       SetArchitectureInputs(0);
-      counter = `INCR(counter);
-      from_last_reset = `INCR(from_last_reset);
-      `FULL_PERIOD;
+        SetArchitectureInputs(0);
+        counter = `INCR(counter);
+        from_last_reset = `INCR(from_last_reset);
+        `FULL_PERIOD;
     end
     $display("==================");
     $display("Done with simulation.");
@@ -298,7 +303,13 @@ module entropy_encoder_tb #(
     $stop;
   end
 
-  initial begin
-
+  always @ (negedge tb_clk) begin
+    /* Everytime there is a negedge in the clock, then this always checks the
+    output flag_bitstream.
+      If the flag_bitstream is different than zero, there are bitstreams waiting
+    at the output pins and they need to be checked. */
+    if(tb_out_flag_bitstream != 0) begin
+      CheckOutput();
+    end
   end
 endmodule
