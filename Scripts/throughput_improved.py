@@ -38,13 +38,13 @@ import time
 ######## SCRIPT CONFIG #######
 ##############################
 # 'path' represents the path that takes to the video datasets
-path = "/media/tulio/HD1/y4m_files"
+path = "/media/tulio/HD1/objective-2/Reduced_Datasets"
 suffix = "-main_data.csv"   # file name suffix: video + suffix
 # 'target_path' and 'target_fname' represent (together) the path where the
 # output data will be saved.
 target_path = "/home/tulio/Desktop/arithmetic-encoder-av1/Scripts/outputs/"
-target_fname = "-bool_mercat.csv"
-graph_name = "graph_mercat.csv"
+target_fname = "-bool_75k_objetive-2.csv"
+graph_name = "75k-round_objective-2.csv"
 # --------------------------------------
 #############################
 ###### JUSTONE = FALSE ######
