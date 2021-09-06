@@ -17,7 +17,7 @@ module carry_propagation #(
   parameter OUTPUT_DATA_WIDTH = 8,
   parameter INPUT_DATA_WIDTH = 16
   ) (
-    input clk, reset,
+    input reg_1st_bitstream,
     input [1:0] flag_in,       // 01: save only bit_1; 10: save both
     input flag_final, flag_first,
     input [(OUTPUT_DATA_WIDTH-1):0] in_counter, in_previous,
@@ -32,23 +32,10 @@ module carry_propagation #(
     output wire [(OUTPUT_DATA_WIDTH-1):0] out_bitstream_3, out_bitstream_4,
     output wire [(OUTPUT_DATA_WIDTH-1):0] out_bitstream_5,
     output wire [2:0] out_flag,
-    output wire out_flag_last
+    output wire out_flag_last, flag_1st_bitstream
   );
   assign out_flag_last = flag_final;
 
-  // Internal variables
-  reg reg_1st_bitstream;
-  wire flag_1st_bitstream;
-  /*
-  The reg_1st_bitstream goes to 1 with reset and when the first bitstream finally reaches the Stage 4,
-  the reg_1st_bitstream goes to 0.
-  reg_1st_bitstream avoid the counter to start counting when the first bitstream is 255.
-
-  All variables with suffix _c0 are used when counter == 0
-  In the other hand, suffix _c1 is used with counter != 0
-
-  When the variable has a suffix _final or _not_final, it means that it considers the flag_final
-  */
   wire [(OUTPUT_DATA_WIDTH-1):0] previous_c0, previous_c1;
   wire [(OUTPUT_DATA_WIDTH-1):0] counter_c0, counter_c1;
   wire [(OUTPUT_DATA_WIDTH-1):0] out_1_c0, out_1_c1, out_1_c0_final;
@@ -63,13 +50,6 @@ module carry_propagation #(
   wire [(OUTPUT_DATA_WIDTH-1):0] out_4_c1, out_5_c1;
   wire [2:0] flag_c0, flag_c1, flag_c0_final, flag_c0_not_final, flag_c1_final;
   wire [2:0] flag_c1_not_final;
-
-  always @ (posedge clk) begin
-    if(reset || flag_first)
-      reg_1st_bitstream <= 1'b1;
-    else
-      reg_1st_bitstream <= flag_1st_bitstream;
-  end
 
   // The explanation for this variable in locate where the variable is declared
   assign flag_1st_bitstream = ((reg_1st_bitstream) && (flag_in == 0)) ? 1'b1 :
