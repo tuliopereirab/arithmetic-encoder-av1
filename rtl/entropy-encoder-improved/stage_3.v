@@ -6,105 +6,212 @@ module stage_3 #(
   parameter LOW_WIDTH = 24,
   parameter D_SIZE = 5
   ) (
-    input [1:0] bool_symbol,  // Mix of the symb LSB and bool flag
-                              // [1]: bool flag; [0]: symbol[0]
-    input [(RANGE_WIDTH-1):0] in_range, range_ready,
-    input [(D_SIZE-1):0] d,
     input COMP_mux_1,
-    input [RANGE_WIDTH:0] u, v_bool,
     input [(D_SIZE-1):0] in_s,
     input [(LOW_WIDTH-1):0] in_low,
+    input [(D_SIZE-1):0] d_1, d_2, d_3,
+    input in_bool_1, in_bool_2, in_bool_3,
+    input in_symbol_1, in_symbol_2, in_symbol_3,
+    input [RANGE_WIDTH:0] uv_1, v_bool_2, v_bool_3,
+    input [(RANGE_WIDTH-1):0] in_range_1, in_range_2, in_range_3, range_ready,
+    output wire [(D_SIZE-1):0] out_s,
     output wire [(LOW_WIDTH-1):0] out_low,
     output wire [(RANGE_WIDTH-1):0] out_range,
-    output wire [(RANGE_WIDTH-1):0] out_bit_1, out_bit_2,
-    output wire [1:0] flag_bitstream,
-    output wire [(D_SIZE-1):0] out_s
+    output wire [(RANGE_WIDTH-1):0] out_bit_1_1, out_bit_1_2,
+    output wire [(RANGE_WIDTH-1):0] out_bit_2_1, out_bit_2_2,
+    output wire [(RANGE_WIDTH-1):0] out_bit_3_1, out_bit_3_2,
+    output wire [1:0] flag_bitstream_1, flag_bitstream_2, flag_bitstream_3
   );
   wire [(LOW_WIDTH-1):0] low_bool, low_cdf;
-  wire [(LOW_WIDTH-1):0] low_raw;
+  wire [(LOW_WIDTH-1):0] low_bool_1, low_bool_2, low_bool_3;
+  wire [(D_SIZE-1):0] s_cdf, s_bool, s_bool_1, s_bool_2, s_bool_3;
+  wire [(RANGE_WIDTH-1):0] out_bit_1_cdf, out_bit_2_cdf;    // For the 1st cdf
+  wire [1:0] flag_bitstream_1_cdf, flag_bitstream_1_bool;   // For the 1st both
+  wire [(RANGE_WIDTH-1):0] out_bit_1_bool, out_bit_2_bool;  // For the 1st bool
 
   s3_cdf #(
+    .D_SIZE (D_SIZE),
     .LOW_WIDTH (LOW_WIDTH),
     .RANGE_WIDTH (RANGE_WIDTH)
     ) s3_cdf (
+      .u (uv_1),
+      .in_d (d_1),
+      .in_s (in_s),
       .in_low (in_low),
-      .in_range (in_range),
-      .u (u),
+      .in_range (in_range_1),
       .COMP_mux_1 (COMP_mux_1),
       // Outputs
-      .out_low (low_cdf)
+      .out_s (s_cdf),
+      .out_low (low_cdf),
+      .out_bit_1 (out_bit_1_cdf),
+      .out_bit_2 (out_bit_2_cdf),
+      .flag_bitstream (flag_bitstream_1_cdf)
     );
 
+  /* Boolean Operation
+      - The Parallelized Boolean estimates the use of 3 Booleans that generate
+    outputs at the same clock cycle (therefore parallel).
+      - In reality, they are sequential. However, if observed from the top
+    entity blocks, their results arrive all together and, therefore, in
+    parallel.
+  */
   s3_bool #(
+    .D_SIZE (D_SIZE),
     .LOW_WIDTH (LOW_WIDTH),
     .RANGE_WIDTH (RANGE_WIDTH)
-    ) s3_bool (
-      .in_low (in_low),
-      .in_range (in_range),
-      .v_bool (v_bool),
-      .bool_symbol (bool_symbol),
-      // Outputs
-      .out_low (low_bool)
-  );
-
-  // ------------------------------------------------------
-  assign low_raw =  (bool_symbol[1] == 1'b1) ? low_bool :
-                    low_cdf;
-  // ------------------------------------------------------
-  // normalization
-  s3_renormalization #(
-    .LOW_WIDTH (LOW_WIDTH),
-    .RANGE_WIDTH (RANGE_WIDTH),
-    .D_SIZE (D_SIZE)
-    ) s3_norm (
-      .low_raw (low_raw),
-      .d (d),
+    ) s3_bool_1 (
+      .in_d (d_1),
       .in_s (in_s),
+      .v_bool (uv_1), // uv is used for both CDF and Bool_1
+      .in_low (in_low),
+      .symbol (in_symbol_1),
+      .in_range (in_range_1),
       // Outputs
-      .flag_bitstream (flag_bitstream),
-      .out_s (out_s),
-      .out_low (out_low),
-      .out_bit_1 (out_bit_1),
-      .out_bit_2 (out_bit_2)
-    );
-  // Assigned Outputs
+      .out_s (s_bool_1),
+      .out_low (low_bool_1),
+      .out_bit_1 (out_bit_1_bool),
+      .out_bit_2 (out_bit_2_bool),
+      .flag_bitstream (flag_bitstream_1_bool)
+  );
+  s3_bool #(
+    .D_SIZE (D_SIZE),
+    .LOW_WIDTH (LOW_WIDTH),
+    .RANGE_WIDTH (RANGE_WIDTH)
+    ) s3_bool_2 (
+      .in_d (d_2),
+      .in_s (s_bool_1),
+      .v_bool (v_bool_2), // uv is used for both CDF and Bool_1
+      .in_low (low_bool_1),
+      .symbol (in_symbol_2),
+      .in_range (in_range_2),
+      // Outputs
+      .out_s (s_bool_2),
+      .out_low (low_bool_2),
+      .out_bit_1 (out_bit_2_1),
+      .out_bit_2 (out_bit_2_2),
+      .flag_bitstream (flag_bitstream_2)
+  );
+  s3_bool #(
+    .D_SIZE (D_SIZE),
+    .LOW_WIDTH (LOW_WIDTH),
+    .RANGE_WIDTH (RANGE_WIDTH)
+    ) s3_bool_3 (
+      .in_d (d_3),
+      .in_s (s_bool_2),
+      .v_bool (v_bool_3), // uv is used for both CDF and Bool_1
+      .in_low (low_bool_2),
+      .symbol (in_symbol_3),
+      .in_range (in_range_3),
+      // Outputs
+      .out_s (s_bool_3),
+      .out_low (low_bool_3),
+      .out_bit_1 (out_bit_3_1),
+      .out_bit_2 (out_bit_3_2),
+      .flag_bitstream (flag_bitstream_3)
+  );
+  // ------------------------------------------------------
+  // The assignments bellow aim to find the latest valid output.
+  assign s_bool = (in_bool_3 == 1'b1) ? s_bool_3 :
+                  (in_bool_2 == 1'b1) ? s_bool_2 :
+                  (in_bool_1 == 1'b1) ? s_bool_1 :
+                  5'd0;
+  assign low_bool = (in_bool_3 == 1'b1) ? low_bool_3 :
+                    (in_bool_2 == 1'b1) ? low_bool_2 :
+                    (in_bool_1 == 1'b1) ? low_bool_1 :
+                    24'd0;
+  // ------------------------------------------------------
+  // Outputs Assignments
+  assign out_s =  (in_bool_1 == 1'b1) ? s_bool :
+                  s_cdf;
+  assign out_low =  (in_bool_1 == 1'b1) ? low_bool :
+                    low_cdf;
+  assign flag_bitstream_1 = (in_bool_1 == 1'b1) ? flag_bitstream_1_bool :
+                            flag_bitstream_1_cdf;
+  assign out_bit_1_1 =  (in_bool_1 == 1'b1) ? out_bit_1_bool :
+                        out_bit_1_cdf;
+  assign out_bit_1_2 =  (in_bool_1 == 1'b1) ? out_bit_2_bool :
+                        out_bit_2_cdf;
+  // ------------------------------------------------------
+  /*  Variables already assigned upon the modules' output:
+      - Flags bitstream 2 and 3;
+      - Out Bitstreams 2_x and 3_x. */
   assign out_range = range_ready;
 endmodule
 
 module s3_cdf #(
+  parameter D_SIZE = 5,
   parameter LOW_WIDTH = 24,
   parameter RANGE_WIDTH = 16
   )(
-    input [(LOW_WIDTH-1):0] in_low,
-    input [(RANGE_WIDTH-1):0] in_range,
-    input [RANGE_WIDTH:0] u,
     input COMP_mux_1,
+    input [RANGE_WIDTH:0] u,
+    input [(LOW_WIDTH-1):0] in_low,
+    input [(D_SIZE-1):0] in_d, in_s,
+    input [(RANGE_WIDTH-1):0] in_range,
     // Outputs
-    output wire [(LOW_WIDTH-1):0] out_low
+    output wire [1:0] flag_bitstream,
+    output wire [(D_SIZE-1):0] out_s,
+    output wire [(LOW_WIDTH-1):0] out_low,
+    output wire [(RANGE_WIDTH-1):0] out_bit_1, out_bit_2
   );
-  wire [(LOW_WIDTH-1):0] low_1;
+  wire [(LOW_WIDTH-1):0] low_1, low_raw;
   assign low_1 = in_low + (in_range - u[(RANGE_WIDTH-1):0]);
 
-  assign out_low =  (COMP_mux_1 == 1'b1) ? low_1 :
+  assign low_raw =  (COMP_mux_1 == 1'b1) ? low_1 :
                     in_low;
+  s3_renormalization # (
+    .D_SIZE (D_SIZE),
+    .LOW_WIDTH (LOW_WIDTH),
+    .RANGE_WIDTH (RANGE_WIDTH)
+    ) s3_cdf_norm (
+      .d (in_d),
+      .in_s (in_s),
+      .low_raw (low_raw),
+      // Outputs
+      .out_s (out_s),
+      .out_low (out_low),
+      .out_bit_1 (out_bit_1),
+      .out_bit_2 (out_bit_2),
+      .flag_bitstream (flag_bitstream)
+    );
 endmodule
 
 module s3_bool #(
+  parameter D_SIZE = 5,
   parameter LOW_WIDTH = 24,
   parameter RANGE_WIDTH = 16
   )(
-    input [(LOW_WIDTH-1):0] in_low,
-    input [(RANGE_WIDTH-1):0] in_range,
+    input symbol,
     input [RANGE_WIDTH:0] v_bool,
-    input [1:0] bool_symbol,
+    input [(LOW_WIDTH-1):0] in_low,
+    input [(D_SIZE-1):0] in_d, in_s,
+    input [(RANGE_WIDTH-1):0] in_range,
     // Outputs
-    output wire [(LOW_WIDTH-1):0] out_low
+    output wire [1:0] flag_bitstream,
+    output wire [(D_SIZE-1):0] out_s,
+    output wire [(LOW_WIDTH-1):0] out_low,
+    output wire [(RANGE_WIDTH-1):0] out_bit_1, out_bit_2
   );
-  wire [(LOW_WIDTH-1):0] low_1;
+  wire [(LOW_WIDTH-1):0] low_1, low_raw;
   assign low_1 = in_low + (in_range - v_bool[(RANGE_WIDTH-1):0]);
 
-  assign out_low =  (bool_symbol[0] == 1'b1) ? low_1 :
+  assign low_raw =  (symbol == 1'b1) ? low_1 :
                     in_low;
+  s3_renormalization #(
+    .D_SIZE (D_SIZE),
+    .LOW_WIDTH (LOW_WIDTH),
+    .RANGE_WIDTH (RANGE_WIDTH)
+    ) s3_bool_norm (
+      .d (in_d),
+      .in_s (in_s),
+      .low_raw (low_raw),
+      // Outputs
+      .out_s (out_s),
+      .out_low (out_low),
+      .out_bit_1 (out_bit_1),
+      .out_bit_2 (out_bit_2),
+      .flag_bitstream (flag_bitstream)
+    );
 endmodule
 
 module s3_renormalization #(

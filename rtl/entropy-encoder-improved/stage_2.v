@@ -19,84 +19,127 @@ module stage_2 #(
   parameter D_SIZE = 5,
   parameter SYMBOL_WIDTH = 4
   )(
-    input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v,
     input COMP_mux_1,
-    // bool
-    input [(SYMBOL_WIDTH-1):0] symbol,
-    input bool_flag,
-    // former stage 3 outputs
-    output wire [RANGE_WIDTH:0] u, v_bool,
-    output wire [(RANGE_WIDTH-1):0] initial_range, out_range,
-    output wire [(D_SIZE-1):0] out_d,
-    output wire [1:0] bool_symbol,
-    output wire COMP_mux_1_out
+    input bool_flag_1, bool_flag_2, bool_flag_3,
+    input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v,
+    input [(SYMBOL_WIDTH-1):0] in_symbol_1, in_symbol_2, in_symbol_3,
+    // Outputs
+    output wire COMP_mux_1_out,
+    output wire out_bool_1, out_bool_2, out_bool_3,
+    output wire out_symbol_1, out_symbol_2, out_symbol_3, // LSB symbol
+    output wire [RANGE_WIDTH:0] uv_1, v_bool_2, v_bool_3,
+    output wire [(D_SIZE-1):0] out_d_1, out_d_2, out_d_3,
+    output wire [(RANGE_WIDTH-1):0] initial_range_1, initial_range_2,
+    output wire [(RANGE_WIDTH-1):0] initial_range_3, out_range
   );
-  wire [(RANGE_WIDTH-1):0] range_bool, range_cdf, range_raw;
+  wire [(RANGE_WIDTH-1):0] range_bool_1, range_bool_2, range_bool_3;
+  wire [(RANGE_WIDTH-1):0] range_cdf, range_bool;
+  wire [RANGE_WIDTH:0] u_cdf_1, v_bool_1;
+  wire [(D_SIZE-1):0] out_d_bool_1, out_d_cdf_1;
 
+
+  // CDF Operation
   s2_cdf #(
-    .RANGE_WIDTH (RANGE_WIDTH)
+    .RANGE_WIDTH (RANGE_WIDTH),
+    .D_SIZE (D_SIZE)
     ) s2_cdf (
       .UU (UU),
       .VV (VV),
-      .in_range (in_range),
       .lut_u (lut_u),
       .lut_v (lut_v),
+      .in_range (in_range),
       .COMP_mux_1 (COMP_mux_1),
       // Outputs
-      .u (u),
+      .u (u_cdf_1),
+      .d_out (out_d_cdf_1),
       .out_range (range_cdf)
   );
 
-  // bool
+  /* Boolean Operation
+      - The Parallelized Boolean estimates the use of 3 Booleans that generate
+    outputs at the same clock cycle (therefore parallel).
+      - In reality, they are sequential. However, if observed from the top
+    entity blocks, their results arrive all together and, therefore, in
+    parallel.
+  */
   s2_bool #(
     .RANGE_WIDTH (RANGE_WIDTH),
-    .SYMBOL_WIDTH (SYMBOL_WIDTH)
-    ) s2_bool (
+    .SYMBOL_WIDTH (SYMBOL_WIDTH),
+    .D_SIZE (D_SIZE)
+    ) s2_bool_1 (
       .in_range (in_range),
-      .symbol (symbol),
+      .symbol (in_symbol_1),
       // Outputs
-      .out_range (range_bool),
-      .out_v (v_bool)
+      .out_v (v_bool_1),
+      .out_d (out_d_bool_1),
+      .out_range (range_bool_1)
+  );
+  s2_bool #(
+    .RANGE_WIDTH (RANGE_WIDTH),
+    .SYMBOL_WIDTH (SYMBOL_WIDTH),
+    .D_SIZE (D_SIZE)
+    ) s2_bool_2 (
+      .symbol (in_symbol_2),
+      .in_range (range_bool_1),
+      // Outputs
+      .out_d (out_d_2),
+      .out_v (v_bool_2),
+      .out_range (range_bool_2)
+  );
+  s2_bool #(
+    .RANGE_WIDTH (RANGE_WIDTH),
+    .SYMBOL_WIDTH (SYMBOL_WIDTH),
+    .D_SIZE (D_SIZE)
+    ) s2_bool_3 (
+      .symbol (in_symbol_3),
+      .in_range (range_bool_2),
+      // Outputs
+      .out_d (out_d_3),
+      .out_v (v_bool_3),
+      .out_range (range_bool_3)
   );
   // -------------------
-  // Range_raw: range prior to renormalization
-  assign range_raw =  (bool_flag == 1'b1) ? range_bool :
+  // Find the last valid Bool block
+  assign range_bool = (bool_flag_3 == 1'b1) ? range_bool_3 :
+                      (bool_flag_2 == 1'b1) ? range_bool_2 :
+                      (bool_flag_1 == 1'b1) ? range_bool_1 :
+                      16'd0;
+
+  // Output assignments
+  assign initial_range_1 = in_range;
+  assign initial_range_2 =  (bool_flag_2 == 1'b1) ? range_bool_1 :
+                            16'd0;
+  assign initial_range_3 =  (bool_flag_3 == 1'b1) ? range_bool_2 :
+                            16'd0;
+  assign uv_1 = (bool_flag_1 == 1'b1) ? v_bool_1 :
+                u_cdf_1;
+  assign out_range =  (bool_flag_1 == 1'b1) ? range_bool :
                       range_cdf;
-
-  // Renormalization block
-  s2_renormalization #(
-    .RANGE_WIDTH (RANGE_WIDTH),
-    .D_SIZE (D_SIZE)
-    ) s2_norm (
-      .range_raw (range_raw),
-      // Outputs
-      .d_out (out_d),
-      .range_final (out_range)
-  );
-
-  // outputs
-  // v_bool is above
-  // u is above
-  assign initial_range = in_range;
-  assign bool_symbol = {bool_flag, symbol[0]}; // this input is a mix
-     // between the least significant bit of symbol and the bool flag
-   // [1]: bool flag; [0]: symbol[0]
+  assign out_d =  (bool_flag_1 == 1'b1) ? out_d_bool_1 :
+                  out_d_cdf_1;
   assign COMP_mux_1_out = COMP_mux_1;
+  assign out_bool_1 = bool_flag_1;
+  assign out_bool_2 = bool_flag_2;
+  assign out_bool_3 = bool_flag_3;
+  assign out_symbol_1 = in_symbol_1;
+  assign out_symbol_2 = in_symbol_2;
+  assign out_symbol_3 = in_symbol_3;
 endmodule
 
 module s2_cdf #(
-  parameter RANGE_WIDTH = 16
+  parameter RANGE_WIDTH = 16,
+  parameter D_SIZE = 5
   )(
-    input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v,
     input COMP_mux_1,
-    // Outputs
+    input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v,
     output wire [RANGE_WIDTH:0] u,
+    output wire [(D_SIZE-1):0] d_out,
     output wire [(RANGE_WIDTH-1):0] out_range
   );
   // Non-boolean block
   // u = ((Range_in >> 8) * (FL >> 6) >> 1) + 4 * (N - (s - 1))
   // v = ((Range_in >> 8) * (FH >> 6) >> 1) + 4 * (N - (s - 0))
-  wire [(RANGE_WIDTH-1):0] RR, range_1, range_2;
+  wire [(RANGE_WIDTH-1):0] RR, range_1, range_2, range_raw;
   wire [(RANGE_WIDTH):0] v;
 
   assign RR = in_range >> 8;
@@ -107,28 +150,50 @@ module s2_cdf #(
   assign range_1 = u[(RANGE_WIDTH-1):0] - v[(RANGE_WIDTH-1):0];
   assign range_2 = in_range - v[(RANGE_WIDTH-1):0];
 
-  assign out_range =  (COMP_mux_1 == 1'b1) ? range_1 :
+  assign range_raw =  (COMP_mux_1 == 1'b1) ? range_1 :
                       range_2;
+  s2_renormalization #(
+    .RANGE_WIDTH (RANGE_WIDTH),
+    .D_SIZE (D_SIZE)
+    ) s2_cdf_norm (
+      .range_raw (range_raw),
+      // Outputs
+      .d_out (d_out),
+      .range_final (out_range)
+    );
 endmodule
 
 module s2_bool #(
   parameter RANGE_WIDTH = 16,
-  parameter SYMBOL_WIDTH = 4
+  parameter SYMBOL_WIDTH = 4,
+  parameter D_SIZE = 5
   )(
     input [(RANGE_WIDTH-1):0] in_range,
     input [(SYMBOL_WIDTH-1):0] symbol,
-    output wire [(RANGE_WIDTH-1):0] out_range,
-    output wire [RANGE_WIDTH:0] out_v
+    output wire [(D_SIZE-1):0] out_d,
+    output wire [RANGE_WIDTH:0] out_v,
+    output wire [(RANGE_WIDTH-1):0] out_range
   );
-  // Boolean block
-  // As the probability is fixed to 50%, it is possible to change the
-  // original formula:
-  // v = ((Range_in >> 8) * (Prob >> 6) >> 1) + 4
-  // Prob = 50% = 16384; 16384 >> 6 = 256
+  wire [(RANGE_WIDTH-1):0] range_raw;
+  /* Boolean block
+      As the probability is fixed to 50%, it is possible to change the
+      original formula:
+      v = ((Range_in >> 8) * (Prob >> 6) >> 1) + 4
+      Prob = 50% = 16384; 16384 >> 6 = 256
+  */
   assign out_v = ((in_range >> 8) << 7) + 16'd4;
 
-  assign out_range =  (symbol[0] == 1'b1) ? out_v[(RANGE_WIDTH-1):0] :
+  assign range_raw =  (symbol[0] == 1'b1) ? out_v[(RANGE_WIDTH-1):0] :
                       in_range - out_v[(RANGE_WIDTH-1):0];
+  s2_renormalization #(
+    .RANGE_WIDTH (RANGE_WIDTH),
+    .D_SIZE (D_SIZE)
+    ) s2_bool_norm (
+      .range_raw (range_raw),
+      // Outputs
+      .d_out (out_d),
+      .range_final (out_range)
+    );
 endmodule
 
 module s2_renormalization #(
