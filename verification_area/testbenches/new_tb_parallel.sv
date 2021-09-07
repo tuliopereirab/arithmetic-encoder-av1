@@ -40,8 +40,8 @@ module entropy_encoder_tb #(
   `define TARGET_MAIN "target-main_data.csv"
   // TARGET_BITSTREAM shouldn't be changed. Used to run with modelsim_flow.tcl
   `define TARGET_BITSTREAM "target-bitstream.csv"
-  `define SPECIFIC_BITSTREAM "Netflix_RollerCoaster_1280x720_60fps_8bit_420_60f-bitstream.csv"
-  `define SPECIFIC_MAIN "Netflix_RollerCoaster_1280x720_60fps_8bit_420_60f-main_data.csv"
+  `define SPECIFIC_BITSTREAM "ReadySetGo_3840x2160_120fps_420_10bit_YUV-final_bitstream.csv"
+  `define SPECIFIC_MAIN "ReadySetGo_3840x2160_120fps_420_10bit_YUV-main_data.csv"
   // Next lines define the num of cols in the -main_data.csv and -bitstream.csv
   `define NUM_COL_MAIN 11
   `define NUM_COL_BITSTREAM 1
@@ -426,10 +426,12 @@ module entropy_encoder_tb #(
                   tb_out_bit_1_4, tb_out_bit_1_5, tb_out_flag_bitstream_1);
     end
     if(tb_out_flag_bitstream_2 != 0) begin
+      $display("\t-> Using 2nd set of bitstreams.");
       CheckOutput(tb_out_bit_2_1, tb_out_bit_2_2, tb_out_bit_2_3,
                   tb_out_bit_2_4, tb_out_bit_2_5, tb_out_flag_bitstream_2);
     end
     if(tb_out_flag_bitstream_3 != 0) begin
+      $display("\t-> Using 3rd set of bitstreams.");
       CheckOutput(tb_out_bit_3_1, tb_out_bit_3_2, tb_out_bit_3_3,
                   tb_out_bit_3_4, tb_out_bit_3_5, tb_out_flag_bitstream_3);
     end
