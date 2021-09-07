@@ -129,15 +129,16 @@ module entropy_encoder #(
       .in_arith_range (out_arith_range),
       .in_arith_cnt(out_arith_cnt),
       .in_arith_low (out_arith_low),
+      // First
       .in_arith_flag_1 (out_arith_flag_1),
       .in_arith_bitstream_1_1 (out_arith_bitstream_1_1),
       .in_arith_bitstream_1_2 (out_arith_bitstream_1_2),
       // Second
-      .in_arith_flag_2 (out_arith_flag_1),
+      .in_arith_flag_2 (out_arith_flag_2),
       .in_arith_bitstream_2_1 (out_arith_bitstream_2_1),
       .in_arith_bitstream_2_2 (out_arith_bitstream_2_2),
       // Third
-      .in_arith_flag_3 (out_arith_flag_1),
+      .in_arith_flag_3 (out_arith_flag_3),
       .in_arith_bitstream_3_1 (out_arith_bitstream_3_1),
       .in_arith_bitstream_3_2 (out_arith_bitstream_3_2),
       // outputs

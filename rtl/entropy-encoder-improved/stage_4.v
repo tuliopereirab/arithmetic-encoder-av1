@@ -357,33 +357,47 @@ module input_mapping #(
     output wire [(RANGE_WIDTH-1):0] out_bit_2_1, out_bit_2_2,
     output wire [(RANGE_WIDTH-1):0] out_bit_3_1, out_bit_3_2
   );
-  assign out_flag_1 = (flag_1 != 2'd0) ? flag_1 :
-                      (flag_2 != 2'd0) ? flag_2 :
-                      (flag_3 != 2'd0) ? flag_3 :
+  wire [1:0] first_valid, second_valid;
+  wire third_valid;
+  assign first_valid =  (flag_1 != 2'd0) ? 2'd1 :
+                        (flag_2 != 2'd0) ? 2'd2 :
+                        (flag_3 != 2'd0) ? 2'd3 :
+                        2'd0;
+  assign second_valid =   (first_valid == 2'd1 && flag_2 != 2'd0) ? 2'd2 :
+                          ((first_valid == 2'd1 || first_valid == 2'd2) &&
+                            flag_3 != 2'd0) ? 2'd3 :
+                          2'd0;
+  assign third_valid =  (second_valid > 2'd0 && second_valid < 2'd3 &&
+                          flag_3 != 2'd0) ? 1'b1 :
+                        1'b0;
+  //---------------------------------------------------------------------
+  assign out_flag_1 = (first_valid == 2'd1) ? flag_1 :
+                      (first_valid == 2'd2) ? flag_2 :
+                      (first_valid == 2'd3) ? flag_3 :
                       2'd0;
-  assign out_flag_2 = (out_flag_1 != 2'd0 && flag_2 != 2'd0) ? flag_2 :
-                      (out_flag_1 != 2'd0 && flag_3 != 2'd0) ? flag_3 :
+  assign out_flag_2 = (second_valid == 2'd2) ? flag_2 :
+                      (second_valid == 2'd3) ? flag_3 :
                       2'd0;
-  assign out_flag_3 = (out_flag_2 != 2'd0 && flag_3 != 2'd0) ? flag_3 :
+  assign out_flag_3 = (third_valid == 1'b1) ? flag_3 :
                       2'd0;
-
-  assign out_bit_1_1 =  (flag_1 != 2'd0) ? bit_1_1 :
-                        (flag_2 != 2'd0) ? bit_2_1 :
-                        (flag_3 != 2'd0) ? bit_3_1 :
+  //---------------------------------------------------------------------
+  assign out_bit_1_1 =  (first_valid == 2'd1) ? bit_1_1 :
+                        (first_valid == 2'd2) ? bit_2_1 :
+                        (first_valid == 2'd3) ? bit_3_1 :
                         16'd0;
-  assign out_bit_2_1 =  (out_flag_2 != 2'd0 && flag_2 != 2'd0) ? bit_2_1 :
-                        (out_flag_2 != 2'd0 && flag_3 != 2'd0) ? bit_3_1 :
+  assign out_bit_2_1 =  (second_valid == 2'd2) ? bit_2_1 :
+                        (second_valid == 2'd3) ? bit_3_1 :
                         16'd0;
-  assign out_bit_3_1 =  (out_flag_3 != 2'd0) ? bit_3_1 :
+  assign out_bit_3_1 =  (third_valid == 1'b1) ? bit_3_1 :
                         16'd0;
-
-  assign out_bit_1_2 =  (flag_1 != 2'd0) ? bit_1_2 :
-                        (flag_2 != 2'd0) ? bit_2_2 :
-                        (flag_3 != 2'd0) ? bit_3_2 :
+  //---------------------------------------------------------------------
+  assign out_bit_1_2 =  (first_valid == 2'd1) ? bit_1_2 :
+                        (first_valid == 2'd2) ? bit_2_2 :
+                        (first_valid == 2'd3) ? bit_3_2 :
                         16'd0;
-  assign out_bit_2_2 =  (out_flag_2 != 2'd0 && flag_2 != 2'd0) ? bit_2_2 :
-                        (out_flag_2 != 2'd0 && flag_3 != 2'd0) ? bit_3_2 :
+  assign out_bit_2_2 =  (second_valid == 2'd2) ? bit_2_2 :
+                        (second_valid == 2'd3) ? bit_3_2 :
                         16'd0;
-  assign out_bit_3_2 =  (out_flag_3 != 2'd0) ? bit_3_2 :
+  assign out_bit_3_2 =  (third_valid == 1'b1) ? bit_3_2 :
                         16'd0;
 endmodule

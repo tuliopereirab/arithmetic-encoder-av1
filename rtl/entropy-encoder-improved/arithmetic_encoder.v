@@ -261,17 +261,17 @@ module arithmetic_encoder #(
       .out_low (low_out_s3),
       .out_range (range_out_s3),
       // First
-      .flag_bitstream_1 (out_flag_bitstream_1),
-      .out_bit_1_1 (pre_bitstream_out_1_1),
-      .out_bit_1_2 (pre_bitstream_out_1_2),
+      .FLAG_BIT_1 (out_flag_bitstream_1),
+      .OUT_BIT_1_1 (pre_bitstream_out_1_1),
+      .OUT_BIT_1_2 (pre_bitstream_out_1_2),
       // Second
-      .flag_bitstream_2 (out_flag_bitstream_2),
-      .out_bit_2_1 (pre_bitstream_out_2_1),
-      .out_bit_2_2 (pre_bitstream_out_2_2),
+      .FLAG_BIT_2 (out_flag_bitstream_2),
+      .OUT_BIT_2_1 (pre_bitstream_out_2_1),
+      .OUT_BIT_2_2 (pre_bitstream_out_2_2),
       // Third
-      .flag_bitstream_3 (out_flag_bitstream_3),
-      .out_bit_3_1 (pre_bitstream_out_3_1),
-      .out_bit_3_2 (pre_bitstream_out_3_2)
+      .FLAG_BIT_3 (out_flag_bitstream_3),
+      .OUT_BIT_3_1 (pre_bitstream_out_3_1),
+      .OUT_BIT_3_2 (pre_bitstream_out_3_2)
     );
   always @ (posedge general_clk) begin
     if(ctrl_reg_final) begin

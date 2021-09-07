@@ -115,8 +115,8 @@ module stage_2 #(
                 u_cdf_1;
   assign out_range =  (bool_flag_1 == 1'b1) ? range_bool :
                       range_cdf;
-  assign out_d =  (bool_flag_1 == 1'b1) ? out_d_bool_1 :
-                  out_d_cdf_1;
+  assign out_d_1 =  (bool_flag_1 == 1'b1) ? out_d_bool_1 :
+                    out_d_cdf_1;
   assign COMP_mux_1_out = COMP_mux_1;
   assign out_bool_1 = bool_flag_1;
   assign out_bool_2 = bool_flag_2;
