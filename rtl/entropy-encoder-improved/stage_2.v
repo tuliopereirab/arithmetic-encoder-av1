@@ -185,15 +185,18 @@ module s2_bool #(
 
   assign range_raw =  (symbol[0] == 1'b1) ? out_v[(RANGE_WIDTH-1):0] :
                       in_range - out_v[(RANGE_WIDTH-1):0];
-  s2_renormalization #(
-    .RANGE_WIDTH (RANGE_WIDTH),
-    .D_SIZE (D_SIZE)
-    ) s2_bool_norm (
-      .range_raw (range_raw),
-      // Outputs
-      .d_out (out_d),
-      .range_final (out_range)
-    );
+
+  /* The renormalizaton process for the boolean operation doesn't require
+  the use of LZC because D will never be greater than 2.
+    Hence, instead of wasting area and time running the LZC here, a simple mux
+  can tackle the problem.
+    Assuming the worst-case scenario, in_range = 32768 and symbol[0] = 0,
+  range_raw will be 16380, which generates a D = 2. */
+  assign out_d =  (range_raw[RANGE_WIDTH-1] == 1'b1) ? 5'd0 :
+                  (range_raw[RANGE_WIDTH-2] == 1'b1) ? 5'd1 :
+                  (range_raw[RANGE_WIDTH-3] == 1'b1) ? 5'd2 :
+                  5'd3;
+  assign out_range = range_raw << out_d;
 endmodule
 
 module s2_renormalization #(
