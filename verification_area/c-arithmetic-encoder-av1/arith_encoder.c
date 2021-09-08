@@ -286,7 +286,7 @@ int run_simulation(){
      uint16_t file_input_range, file_in_norm_range, file_output_range;
      uint32_t file_input_low, file_in_norm_low, file_output_low;
      int s, nsyms, bool;
-     if((arq_input = fopen("/media/tulio/HD1/y4m_files/generated_files/cq_20/Bosphorus_1920x1080_120fps_420_8bit_YUV_cq20_main_data.csv", "r")) != NULL){
+     if((arq_input = fopen("/media/tulio/HD1/objective-2/Datasets/cq20/allintra/boat_hdr_amazon_720p-main_data.csv", "r")) != NULL){
           i = 0;
           status = 1;
           reset = 0;
@@ -736,6 +736,42 @@ void new_carry_propag(int final_flag, int flag, uint16_t b1, uint16_t b2){
      }
 }
 
+int flag_first_fabio = 1;
+void add_file_fabio(unsigned uns_val_1, unsigned uns_val_2, int int_val, int op);
+void add_file_fabio(unsigned uns_val_1, unsigned uns_val_2, int int_val, int op){
+  FILE *arq;
+  // File format: low_in, range_in, low_raw, range_raw, s_in, s_out, d, bit_1,
+                                                        // bit_2
+  if((arq = fopen("/home/tulio/Desktop/arithmetic-encoder-av1/verification_area/c-arithmetic-encoder-av1/output-files/fabio_file.csv", "a")) == NULL){
+    printf("Unable to open Fabio's file.\n");
+    exit(EXIT_FAILURE);
+  }
+  if(flag_first_fabio == 1){
+    fprintf(arq, "Low In,Range In,Low Raw,Range Raw,D,S In,S Out,");
+    fprintf(arq, "Flag,Pre Bit 1,Pre Bit 2\n");
+    flag_first_fabio = 0;
+  }
+  switch(op){
+    case 0: // (Low_in and Range_in) or (low_raw and range_raw) or
+            //  (bit_1 and bit_2)
+      fprintf(arq, "%"PRIu32",%"PRIu16",", uns_val_1, uns_val_2);
+      break;
+    case 1: // (bit_1)
+      fprintf(arq, "%"PRIu16",", uns_val_1);
+      break;
+    case 2: // s_in, s_out, d
+      fprintf(arq, "%d,", int_val);
+      break;
+    case 3: // \n
+      fprintf(arq, "\n");
+      break;
+    case 4: // flag, bit_1, bit_2
+      fprintf(arq, "%d,%"PRIu16",%"PRIu16"\n", int_val, uns_val_1, uns_val_2);
+      break;
+  }
+  fclose(arq);
+}
+
 void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      uint32_t l;
      unsigned r;
@@ -743,6 +779,7 @@ void od_ec_encode_q15(unsigned fl, unsigned fh, int s, int nsyms) {
      unsigned v;
      l = low;
      r = range;
+     add_file_fabio(l, r, 0, 0);  // low_in, range_in
      assert(32768U <= r);
      assert(fh <= fl);
      assert(fl <= 32768U);
@@ -772,6 +809,7 @@ void od_ec_encode_bool_q15(int val, unsigned f) {
      assert(f < 32768U);
      l = low;
      r = range;
+     add_file_fabio(l, r, 0, 0);  // low_in, range_in
      assert(32768U <= r);
      // Time control
      temp_time = clock();
@@ -800,11 +838,14 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
      int d;
      int c;
      int s;
+     add_file_fabio(low_norm, rng, 0, 0);  // low_norm, range_norm
      uint16_t b1, b2;
      int flag = 0;
      c = cnt;
      assert(rng <= 65535U);
      d = 16 - (1 + (31 ^ __builtin_clz(rng)));
+     add_file_fabio(0, 0, d, 2);  // d
+     add_file_fabio(0, 0, c, 2);  // s_in
      s = c + d;
      if (s >= 0) {
           unsigned m;
@@ -812,6 +853,7 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
           m = (1 << c) - 1;
           if (s >= 8) {
                flag++;
+
                b1 = (uint16_t)(low_norm >> c);
                low_norm &= m;
                c -= 8;
@@ -833,7 +875,16 @@ void od_ec_enc_normalize(uint32_t low_norm, unsigned rng) {
      low = low_norm << d;
      range = rng << d;
      cnt = s;
+     add_file_fabio(0, 0, cnt, 2);  // s_in
      verify_bitstream_counter += flag;
+     if(flag == 0)
+      add_file_fabio(0, 0, flag, 4);
+     else if(flag == 1)
+      add_file_fabio(b1, 0, flag, 4);  // s_in
+     else
+      add_file_fabio(b1, b2, flag, 4);  // s_in
+
+
 
      if(flag != 0)
           carry_propag(0, flag, b1, b2);
