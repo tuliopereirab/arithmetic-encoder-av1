@@ -38,16 +38,7 @@ module stage_4 #(
     output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_1_1, out_carry_bit_1_2,
     output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_1_3, out_carry_bit_1_4,
     output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_1_5,
-    // Second
-    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_2_1, out_carry_bit_2_2,
-    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_2_3, out_carry_bit_2_4,
-    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_2_5,
-    // Third
-    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_3_1, out_carry_bit_3_2,
-    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_3_3, out_carry_bit_3_4,
-    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_3_5,
-    output wire [2:0] out_carry_flag_bitstream_1, out_carry_flag_bitstream_2,
-    output wire [2:0] out_carry_flag_bitstream_3,
+    output wire [2:0] out_carry_flag_bitstream_1,
     output wire output_flag_last
   );
   reg [1:0] reg_flag_final;
@@ -83,8 +74,6 @@ module stage_4 #(
   // INPUT MAPPING
   wire [1:0] cp_input_flag_1, cp_input_flag_2, cp_input_flag_3;
   wire [(S4_RANGE_WIDTH-1):0] cp_input_bit_1_1, cp_input_bit_1_2;
-  wire [(S4_RANGE_WIDTH-1):0] cp_input_bit_2_1, cp_input_bit_2_2;
-  wire [(S4_RANGE_WIDTH-1):0] cp_input_bit_3_1, cp_input_bit_3_2;
   // -------------------------
   // CARRY PROPAGATION OUTPUT CONNECTIONS
   wire out_carry_flag_last, out_flag_1st_bitstream;
@@ -95,31 +84,17 @@ module stage_4 #(
   wire [(S4_BITSTREAM_WIDTH-1):0] out_counter_3;
   wire [(S4_BITSTREAM_WIDTH-1):0] out_previous, out_counter;
   wire [2:0] out_carry_flag_1, out_carry_flag_2, out_carry_flag_3;
-  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1_1, out_carry_bitstream_1_2;
-  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1_3, out_carry_bitstream_1_4;
+  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1_1;
+  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1_2;
+  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1_3;
+  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1_4;
   wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1_5;
-  // Second
-  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_2_1, out_carry_bitstream_2_2;
-  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_2_3, out_carry_bitstream_2_4;
-  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_2_5;
-  // Third
-  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_3_1, out_carry_bitstream_3_2;
-  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_3_3, out_carry_bitstream_3_4;
-  wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_3_5;
   reg [(S4_BITSTREAM_WIDTH-1):0] reg_previous, reg_counter;
   reg reg_1st_bitstream, reg_flag_last_output;
-  reg [2:0] reg_carry_flag_1, reg_carry_flag_2, reg_carry_flag_3;
+  reg [2:0] reg_carry_flag_1;
   reg [(S4_BITSTREAM_WIDTH-1):0] reg_out_bitstream_1_1, reg_out_bitstream_1_2;
   reg [(S4_BITSTREAM_WIDTH-1):0] reg_out_bitstream_1_3, reg_out_bitstream_1_4;
   reg [(S4_BITSTREAM_WIDTH-1):0] reg_out_bitstream_1_5;
-  // Second
-  reg [(S4_BITSTREAM_WIDTH-1):0] reg_out_bitstream_2_1, reg_out_bitstream_2_2;
-  reg [(S4_BITSTREAM_WIDTH-1):0] reg_out_bitstream_2_3, reg_out_bitstream_2_4;
-  reg [(S4_BITSTREAM_WIDTH-1):0] reg_out_bitstream_2_5;
-  // Third
-  reg [(S4_BITSTREAM_WIDTH-1):0] reg_out_bitstream_3_1, reg_out_bitstream_3_2;
-  reg [(S4_BITSTREAM_WIDTH-1):0] reg_out_bitstream_3_3, reg_out_bitstream_3_4;
-  reg [(S4_BITSTREAM_WIDTH-1):0] reg_out_bitstream_3_5;
   // -------------------------
 
   // Auxiliar Control to use the last bit output differently
@@ -131,21 +106,7 @@ module stage_4 #(
   assign out_carry_bit_1_3 = reg_out_bitstream_1_3;
   assign out_carry_bit_1_4 = reg_out_bitstream_1_4;
   assign out_carry_bit_1_5 = reg_out_bitstream_1_5;
-  // Second
-  assign out_carry_bit_2_1 = reg_out_bitstream_2_1;
-  assign out_carry_bit_2_2 = reg_out_bitstream_2_2;
-  assign out_carry_bit_2_3 = reg_out_bitstream_2_3;
-  assign out_carry_bit_2_4 = reg_out_bitstream_2_4;
-  assign out_carry_bit_2_5 = reg_out_bitstream_2_5;
-  // Third
-  assign out_carry_bit_3_1 = reg_out_bitstream_3_1;
-  assign out_carry_bit_3_2 = reg_out_bitstream_3_2;
-  assign out_carry_bit_3_3 = reg_out_bitstream_3_3;
-  assign out_carry_bit_3_4 = reg_out_bitstream_3_4;
-  assign out_carry_bit_3_5 = reg_out_bitstream_3_5;
   assign out_carry_flag_bitstream_1 = reg_carry_flag_1;
-  assign out_carry_flag_bitstream_2 = reg_carry_flag_2;
-  assign out_carry_flag_bitstream_3 = reg_carry_flag_3;
   assign output_flag_last = reg_flag_last_output;
   // -------------------------
 
@@ -164,11 +125,8 @@ module stage_4 #(
       .bit_2_1 (in_arith_bitstream_2_1), .bit_2_2 (in_arith_bitstream_2_2),
       .bit_3_1 (in_arith_bitstream_3_1), .bit_3_2 (in_arith_bitstream_3_2),
       // Outputs
-      .out_flag_1 (cp_input_flag_1), .out_flag_2 (cp_input_flag_2),
-      .out_flag_3 (cp_input_flag_3),
-      .out_bit_1_1 (cp_input_bit_1_1), .out_bit_1_2 (cp_input_bit_1_2),
-      .out_bit_2_1 (cp_input_bit_2_1), .out_bit_2_2 (cp_input_bit_2_2),
-      .out_bit_3_1 (cp_input_bit_3_1), .out_bit_3_2 (cp_input_bit_3_2)
+      .out_flag_1 (cp_input_flag_1),
+      .out_bit_1_1 (cp_input_bit_1_1), .out_bit_1_2 (cp_input_bit_1_2)
     );
 
   final_bits_generator #(
@@ -207,55 +165,10 @@ module stage_4 #(
       .out_flag_last (out_carry_flag_last),
       .flag_1st_bitstream (out_flag_1st_bitstream)
     );
-    carry_propagation #(
-      .OUTPUT_DATA_WIDTH (S4_BITSTREAM_WIDTH),
-      .INPUT_DATA_WIDTH (S4_RANGE_WIDTH)
-      ) carry_propag_2 (
-        .flag_first (1'b0),  // This will never be the first
-        .flag_final (1'b0),
-        .in_counter (out_counter_1),
-        .in_previous (out_previous_1),
-        .flag_in (cp_input_flag_2),
-        .in_bitstream_1 (cp_input_bit_2_1),
-        .in_bitstream_2 (cp_input_bit_2_2),
-        .reg_1st_bitstream (1'b0),
-        // outputs
-        .out_flag (out_carry_flag_2),
-        .out_bitstream_1 (out_carry_bitstream_2_1),
-        .out_bitstream_2 (out_carry_bitstream_2_2),
-        .out_bitstream_3 (out_carry_bitstream_2_3),
-        .out_bitstream_4 (out_carry_bitstream_2_4),
-        .out_bitstream_5 (out_carry_bitstream_2_5),
-        .previous (out_previous_2),
-        .counter (out_counter_2),
-        .out_flag_last (out_carry_flag_last_cp2),
-        .flag_1st_bitstream (out_flag_1st_bitstream_cp2)
-      );
-    carry_propagation #(
-        .OUTPUT_DATA_WIDTH (S4_BITSTREAM_WIDTH),
-        .INPUT_DATA_WIDTH (S4_RANGE_WIDTH)
-      ) carry_propag_3 (
-        .flag_first (1'b0),
-        .flag_final (1'b0),
-        .in_counter (out_counter_2),
-        .in_previous (out_previous_2),
-        .flag_in (cp_input_flag_3),
-        .in_bitstream_1 (cp_input_bit_3_1),
-        .in_bitstream_2 (cp_input_bit_3_2),
-        .reg_1st_bitstream (1'b0),
-        // outputs
-        .out_flag (out_carry_flag_3),
-        .out_bitstream_1 (out_carry_bitstream_3_1),
-        .out_bitstream_2 (out_carry_bitstream_3_2),
-        .out_bitstream_3 (out_carry_bitstream_3_3),
-        .out_bitstream_4 (out_carry_bitstream_3_4),
-        .out_bitstream_5 (out_carry_bitstream_3_5),
-        .previous (out_previous_3),
-        .counter (out_counter_3),
-        .out_flag_last (out_carry_flag_last_cp3),
-        .flag_1st_bitstream (out_flag_1st_bitstream_cp3)
-      );
-
+  /* The 2nd and 3rd Carry Propagation blocks aren't required because a Boolean
+  burst with up to 4 Booleans won't generate more than one bitstream.
+    Perhaps, when adding 5 or more Boolean blocks it will be necessary add, at
+  least, a 2nd carry propagation block. */
 
   assign mux_bitstream_1 =  (s4_final_flag) ? reg_final_bit_1 :
                             cp_input_bit_1_1;
@@ -265,13 +178,9 @@ module stage_4 #(
                           cp_input_flag_1;
 
   // =============================================================
-  assign out_previous = (cp_input_flag_3 != 1'd0) ? out_previous_3 :
-                        (cp_input_flag_2 != 1'd0) ? out_previous_2 :
-                        (cp_input_flag_1 != 1'd0) ? out_previous_1 :
+  assign out_previous = (cp_input_flag_1 != 1'd0) ? out_previous_1 :
                         reg_previous;
-  assign out_counter =  (cp_input_flag_3 != 1'd0) ? out_counter_3 :
-                        (cp_input_flag_2 != 1'd0) ? out_counter_2 :
-                        (cp_input_flag_1 != 1'd0) ? out_counter_1 :
+  assign out_counter =  (cp_input_flag_1 != 1'd0) ? out_counter_1 :
                         reg_counter;
   // =============================================================
   /*
@@ -302,30 +211,14 @@ module stage_4 #(
       reg_out_bitstream_1_3 <= out_carry_bitstream_1_3;
       reg_out_bitstream_1_4 <= out_carry_bitstream_1_4;
       reg_out_bitstream_1_5 <= out_carry_bitstream_1_5;
-      // Second
-      reg_out_bitstream_2_1 <= out_carry_bitstream_2_1;
-      reg_out_bitstream_2_2 <= out_carry_bitstream_2_2;
-      reg_out_bitstream_2_3 <= out_carry_bitstream_2_3;
-      reg_out_bitstream_2_4 <= out_carry_bitstream_2_4;
-      reg_out_bitstream_2_5 <= out_carry_bitstream_2_5;
-      // Third
-      reg_out_bitstream_3_1 <= out_carry_bitstream_3_1;
-      reg_out_bitstream_3_2 <= out_carry_bitstream_3_2;
-      reg_out_bitstream_3_3 <= out_carry_bitstream_3_3;
-      reg_out_bitstream_3_4 <= out_carry_bitstream_3_4;
-      reg_out_bitstream_3_5 <= out_carry_bitstream_3_5;
       reg_flag_last_output <= out_carry_flag_last;
     end
   end
   always @ (posedge s4_clk) begin
     if(s4_reset) begin
       reg_carry_flag_1 <= 3'b000;
-      reg_carry_flag_2 <= 3'b000;
-      reg_carry_flag_3 <= 3'b000;
     end else if(ctrl_carry_reg) begin
       reg_carry_flag_1 <= out_carry_flag_1;
-      reg_carry_flag_2 <= out_carry_flag_2;
-      reg_carry_flag_3 <= out_carry_flag_3;
     end
   end
   always @ (posedge s4_clk) begin
@@ -352,52 +245,27 @@ module input_mapping #(
     input [(RANGE_WIDTH-1):0] bit_1_1, bit_1_2,
     input [(RANGE_WIDTH-1):0] bit_2_1, bit_2_2,
     input [(RANGE_WIDTH-1):0] bit_3_1, bit_3_2,
-    output wire [1:0] out_flag_1, out_flag_2, out_flag_3,
-    output wire [(RANGE_WIDTH-1):0] out_bit_1_1, out_bit_1_2,
-    output wire [(RANGE_WIDTH-1):0] out_bit_2_1, out_bit_2_2,
-    output wire [(RANGE_WIDTH-1):0] out_bit_3_1, out_bit_3_2
+    output wire [1:0] out_flag_1,
+    output wire [(RANGE_WIDTH-1):0] out_bit_1_1, out_bit_1_2
   );
-  wire [1:0] first_valid, second_valid;
-  wire third_valid;
+  wire [1:0] first_valid;
   assign first_valid =  (flag_1 != 2'd0) ? 2'd1 :
                         (flag_2 != 2'd0) ? 2'd2 :
                         (flag_3 != 2'd0) ? 2'd3 :
                         2'd0;
-  assign second_valid =   (first_valid == 2'd1 && flag_2 != 2'd0) ? 2'd2 :
-                          ((first_valid == 2'd1 || first_valid == 2'd2) &&
-                            flag_3 != 2'd0) ? 2'd3 :
-                          2'd0;
-  assign third_valid =  (second_valid > 2'd0 && second_valid < 2'd3 &&
-                          flag_3 != 2'd0) ? 1'b1 :
-                        1'b0;
   //---------------------------------------------------------------------
   assign out_flag_1 = (first_valid == 2'd1) ? flag_1 :
                       (first_valid == 2'd2) ? flag_2 :
                       (first_valid == 2'd3) ? flag_3 :
-                      2'd0;
-  assign out_flag_2 = (second_valid == 2'd2) ? flag_2 :
-                      (second_valid == 2'd3) ? flag_3 :
-                      2'd0;
-  assign out_flag_3 = (third_valid == 1'b1) ? flag_3 :
                       2'd0;
   //---------------------------------------------------------------------
   assign out_bit_1_1 =  (first_valid == 2'd1) ? bit_1_1 :
                         (first_valid == 2'd2) ? bit_2_1 :
                         (first_valid == 2'd3) ? bit_3_1 :
                         16'd0;
-  assign out_bit_2_1 =  (second_valid == 2'd2) ? bit_2_1 :
-                        (second_valid == 2'd3) ? bit_3_1 :
-                        16'd0;
-  assign out_bit_3_1 =  (third_valid == 1'b1) ? bit_3_1 :
-                        16'd0;
   //---------------------------------------------------------------------
   assign out_bit_1_2 =  (first_valid == 2'd1) ? bit_1_2 :
                         (first_valid == 2'd2) ? bit_2_2 :
                         (first_valid == 2'd3) ? bit_3_2 :
-                        16'd0;
-  assign out_bit_2_2 =  (second_valid == 2'd2) ? bit_2_2 :
-                        (second_valid == 2'd3) ? bit_3_2 :
-                        16'd0;
-  assign out_bit_3_2 =  (third_valid == 1'b1) ? bit_3_2 :
                         16'd0;
 endmodule

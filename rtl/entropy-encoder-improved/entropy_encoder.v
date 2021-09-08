@@ -20,14 +20,8 @@ module entropy_encoder #(
     input top_bool_1, top_bool_2, top_bool_3,
     output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1_1, OUT_BIT_1_2,
     output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1_3, OUT_BIT_1_4,
-    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1_5, OUT_BIT_2_1,
-    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_2_2, OUT_BIT_2_3,
-    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_2_4, OUT_BIT_2_5,
-    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_3_1, OUT_BIT_3_2,
-    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_3_3, OUT_BIT_3_4,
-    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_3_5,
-    output wire [2:0] OUT_FLAG_BITSTREAM_1, OUT_FLAG_BITSTREAM_2,
-    output wire [2:0] OUT_FLAG_BITSTREAM_3,
+    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1_5,
+    output wire [2:0] OUT_FLAG_BITSTREAM_1,
     output wire OUT_FLAG_LAST
   );
 
@@ -145,17 +139,7 @@ module entropy_encoder #(
       .out_carry_bit_1_1 (OUT_BIT_1_1), .out_carry_bit_1_2 (OUT_BIT_1_2),
       .out_carry_bit_1_3 (OUT_BIT_1_3), .out_carry_bit_1_4 (OUT_BIT_1_4),
       .out_carry_bit_1_5 (OUT_BIT_1_5),
-      // Second
-      .out_carry_bit_2_1 (OUT_BIT_2_1), .out_carry_bit_2_2 (OUT_BIT_2_2),
-      .out_carry_bit_2_3 (OUT_BIT_2_3), .out_carry_bit_2_4 (OUT_BIT_2_4),
-      .out_carry_bit_2_5 (OUT_BIT_2_5),
-      // Third
-      .out_carry_bit_3_1 (OUT_BIT_3_1), .out_carry_bit_3_2 (OUT_BIT_3_2),
-      .out_carry_bit_3_3 (OUT_BIT_3_3), .out_carry_bit_3_4 (OUT_BIT_3_4),
-      .out_carry_bit_3_5 (OUT_BIT_3_5),
       .out_carry_flag_bitstream_1 (OUT_FLAG_BITSTREAM_1),
-      .out_carry_flag_bitstream_2 (OUT_FLAG_BITSTREAM_2),
-      .out_carry_flag_bitstream_3 (OUT_FLAG_BITSTREAM_3),
       .output_flag_last (OUT_FLAG_LAST)
     );
 endmodule

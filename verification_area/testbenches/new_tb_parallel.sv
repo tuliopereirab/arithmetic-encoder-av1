@@ -40,8 +40,8 @@ module entropy_encoder_tb #(
   `define TARGET_MAIN "target-main_data.csv"
   // TARGET_BITSTREAM shouldn't be changed. Used to run with modelsim_flow.tcl
   `define TARGET_BITSTREAM "target-bitstream.csv"
-  `define SPECIFIC_BITSTREAM "ReadySetGo_3840x2160_120fps_420_10bit_YUV-final_bitstream.csv"
-  `define SPECIFIC_MAIN "ReadySetGo_3840x2160_120fps_420_10bit_YUV-main_data.csv"
+  `define SPECIFIC_BITSTREAM "Jockey_1920x1080_120fps_420_8bit_YUV-final_bitstream.csv"
+  `define SPECIFIC_MAIN "Jockey_1920x1080_120fps_420_8bit_YUV-main_data.csv"
   // Next lines define the num of cols in the -main_data.csv and -bitstream.csv
   `define NUM_COL_MAIN 11
   `define NUM_COL_BITSTREAM 1
@@ -111,14 +111,6 @@ module entropy_encoder_tb #(
   wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_1_1, tb_out_bit_1_2;
   wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_1_3, tb_out_bit_1_4;
   wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_1_5;
-  // Second
-  wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_2_1, tb_out_bit_2_2;
-  wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_2_3, tb_out_bit_2_4;
-  wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_2_5;
-  // Third
-  wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_3_1, tb_out_bit_3_2;
-  wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_3_3, tb_out_bit_3_4;
-  wire [(TB_BITSTREAM_WIDTH-1):0] tb_out_bit_3_5;
 
   wire [2:0] tb_out_flag_bitstream_1, tb_out_flag_bitstream_2;
   wire [2:0] tb_out_flag_bitstream_3;
@@ -151,16 +143,6 @@ module entropy_encoder_tb #(
       .OUT_BIT_1_3 (tb_out_bit_1_3), .OUT_BIT_1_4 (tb_out_bit_1_4),
       .OUT_BIT_1_5 (tb_out_bit_1_5),
       .OUT_FLAG_BITSTREAM_1 (tb_out_flag_bitstream_1),
-      // Second
-      .OUT_BIT_2_1 (tb_out_bit_2_1), .OUT_BIT_2_2 (tb_out_bit_2_2),
-      .OUT_BIT_2_3 (tb_out_bit_2_3), .OUT_BIT_2_4 (tb_out_bit_2_4),
-      .OUT_BIT_2_5 (tb_out_bit_2_5),
-      .OUT_FLAG_BITSTREAM_2 (tb_out_flag_bitstream_2),
-      // Third
-      .OUT_BIT_3_1 (tb_out_bit_3_1), .OUT_BIT_3_2 (tb_out_bit_3_2),
-      .OUT_BIT_3_3 (tb_out_bit_3_3), .OUT_BIT_3_4 (tb_out_bit_3_4),
-      .OUT_BIT_3_5 (tb_out_bit_3_5),
-      .OUT_FLAG_BITSTREAM_3 (tb_out_flag_bitstream_3),
       .OUT_FLAG_LAST (tb_out_flag_last)
     );
   // -------------------------------------
@@ -424,16 +406,6 @@ module entropy_encoder_tb #(
     if(tb_out_flag_bitstream_1 != 0) begin
       CheckOutput(tb_out_bit_1_1, tb_out_bit_1_2, tb_out_bit_1_3,
                   tb_out_bit_1_4, tb_out_bit_1_5, tb_out_flag_bitstream_1);
-    end
-    if(tb_out_flag_bitstream_2 != 0) begin
-      $display("\t-> Using 2nd set of bitstreams.");
-      CheckOutput(tb_out_bit_2_1, tb_out_bit_2_2, tb_out_bit_2_3,
-                  tb_out_bit_2_4, tb_out_bit_2_5, tb_out_flag_bitstream_2);
-    end
-    if(tb_out_flag_bitstream_3 != 0) begin
-      $display("\t-> Using 3rd set of bitstreams.");
-      CheckOutput(tb_out_bit_3_1, tb_out_bit_3_2, tb_out_bit_3_3,
-                  tb_out_bit_3_4, tb_out_bit_3_5, tb_out_flag_bitstream_3);
     end
   end
 endmodule
