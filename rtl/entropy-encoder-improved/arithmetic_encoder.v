@@ -74,11 +74,11 @@ module arithmetic_encoder #(
   // stage 1
   wire COMP_mux_1_out, bool_output_s12_1, bool_output_s12_2, bool_output_s12_3;
   wire [(GENERAL_RANGE_WIDTH-1):0] uu_out, vv_out;
-  wire [(GENERAL_LUT_DATA_WIDTH-1):0] lut_u_output, lut_v_output;
+  wire [(GENERAL_LUT_DATA_WIDTH-1):0] lut_u_output, lut_v_output, lut_uv_output;
   wire [(GENERAL_SYMBOL_WIDTH-1):0] symbol_output_s12_1, symbol_output_s12_2;
   wire [(GENERAL_SYMBOL_WIDTH-1):0] symbol_output_s12_3;
   reg reg_COMP_mux_1, reg_bool_s12_1, reg_bool_s12_2, reg_bool_s12_3;
-  reg [(GENERAL_LUT_DATA_WIDTH-1):0] reg_lut_u, reg_lut_v;
+  reg [(GENERAL_LUT_DATA_WIDTH-1):0] reg_lut_u, reg_lut_v, reg_lut_uv;
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_UU, reg_VV;
   reg [(GENERAL_SYMBOL_WIDTH-1):0] reg_symbol_s12_1, reg_symbol_s12_2;
   reg [(GENERAL_SYMBOL_WIDTH-1):0] reg_symbol_s12_3;
@@ -145,6 +145,7 @@ module arithmetic_encoder #(
       // outputs
       .lut_u_out (lut_u_output),
       .lut_v_out (lut_v_output),
+      .lut_uv_out (lut_uv_output),
       .UU (uu_out),
       .VV (vv_out),
       .COMP_mux_1 (COMP_mux_1_out),
@@ -160,6 +161,7 @@ module arithmetic_encoder #(
     if(ctrl_reg_1_2) begin
       reg_lut_u <= lut_u_output;
       reg_lut_v <= lut_v_output;
+      reg_lut_uv <= lut_uv_output;
       reg_UU <= uu_out;
       reg_VV <= vv_out;
       reg_COMP_mux_1 <= COMP_mux_1_out;
@@ -180,6 +182,7 @@ module arithmetic_encoder #(
       // inputs from stage 1
       .lut_u (reg_lut_u),
       .lut_v (reg_lut_v),
+      .lut_uv (reg_lut_uv),
       .UU (reg_UU),
       .VV (reg_VV),
       .COMP_mux_1 (reg_COMP_mux_1),

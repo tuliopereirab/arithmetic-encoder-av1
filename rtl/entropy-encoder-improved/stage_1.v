@@ -20,7 +20,7 @@ module stage_1 #(
     input [SYMBOL_WIDTH:0] NSYMS,   // defined as 1 bit longer than SYMBOL;
                                     // nsyms receives the number of symbols used
     output wire COMP_mux_1, bool_out_1, bool_out_2, bool_out_3,
-    output wire [(LUT_DATA_WIDTH-1):0] lut_u_out, lut_v_out,
+    output wire [(LUT_DATA_WIDTH-1):0] lut_u_out, lut_v_out, lut_uv_out,
     output wire [(SYMBOL_WIDTH-1):0] out_symbol_1, out_symbol_2, out_symbol_3,
     output wire [(RANGE_WIDTH-1):0] UU, VV
   );
@@ -40,6 +40,7 @@ module stage_1 #(
   assign COMP_mux_1 = (FL < 16'd32768) ? 1'b1 :
                       1'b0;
 
+  assign lut_uv_out = lut_u_out - lut_v_out;
   assign out_symbol_1 = SYMBOL_1;
   assign out_symbol_2 = SYMBOL_2;
   assign out_symbol_3 = SYMBOL_3;

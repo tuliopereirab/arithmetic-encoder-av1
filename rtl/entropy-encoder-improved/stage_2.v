@@ -21,7 +21,7 @@ module stage_2 #(
   )(
     input COMP_mux_1,
     input bool_flag_1, bool_flag_2, bool_flag_3,
-    input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v,
+    input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v, lut_uv,
     input [(SYMBOL_WIDTH-1):0] in_symbol_1, in_symbol_2, in_symbol_3,
     // Outputs
     output wire COMP_mux_1_out,
@@ -49,6 +49,7 @@ module stage_2 #(
       .VV (VV),
       .lut_u (lut_u),
       .lut_v (lut_v),
+      .lut_uv (lut_uv),
       .in_range (in_range),
       .COMP_mux_1 (COMP_mux_1),
       // Outputs
@@ -136,7 +137,7 @@ module s2_cdf #(
   parameter D_SIZE = 5
   )(
     input COMP_mux_1,
-    input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v,
+    input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v, lut_uv,
     output wire [RANGE_WIDTH:0] u,
     output wire [(D_SIZE-1):0] d_out,
     output wire [(RANGE_WIDTH-1):0] out_range
@@ -145,15 +146,20 @@ module s2_cdf #(
   // u = ((Range_in >> 8) * (FL >> 6) >> 1) + 4 * (N - (s - 1))
   // v = ((Range_in >> 8) * (FH >> 6) >> 1) + 4 * (N - (s - 0))
   wire [(RANGE_WIDTH-1):0] RR, range_1, range_2, range_raw;
-  wire [(RANGE_WIDTH):0] v;
+  wire [(RANGE_WIDTH):0] temp_u, v;
 
   assign RR = in_range >> 8;
 
-  assign u = (RR * UU >> 1) + lut_u;
-  assign v = (RR * VV >> 1) + lut_v;
+  assign temp_u = (RR * UU >> 1);
+  // u adapted from: u = (RR * UU >> 1) + lut_u
+  assign u = temp_u + lut_u;
+  // v adapted from: v = (RR * VV >> 1) + lut_v
+  assign v = (RR * VV >> 1);
 
-  assign range_1 = u[(RANGE_WIDTH-1):0] - v[(RANGE_WIDTH-1):0];
-  assign range_2 = in_range - v[(RANGE_WIDTH-1):0];
+  // range_1 adapted from: range_1 = u - v
+  assign range_1 = (temp_u[(RANGE_WIDTH-1):0] - v[(RANGE_WIDTH-1):0]) + lut_uv;
+  // range_1 adapted from: range_2 = in_range - v
+  assign range_2 = (in_range - lut_v) - v[(RANGE_WIDTH-1):0];
 
   assign range_raw =  (COMP_mux_1 == 1'b1) ? range_1 :
                       range_2;
