@@ -176,10 +176,10 @@ module s2_bool #(
     input [(RANGE_WIDTH-1):0] in_range,
     input [(SYMBOL_WIDTH-1):0] symbol,
     output wire [(D_SIZE-1):0] out_d,
-    output wire [RANGE_WIDTH:0] out_v,
     output wire [(RANGE_WIDTH-1):0] range_1, out_range
   );
   wire [(RANGE_WIDTH-1):0] range_raw;
+  wire [RANGE_WIDTH:0] out_v;
   /* Boolean block
       As the probability is fixed to 50%, it is possible to change the
       original formula:
