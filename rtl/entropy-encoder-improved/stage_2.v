@@ -29,6 +29,8 @@ module stage_2 #(
     output wire out_symbol_1, out_symbol_2, out_symbol_3, // LSB symbol
     output wire [RANGE_WIDTH:0] uv_1, v_bool_2, v_bool_3,
     output wire [(D_SIZE-1):0] out_d_1, out_d_2, out_d_3,
+    output wire [(RANGE_WIDTH-1):0] pre_calc_low_bool_1, pre_calc_low_bool_2,
+    output wire [(RANGE_WIDTH-1):0] pre_calc_low_bool_3,
     output wire [(RANGE_WIDTH-1):0] initial_range_1, initial_range_2,
     output wire [(RANGE_WIDTH-1):0] initial_range_3, out_range
   );
@@ -72,6 +74,7 @@ module stage_2 #(
       // Outputs
       .out_v (v_bool_1),
       .out_d (out_d_bool_1),
+      .range_1 (pre_calc_low_bool_1),
       .out_range (range_bool_1)
   );
   s2_bool #(
@@ -84,6 +87,7 @@ module stage_2 #(
       // Outputs
       .out_d (out_d_2),
       .out_v (v_bool_2),
+      .range_1 (pre_calc_low_bool_2),
       .out_range (range_bool_2)
   );
   s2_bool #(
@@ -96,6 +100,7 @@ module stage_2 #(
       // Outputs
       .out_d (out_d_3),
       .out_v (v_bool_3),
+      .range_1 (pre_calc_low_bool_3),
       .out_range (range_bool_3)
   );
   // -------------------
@@ -172,7 +177,7 @@ module s2_bool #(
     input [(SYMBOL_WIDTH-1):0] symbol,
     output wire [(D_SIZE-1):0] out_d,
     output wire [RANGE_WIDTH:0] out_v,
-    output wire [(RANGE_WIDTH-1):0] out_range
+    output wire [(RANGE_WIDTH-1):0] range_1, out_range
   );
   wire [(RANGE_WIDTH-1):0] range_raw;
   /* Boolean block
@@ -182,9 +187,14 @@ module s2_bool #(
       Prob = 50% = 16384; 16384 >> 6 = 256
   */
   assign out_v = ((in_range >> 8) << 7) + 16'd4;
+  /* pre_low_bool (here range_1) is a way to use an operation already being done
+  here inside Stage 3 and therefore reduce the excessive delay created by the
+  parallel Boolean Operations.
+  */
+  assign range_1 = in_range - out_v[(RANGE_WIDTH-1):0];
 
   assign range_raw =  (symbol[0] == 1'b1) ? out_v[(RANGE_WIDTH-1):0] :
-                      in_range - out_v[(RANGE_WIDTH-1):0];
+                      range_1;
 
   /* The renormalizaton process for the boolean operation doesn't require
   the use of LZC because D will never be greater than 2.
@@ -194,8 +204,7 @@ module s2_bool #(
   range_raw will be 16380, which generates a D = 2. */
   assign out_d =  (range_raw[RANGE_WIDTH-1] == 1'b1) ? 5'd0 :
                   (range_raw[RANGE_WIDTH-2] == 1'b1) ? 5'd1 :
-                  (range_raw[RANGE_WIDTH-3] == 1'b1) ? 5'd2 :
-                  5'd3;
+                  5'd2;
   assign out_range = range_raw << out_d;
 endmodule
 

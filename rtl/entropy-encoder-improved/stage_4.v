@@ -109,7 +109,11 @@ module stage_4 #(
   assign out_carry_flag_bitstream_1 = reg_carry_flag_1;
   assign output_flag_last = reg_flag_last_output;
   // -------------------------
-
+  /*  Why should the FSM stay?
+  The FSM, although creates a greater delay, can't be excluded because the
+  circuitry to be added would increase even more the delay.
+    To delete the FSM, it'd be necessary to add enabling two signals with an OR.
+  */
   top_control control_top (
     .clk (s4_clk),
     .reset_ctrl (s4_reset),

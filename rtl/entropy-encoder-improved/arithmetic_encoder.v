@@ -8,9 +8,11 @@ module arithmetic_encoder #(
   )(
     /*
       New inputs for parallel bool:
-         1-> general_symbol_2 and general_bool_2;
-         2-> general_symbol_3 and general_bool_3;
-      New outputs:
+         2-> general_symbol_2 and general_bool_2;
+         3-> general_symbol_3 and general_bool_3;
+      Parallel bool outputs:
+        2-> OUT_BIT_2_1, OUT_BIT_2_2, FLAG_BITSTREAM_2
+        3-> OUT_BIT_3_1, OUT_BIT_3_2, FLAG_BITSTREAM_3
     */
     input general_clk, reset,
     input [(GENERAL_RANGE_WIDTH-1):0] general_fl, general_fh,
@@ -54,7 +56,11 @@ module arithmetic_encoder #(
 
   // control unit
   wire ctrl_reg_1_2, ctrl_reg_2_3, ctrl_reg_final, ctrl_mux_reset;
-
+  /*  Why should the FSM stay?
+  The FSM, although creates a greater delay, can't be excluded because the
+  circuitry to be added would increase even more the delay.
+    To delete the FSM, it'd be necessary to add enabling two signals with an OR.
+  */
   control_unit control (
     .clk (general_clk),
     .reset_ctrl (reset),
@@ -62,7 +68,7 @@ module arithmetic_encoder #(
     .pipeline_reg_1_2 (ctrl_reg_1_2),
     .pipeline_reg_2_3 (ctrl_reg_2_3),
     .pipeline_reg_final (ctrl_reg_final)
-    );
+  );
 
 
   // stage 1
@@ -82,6 +88,8 @@ module arithmetic_encoder #(
   wire symbol_output_s23_1, symbol_output_s23_2, symbol_output_s23_3;
   wire [(GENERAL_D_SIZE-1):0] d_out_1, d_out_2, d_out_3;
   wire [GENERAL_RANGE_WIDTH:0] uv_out_1, v_bool_out_2, v_bool_out_3;
+  wire [(GENERAL_RANGE_WIDTH-1):0] pre_low_bool_1, pre_low_bool_2;
+  wire [(GENERAL_RANGE_WIDTH-1):0] pre_low_bool_3;
   wire [(GENERAL_RANGE_WIDTH-1):0] initial_range_out_1, initial_range_out_2;
   wire [(GENERAL_RANGE_WIDTH-1):0] initial_range_out_3, range_ready_out;
   reg reg_COMP_mux_1_s23;
@@ -89,6 +97,8 @@ module arithmetic_encoder #(
   reg reg_symbol_s23_1, reg_symbol_s23_2, reg_symbol_s23_3;
   reg [(GENERAL_D_SIZE-1):0] reg_d_1, reg_d_2, reg_d_3;
   reg [GENERAL_RANGE_WIDTH:0] reg_uv_1, reg_v_bool_2, reg_v_bool_3;
+  reg [(GENERAL_RANGE_WIDTH-1):0] reg_pre_low_bool_1, reg_pre_low_bool_2;
+  reg [(GENERAL_RANGE_WIDTH-1):0] reg_pre_low_bool_3;
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_initial_range_1, reg_initial_range_2;
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_initial_range_3, reg_range_ready;
   // --------------------------------------------------
@@ -109,7 +119,7 @@ module arithmetic_encoder #(
       reg_Range_s3 <= 16'd32768;     // not necessary
       reg_Low_s3 <= 24'd0;
     end
-    else if(ctrl_reg_final) begin  //already saving stuff from the Stage [3,4,5]
+    else if(ctrl_reg_final) begin
       reg_Range_s3 <= range_out_s3;
       reg_Low_s3 <= low_out_s3;
       reg_S_s3 <= s_out_s3;
@@ -198,7 +208,11 @@ module arithmetic_encoder #(
       .COMP_mux_1_out (COMP_mux_1_out_s23),
       .initial_range_1 (initial_range_out_1),
       .initial_range_2 (initial_range_out_2),
-      .initial_range_3 (initial_range_out_3)
+      .initial_range_3 (initial_range_out_3),
+      // Pre-low Boolean
+      .pre_calc_low_bool_1 (pre_low_bool_1),
+      .pre_calc_low_bool_2 (pre_low_bool_2),
+      .pre_calc_low_bool_3 (pre_low_bool_3)
     );
 
     always @ (posedge general_clk) begin
@@ -228,6 +242,10 @@ module arithmetic_encoder #(
         reg_d_1 = d_out_1;
         reg_d_2 = d_out_2;
         reg_d_3 = d_out_3;
+        // Pre-low
+        reg_pre_low_bool_1 = pre_low_bool_1;
+        reg_pre_low_bool_2 = pre_low_bool_2;
+        reg_pre_low_bool_3 = pre_low_bool_3;
       end
     end
 
@@ -271,7 +289,11 @@ module arithmetic_encoder #(
       // Third
       .FLAG_BIT_3 (out_flag_bitstream_3),
       .OUT_BIT_3_1 (pre_bitstream_out_3_1),
-      .OUT_BIT_3_2 (pre_bitstream_out_3_2)
+      .OUT_BIT_3_2 (pre_bitstream_out_3_2),
+      // Pre-low
+      .pre_low_bool_1 (reg_pre_low_bool_1),
+      .pre_low_bool_2 (reg_pre_low_bool_2),
+      .pre_low_bool_3 (reg_pre_low_bool_3)
     );
   always @ (posedge general_clk) begin
     if(ctrl_reg_final) begin
