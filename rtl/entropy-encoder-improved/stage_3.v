@@ -12,7 +12,7 @@ module stage_3 #(
     input [(D_SIZE-1):0] d_1, d_2, d_3,
     input in_bool_1, in_bool_2, in_bool_3,
     input in_symbol_1, in_symbol_2, in_symbol_3,
-    input [RANGE_WIDTH:0] uv_1, v_bool_2, v_bool_3,
+    input [RANGE_WIDTH:0] u,
     input [(RANGE_WIDTH-1):0] pre_low_bool_1, pre_low_bool_2, pre_low_bool_3,
     input [(RANGE_WIDTH-1):0] in_range_1, in_range_2, in_range_3, range_ready,
     output wire [(D_SIZE-1):0] out_s,
@@ -39,7 +39,7 @@ module stage_3 #(
     .LOW_WIDTH (LOW_WIDTH),
     .RANGE_WIDTH (RANGE_WIDTH)
     ) s3_cdf (
-      .u (uv_1),
+      .u (u),
       .in_d (d_1),
       .in_s (in_s),
       .in_low (in_low),
@@ -67,7 +67,6 @@ module stage_3 #(
     ) s3_bool_1 (
       .in_d (d_1),
       .in_s (in_s),
-      .v_bool (uv_1), // uv is used for both CDF and Bool_1
       .in_low (in_low),
       .symbol (in_symbol_1),
       .pre_low (pre_low_bool_1),
@@ -86,7 +85,6 @@ module stage_3 #(
     ) s3_bool_2 (
       .in_d (d_2),
       .in_s (s_bool_1),
-      .v_bool (v_bool_2),
       .in_low (low_bool_1),
       .symbol (in_symbol_2),
       .pre_low (pre_low_bool_2),
@@ -105,7 +103,6 @@ module stage_3 #(
     ) s3_bool_3 (
       .in_d (d_3),
       .in_s (s_bool_2),
-      .v_bool (v_bool_3),
       .in_low (low_bool_2),
       .symbol (in_symbol_3),
       .pre_low (pre_low_bool_3),
@@ -207,7 +204,6 @@ module s3_bool #(
   parameter RANGE_WIDTH = 16
   )(
     input symbol,
-    input [RANGE_WIDTH:0] v_bool,
     input [(LOW_WIDTH-1):0] in_low,
     input [(D_SIZE-1):0] in_d, in_s,
     input [(RANGE_WIDTH-1):0] in_range, pre_low,

@@ -87,7 +87,7 @@ module arithmetic_encoder #(
   wire bool_output_s23_1, bool_output_s23_2, bool_output_s23_3;
   wire symbol_output_s23_1, symbol_output_s23_2, symbol_output_s23_3;
   wire [(GENERAL_D_SIZE-1):0] d_out_1, d_out_2, d_out_3;
-  wire [GENERAL_RANGE_WIDTH:0] uv_out_1, v_bool_out_2, v_bool_out_3;
+  wire [GENERAL_RANGE_WIDTH:0] u_out;
   wire [(GENERAL_RANGE_WIDTH-1):0] pre_low_bool_1, pre_low_bool_2;
   wire [(GENERAL_RANGE_WIDTH-1):0] pre_low_bool_3;
   wire [(GENERAL_RANGE_WIDTH-1):0] initial_range_out_1, initial_range_out_2;
@@ -96,7 +96,7 @@ module arithmetic_encoder #(
   reg reg_bool_s23_1, reg_bool_s23_2, reg_bool_s23_3;
   reg reg_symbol_s23_1, reg_symbol_s23_2, reg_symbol_s23_3;
   reg [(GENERAL_D_SIZE-1):0] reg_d_1, reg_d_2, reg_d_3;
-  reg [GENERAL_RANGE_WIDTH:0] reg_uv_1, reg_v_bool_2, reg_v_bool_3;
+  reg [GENERAL_RANGE_WIDTH:0] reg_u;
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_pre_low_bool_1, reg_pre_low_bool_2;
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_pre_low_bool_3;
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_initial_range_1, reg_initial_range_2;
@@ -198,9 +198,7 @@ module arithmetic_encoder #(
       .out_d_1 (d_out_1),
       .out_d_2 (d_out_2),
       .out_d_3 (d_out_3),
-      .uv_1 (uv_out_1),
-      .v_bool_2 (v_bool_out_2),
-      .v_bool_3 (v_bool_out_3),
+      .u (u_out),
       .out_range (range_ready_out),
       .out_bool_1 (bool_output_s23_1),
       .out_bool_2 (bool_output_s23_2),
@@ -239,9 +237,7 @@ module arithmetic_encoder #(
         reg_symbol_s23_1 = symbol_output_s23_1;
         reg_symbol_s23_2 = symbol_output_s23_2;
         reg_symbol_s23_3 = symbol_output_s23_3;
-        reg_uv_1 = uv_out_1;
-        reg_v_bool_2 = v_bool_out_2;
-        reg_v_bool_3 = v_bool_out_3;
+        reg_u = u_out;
         reg_d_1 = d_out_1;
         reg_d_2 = d_out_2;
         reg_d_3 = d_out_3;
@@ -262,10 +258,8 @@ module arithmetic_encoder #(
       .d_2 (reg_d_2),
       .d_3 (reg_d_3),
       .in_s (reg_S_s3),
-      .uv_1 (reg_uv_1),
+      .u (reg_u),
       .in_low (reg_Low_s3),
-      .v_bool_2 (reg_v_bool_2),
-      .v_bool_3 (reg_v_bool_3),
       .in_bool_1 (reg_bool_s23_1),
       .in_bool_2 (reg_bool_s23_2),
       .in_bool_3 (reg_bool_s23_3),

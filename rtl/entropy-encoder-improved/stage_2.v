@@ -27,7 +27,7 @@ module stage_2 #(
     output wire COMP_mux_1_out,
     output wire out_bool_1, out_bool_2, out_bool_3,
     output wire out_symbol_1, out_symbol_2, out_symbol_3, // LSB symbol
-    output wire [RANGE_WIDTH:0] uv_1, v_bool_2, v_bool_3,
+    output wire [RANGE_WIDTH:0] u,
     output wire [(D_SIZE-1):0] out_d_1, out_d_2, out_d_3,
     output wire [(RANGE_WIDTH-1):0] pre_calc_low_bool_1, pre_calc_low_bool_2,
     output wire [(RANGE_WIDTH-1):0] pre_calc_low_bool_3,
@@ -36,7 +36,6 @@ module stage_2 #(
   );
   wire [(RANGE_WIDTH-1):0] range_bool_1, range_bool_2, range_bool_3;
   wire [(RANGE_WIDTH-1):0] range_cdf, range_bool;
-  wire [RANGE_WIDTH:0] u_cdf_1, v_bool_1;
   wire [(D_SIZE-1):0] out_d_bool_1, out_d_cdf_1;
 
 
@@ -53,7 +52,7 @@ module stage_2 #(
       .in_range (in_range),
       .COMP_mux_1 (COMP_mux_1),
       // Outputs
-      .u (u_cdf_1),
+      .u (u),
       .d_out (out_d_cdf_1),
       .out_range (range_cdf)
   );
@@ -73,7 +72,6 @@ module stage_2 #(
       .in_range (in_range),
       .symbol (in_symbol_1),
       // Outputs
-      .out_v (v_bool_1),
       .out_d (out_d_bool_1),
       .range_1 (pre_calc_low_bool_1),
       .out_range (range_bool_1)
@@ -87,7 +85,6 @@ module stage_2 #(
       .in_range (range_bool_1),
       // Outputs
       .out_d (out_d_2),
-      .out_v (v_bool_2),
       .range_1 (pre_calc_low_bool_2),
       .out_range (range_bool_2)
   );
@@ -100,7 +97,6 @@ module stage_2 #(
       .in_range (range_bool_2),
       // Outputs
       .out_d (out_d_3),
-      .out_v (v_bool_3),
       .range_1 (pre_calc_low_bool_3),
       .out_range (range_bool_3)
   );
@@ -117,8 +113,6 @@ module stage_2 #(
                             16'd0;
   assign initial_range_3 =  (bool_flag_3 == 1'b1) ? range_bool_2 :
                             16'd0;
-  assign uv_1 = (bool_flag_1 == 1'b1) ? v_bool_1 :
-                u_cdf_1;
   assign out_range =  (bool_flag_1 == 1'b1) ? range_bool :
                       range_cdf;
   assign out_d_1 =  (bool_flag_1 == 1'b1) ? out_d_bool_1 :
