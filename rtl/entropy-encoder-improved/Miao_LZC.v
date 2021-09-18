@@ -15,13 +15,26 @@ module lzc_miao_8 (
   output wire [2:0] out_z,
   output wire v
   );
-  assign out_z[0] = (!in[7] & (in[6] | (!in[5] & (in[4] |
-                    (!in[3] & (in[2] | !in[1]))))));
-  assign out_z[1] = (!in[6] & (!in[7] & (in[5] | (!in[2] & !in[3]) | in[4])));
-  assign out_z[2] = (!in[4] & !in[5] & !in[6] & !in[7]);
-  assign v = (!in[0] & !in[1] & !in[2] & !in[3] & !in[4] &
-              !in[5] & !in[6] & !in[7]);
+  wire q1, q2, q3, q4, q5, q6, q7;
+  wire g1, g2, g3, g4;
 
+  assign q1 = !(in[7] | in[6]);
+  assign q2 = !(in[7] | (!in[6] & in[5]));
+  assign q3 = !(in[5] | in[4]);
+  assign q4 = in[4] | in[6];
+  assign q5 = !(in[3] | in[2]);
+  assign q6 = !(in[3] | (!in[2] & in[1]));
+  assign q7 = !(in[1] | in[0]);
+
+  assign g1 = q1 & q3;
+  assign g2 = q1 & (!q3 | q5);
+  assign g3 = q2 & (q4 | q5);
+  assign g4 = q5 & q7;
+
+  assign out_z[0] = g3;
+  assign out_z[1] = g2;
+  assign out_z[2] = g1;
+  assign v = !(g1 | g4);
 endmodule
 
 module lzc_miao_16 (

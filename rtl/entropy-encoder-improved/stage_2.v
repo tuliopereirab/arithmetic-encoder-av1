@@ -147,25 +147,41 @@ module s2_cdf #(
   // Non-boolean block
   // u = ((Range_in >> 8) * (FL >> 6) >> 1) + 4 * (N - (s - 1))
   // v = ((Range_in >> 8) * (FH >> 6) >> 1) + 4 * (N - (s - 0))
-  wire [(RANGE_WIDTH-1):0] RR, range_1, range_2;
+  wire [(RANGE_WIDTH-1):0] range_1, range_2;
+  reg [((RANGE_WIDTH/2)-1):0] RR;
   wire [(RANGE_WIDTH):0] temp_u, v;
+  wire [9:0] UU_mult, VV_mult;
   wire [2:0] rr_d;
   wire v_lzc;
 
+  assign UU_mult = UU[9:0];
+  assign VV_mult = VV[9:0];
+
   /*  Stage 2 isn't required to generate an already-normalized Range.
     As the normalization is a left-shift and RR is represented by a right-shift,
-  then RR = (d >= 8) ? in_range[7:0] : in_range >> (8 - d) */
+  then RR = (d >= 8) ? in_range[7:0] : RR = in_range >> (8 - d) */
   lzc_miao_8 lzc_cdf (.in (in_range[(RANGE_WIDTH-1):(RANGE_WIDTH/2)]),
                       .out_z (rr_d), .v (v_lzc));
 
-  assign RR = (v_lzc) ? in_range[((RANGE_WIDTH/2)-1):0] :
-                        in_range >> (4'd8 - rr_d);
+  always @ (rr_d, in_range) begin
+    case (rr_d)
+      3'd0: RR = in_range >> 8;
+      3'd1: RR = in_range >> 7;
+      3'd2: RR = in_range >> 6;
+      3'd3: RR = in_range >> 5;
+      3'd4: RR = in_range >> 4;
+      3'd5: RR = in_range >> 3;
+      3'd6: RR = in_range >> 2;
+      3'd7: RR = in_range >> 1;
+      default: RR = in_range[((RANGE_WIDTH/2)-1):0];
+    endcase
+  end
 
-  assign temp_u = (RR * UU >> 1);
+  assign temp_u = (RR * UU_mult >> 1);
   // u adapted from: u = (RR * UU >> 1) + lut_u
   assign u = temp_u + lut_u;
   // v adapted from: v = (RR * VV >> 1) + lut_v
-  assign v = (RR * VV >> 1);
+  assign v = (RR * VV_mult >> 1);
 
   // range_1 adapted from: range_1 = u - v
   assign range_1 = (temp_u[(RANGE_WIDTH-1):0] - v[(RANGE_WIDTH-1):0]) + lut_uv;
