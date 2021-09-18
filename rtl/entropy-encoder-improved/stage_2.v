@@ -34,10 +34,19 @@ module stage_2 #(
     output wire [(RANGE_WIDTH-1):0] initial_range_1, initial_range_2,
     output wire [(RANGE_WIDTH-1):0] initial_range_3, out_range
   );
+  wire [(RANGE_WIDTH-1):0] normalized_range_in;
   wire [(RANGE_WIDTH-1):0] range_bool_1, range_bool_2, range_bool_3;
   wire [(RANGE_WIDTH-1):0] range_cdf, range_bool;
-  wire [(D_SIZE-1):0] out_d_bool_1, out_d_cdf_1;
+  wire [3:0] d_normalize;
+  wire v_lzc_bool;
 
+
+  /* As CDF doesn't normalize the Range value before releasing it,
+  it is necessary to normalize it first in order to execute the COMP_mux_1 == 0
+  option and the Boolean sequence. */
+  lzc_miao_16 lzc_norm_in (.in (in_range), .out_z (d_normalize),
+                            .v (v_lzc_bool));
+  assign normalized_range_in = in_range << d_normalize;
 
   // CDF Operation
   s2_cdf #(
@@ -50,10 +59,10 @@ module stage_2 #(
       .lut_v (lut_v),
       .lut_uv (lut_uv),
       .in_range (in_range),
+      .normalized_range_in (normalized_range_in),
       .COMP_mux_1 (COMP_mux_1),
       // Outputs
       .u (u),
-      .d_out (out_d_cdf_1),
       .out_range (range_cdf)
   );
 
@@ -69,10 +78,10 @@ module stage_2 #(
     .SYMBOL_WIDTH (SYMBOL_WIDTH),
     .D_SIZE (D_SIZE)
     ) s2_bool_1 (
-      .in_range (in_range),
+      .in_range (normalized_range_in),
       .symbol (in_symbol_1),
       // Outputs
-      .out_d (out_d_bool_1),
+      .out_d (out_d_1),
       .range_1 (pre_calc_low_bool_1),
       .out_range (range_bool_1)
   );
@@ -108,15 +117,14 @@ module stage_2 #(
                       16'd0;
 
   // Output assignments
-  assign initial_range_1 = in_range;
+  assign initial_range_1 = normalized_range_in;
   assign initial_range_2 =  (bool_flag_2 == 1'b1) ? range_bool_1 :
                             16'd0;
   assign initial_range_3 =  (bool_flag_3 == 1'b1) ? range_bool_2 :
                             16'd0;
   assign out_range =  (bool_flag_1 == 1'b1) ? range_bool :
                       range_cdf;
-  assign out_d_1 =  (bool_flag_1 == 1'b1) ? out_d_bool_1 :
-                    out_d_cdf_1;
+
   assign COMP_mux_1_out = COMP_mux_1;
   assign out_bool_1 = bool_flag_1;
   assign out_bool_2 = bool_flag_2;
@@ -132,17 +140,26 @@ module s2_cdf #(
   )(
     input COMP_mux_1,
     input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v, lut_uv,
+    input [(RANGE_WIDTH-1):0] normalized_range_in,
     output wire [RANGE_WIDTH:0] u,
-    output wire [(D_SIZE-1):0] d_out,
     output wire [(RANGE_WIDTH-1):0] out_range
   );
   // Non-boolean block
   // u = ((Range_in >> 8) * (FL >> 6) >> 1) + 4 * (N - (s - 1))
   // v = ((Range_in >> 8) * (FH >> 6) >> 1) + 4 * (N - (s - 0))
-  wire [(RANGE_WIDTH-1):0] RR, range_1, range_2, range_raw;
+  wire [(RANGE_WIDTH-1):0] RR, range_1, range_2;
   wire [(RANGE_WIDTH):0] temp_u, v;
+  wire [2:0] rr_d;
+  wire v_lzc;
 
-  assign RR = in_range >> 8;
+  /*  Stage 2 isn't required to generate an already-normalized Range.
+    As the normalization is a left-shift and RR is represented by a right-shift,
+  then RR = (d >= 8) ? in_range[7:0] : in_range >> (8 - d) */
+  lzc_miao_8 lzc_cdf (.in (in_range[(RANGE_WIDTH-1):(RANGE_WIDTH/2)]),
+                      .out_z (rr_d), .v (v_lzc));
+
+  assign RR = (v_lzc) ? in_range[((RANGE_WIDTH/2)-1):0] :
+                        in_range >> (4'd8 - rr_d);
 
   assign temp_u = (RR * UU >> 1);
   // u adapted from: u = (RR * UU >> 1) + lut_u
@@ -153,19 +170,10 @@ module s2_cdf #(
   // range_1 adapted from: range_1 = u - v
   assign range_1 = (temp_u[(RANGE_WIDTH-1):0] - v[(RANGE_WIDTH-1):0]) + lut_uv;
   // range_1 adapted from: range_2 = in_range - v
-  assign range_2 = (in_range - lut_v) - v[(RANGE_WIDTH-1):0];
+  assign range_2 = (normalized_range_in - lut_v) - v[(RANGE_WIDTH-1):0];
 
-  assign range_raw =  (COMP_mux_1) ? range_1 :
-                      range_2;
-  s2_renormalization #(
-    .RANGE_WIDTH (RANGE_WIDTH),
-    .D_SIZE (D_SIZE)
-    ) s2_cdf_norm (
-      .range_raw (range_raw),
-      // Outputs
-      .d_out (d_out),
-      .range_final (out_range)
-    );
+  assign out_range =  (COMP_mux_1) ? range_1 :    // Range_raw because I don't
+                      range_2;                  // need to renormalize it here.
 endmodule
 
 module s2_bool #(
@@ -178,7 +186,7 @@ module s2_bool #(
     output wire [(D_SIZE-1):0] out_d,
     output wire [(RANGE_WIDTH-1):0] range_1, out_range
   );
-  wire [(RANGE_WIDTH-1):0] range_raw;
+  wire [(RANGE_WIDTH-1):0] range_raw, RR;
   wire [RANGE_WIDTH:0] out_v;
   /* Boolean block
       As the probability is fixed to 50%, it is possible to change the

@@ -31,7 +31,6 @@ module stage_4 #(
     input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_2_1, in_arith_bitstream_2_2,
     input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_3_1, in_arith_bitstream_3_2,
     input [1:0] in_arith_flag_1, in_arith_flag_2, in_arith_flag_3,
-    input [(S4_RANGE_WIDTH-1):0] in_arith_range,
     input [(S4_D_SIZE-1):0] in_arith_cnt,
     input [(S4_LOW_WIDTH-1):0] in_arith_low,
     // Outputs

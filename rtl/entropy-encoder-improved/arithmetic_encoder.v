@@ -20,7 +20,6 @@ module arithmetic_encoder #(
     input [(GENERAL_SYMBOL_WIDTH-1):0] general_symbol_3,
     input [GENERAL_SYMBOL_WIDTH:0] general_nsyms,
     input general_bool_1, general_bool_2, general_bool_3,
-    output wire [(GENERAL_RANGE_WIDTH-1):0] RANGE_OUTPUT,
     output wire [(GENERAL_LOW_WIDTH-1):0] LOW_OUTPUT,
     output wire [(GENERAL_D_SIZE-1):0] CNT_OUTPUT,
     output wire [(GENERAL_RANGE_WIDTH-1):0] OUT_BIT_1_1, OUT_BIT_1_2,
@@ -38,7 +37,6 @@ module arithmetic_encoder #(
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_pre_bitstream_1_1, reg_pre_bitstream_1_2;
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_pre_bitstream_2_1, reg_pre_bitstream_2_2;
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_pre_bitstream_3_1, reg_pre_bitstream_3_2;
-  assign RANGE_OUTPUT = reg_Range_s3;
   assign LOW_OUTPUT = reg_Low_s3;
   // Parallel Bool  -- Output Assignments
   assign OUT_BIT_1_1 = reg_pre_bitstream_1_1;
@@ -103,7 +101,6 @@ module arithmetic_encoder #(
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_initial_range_3, reg_range_ready;
   // --------------------------------------------------
   // Stage 3
-  wire [(GENERAL_RANGE_WIDTH-1):0] range_out_s3;
   wire [(GENERAL_LOW_WIDTH-1):0] low_out_s3;
   wire [(GENERAL_D_SIZE-1):0] s_out_s3;
   // Below are the output pins for the stage 3.
@@ -116,11 +113,9 @@ module arithmetic_encoder #(
   always @ (posedge general_clk) begin
     if(reset) begin
       reg_S_s3 <= 5'd0;
-      reg_Range_s3 <= 16'd32768;     // not necessary
       reg_Low_s3 <= 24'd0;
     end
     else if(ctrl_reg_final) begin
-      reg_Range_s3 <= range_out_s3;
       reg_Low_s3 <= low_out_s3;
       reg_S_s3 <= s_out_s3;
     end
@@ -263,7 +258,6 @@ module arithmetic_encoder #(
       .in_bool_1 (reg_bool_s23_1),
       .in_bool_2 (reg_bool_s23_2),
       .in_bool_3 (reg_bool_s23_3),
-      .range_ready (reg_range_ready),
       .in_symbol_1 (reg_symbol_s23_1),
       .in_symbol_2 (reg_symbol_s23_2),
       .in_symbol_3 (reg_symbol_s23_3),
@@ -271,10 +265,10 @@ module arithmetic_encoder #(
       .in_range_1 (reg_initial_range_1),
       .in_range_2 (reg_initial_range_2),
       .in_range_3 (reg_initial_range_3),
+      .range_ready (reg_range_ready),
       // Outputs
       .out_s (s_out_s3),
       .out_low (low_out_s3),
-      .out_range (range_out_s3),
       // First
       .FLAG_BIT_1 (out_flag_bitstream_1),
       .OUT_BIT_1_1 (pre_bitstream_out_1_1),

@@ -10,3 +10,4 @@
 ../../rtl/entropy-encoder-improved/stage_4.v
 ../../rtl/entropy-encoder-improved/arithmetic_encoder.v
 ../../rtl/entropy-encoder-improved/entropy_encoder.v
+../../rtl/entropy-encoder-improved/Miao_LZC.v

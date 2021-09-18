@@ -63,7 +63,6 @@ module entropy_encoder #(
   wire [1:0] out_arith_flag_1, out_arith_flag_2, out_arith_flag_3;
   wire [(TOP_D_SIZE-1):0] out_arith_cnt;
   wire [(TOP_LOW_WIDTH-1):0] out_arith_low;
-  wire [(TOP_RANGE_WIDTH-1):0] out_arith_range;
   // ------------------------------------------------
 
 
@@ -88,7 +87,6 @@ module entropy_encoder #(
       .general_bool_2 (top_bool_2),
       .general_bool_3 (top_bool_3),
       // outputs
-      .RANGE_OUTPUT (out_arith_range),
       .LOW_OUTPUT (out_arith_low),
       .CNT_OUTPUT (out_arith_cnt),
       // Parallel Bool
@@ -120,7 +118,6 @@ module entropy_encoder #(
       .s4_flag_first (reg_first_3_4),
       .s4_final_flag (reg_final_exec_3_4),
       .s4_final_flag_2_3 (reg_final_exec_2_3),
-      .in_arith_range (out_arith_range),
       .in_arith_cnt(out_arith_cnt),
       .in_arith_low (out_arith_low),
       // Outputs
