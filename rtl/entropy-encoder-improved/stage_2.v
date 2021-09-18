@@ -155,7 +155,7 @@ module s2_cdf #(
   // range_1 adapted from: range_2 = in_range - v
   assign range_2 = (in_range - lut_v) - v[(RANGE_WIDTH-1):0];
 
-  assign range_raw =  (COMP_mux_1 == 1'b1) ? range_1 :
+  assign range_raw =  (COMP_mux_1) ? range_1 :
                       range_2;
   s2_renormalization #(
     .RANGE_WIDTH (RANGE_WIDTH),
