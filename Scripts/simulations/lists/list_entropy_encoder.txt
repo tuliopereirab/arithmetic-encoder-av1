@@ -1,4 +1,4 @@
-../../rtl/entropy-encoder/LZC.v
+../../rtl/entropy-encoder/Miao_LZC.v
 ../../rtl/entropy-encoder/luts.v
 ../../rtl/entropy-encoder/final_bits.v
 ../../rtl/entropy-encoder/top_registers_control.v

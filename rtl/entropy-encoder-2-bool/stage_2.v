@@ -140,14 +140,11 @@ module s2_renormalization #(
     output wire [(RANGE_WIDTH-1):0] range_final
   );
   wire v_lzc; // Validation bit for the LZC isn't being used
-
-  leading_zero #(
-    .RANGE_WIDTH_LCZ (RANGE_WIDTH),
-    .D_SIZE_LZC (D_SIZE)
-    ) lzc (
-      .in_range (range_raw),
+  assign d_out[(D_SIZE-1)] = 1'b0;
+  lzc_miao_16 lzc (
+      .in (range_raw),
       .v (v_lzc),
-      .lzc_out (d_out)
+      .out_z (d_out[3:0])
   );
   assign range_final = range_raw << d_out;
 endmodule

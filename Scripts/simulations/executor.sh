@@ -1,7 +1,8 @@
 #!/bin/bash
 LIST_ORIGINAL="lists/list_entropy_encoder.txt"
 LIST_LP="lists/list_entropy_encoder-lp.txt"
-LIST_IMPROVED="lists/list_entropy_encoder_improved.txt"
+LIST_2BOOL="lists/list_entropy_encoder_2-bool.txt"
+LIST_3BOOL="lists/list_entropy_encoder_3-bool.txt"
 
 OUTPUT_DIR="outputs/"
 OUTPUT_ORIGINAL="design.out"
@@ -66,14 +67,35 @@ sim_entropy_encoder_lp () {
   fi
 }
 
-sim_entropy_encoder_improved () {
+sim_entropy_encoder_2_bool () {
   if [ -f "$OUTPUT_DIR/$OUTPUT_IMPROVED" ]
   then
     rm $OUTPUT_DIR/$OUTPUT_IMPROVED
   fi
 
-  echo -e "${cyan}Running Entropy Encoder: ${underCyan}Improved version${nc}"
-  iverilog -o $OUTPUT_DIR/$OUTPUT_IMPROVED -c $LIST_IMPROVED
+  echo -e "${cyan}Running Entropy Encoder: ${underCyan}Improved version (2-bool)${nc}"
+  iverilog -o $OUTPUT_DIR/$OUTPUT_IMPROVED -c $LIST_2BOOL
+  if [ -f "$OUTPUT_DIR/$OUTPUT_IMPROVED" ]
+  then
+    # echo "Trying to simulate the original"
+    # vvp $OUTPUT_DIR/$OUTPUT_ORIGINAL
+    echo -e $line_space
+    echo -e "${boldGreen}Successfully compiled: ${underGreen}Improved version.${nc}"
+    # echo -e "${green}Done.${nc}"
+  else
+    echo -e $line_space
+    echo -e "${boldRed}Unable to compile. ${red}Check the problems on the log above.${nc}"
+  fi
+}
+
+sim_entropy_encoder_3_bool () {
+  if [ -f "$OUTPUT_DIR/$OUTPUT_IMPROVED" ]
+  then
+    rm $OUTPUT_DIR/$OUTPUT_IMPROVED
+  fi
+
+  echo -e "${cyan}Running Entropy Encoder: ${underCyan}Improved version (3-bool)${nc}"
+  iverilog -o $OUTPUT_DIR/$OUTPUT_IMPROVED -c $LIST_3BOOL
   if [ -f "$OUTPUT_DIR/$OUTPUT_IMPROVED" ]
   then
     # echo "Trying to simulate the original"
@@ -103,5 +125,8 @@ then
   sim_entropy_encoder_lp
 elif [ $1 = "3" ]
 then
-  sim_entropy_encoder_improved
+  sim_entropy_encoder_2_bool
+elif [ $1 = "4" ]
+then
+  sim_entropy_encoder_3_bool
 fi
