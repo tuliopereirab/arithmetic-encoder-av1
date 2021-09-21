@@ -42,7 +42,6 @@ module stage_4 #(
   ARITHMETIC ENCODER OUTPUT CONNECTIONS
   All arithmetic encoder outputs (low, range, etc) come from registers.
   Therefore, it isn't necessary to create more registers here.
-
   Mux bitstream to carry
   The MUX is necessary to define if it is being generated the final bitstream or
   a normal one
