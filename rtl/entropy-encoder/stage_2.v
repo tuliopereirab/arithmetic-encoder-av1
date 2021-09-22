@@ -11,7 +11,7 @@ The One-round normalization is an adaptation of the following article:
     pages={369-372},
     doi={10.1109/ICIP.2011.6116523}
   }
-
+  
 Everytime it is shown 'Former Stage 3', it is actually talking about the one-round normalization
 */
 
@@ -58,7 +58,7 @@ module stage_2 #(
           range_2;
 
   // bool
-  assign v_bool = (RR << 7) + 16'd4;
+  assign v_bool = (RR * VV >> 1) + 16'd4;
 
   assign range_bool = (symbol[0] == 1'b1) ? v_bool[(RANGE_WIDTH-1):0] :
             in_range - v_bool[(RANGE_WIDTH-1):0];
@@ -79,10 +79,13 @@ module stage_2 #(
   wire [(D_SIZE-1):0] d;
   wire v_lzc;   // this is the bit that shows if lzc is valid or not (I'm not really sure about this)
 
-  lzc_miao_16 lzc (
-      .in (range),
+  leading_zero #(
+    .RANGE_WIDTH_LCZ (RANGE_WIDTH),
+    .D_SIZE_LZC (D_SIZE)
+    ) lzc (
+      .in_range (range),
       .v (v_lzc),
-      .out_z (d)
+      .lzc_out (d)
     );
 
 
