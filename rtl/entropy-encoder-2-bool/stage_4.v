@@ -22,11 +22,12 @@ module stage_4 #(
     input s4_flag_first,
     input s4_final_flag, s4_final_flag_2_3,     // This flag will be sent in 1
                         //exactly in the next clock cycle after the last input
-    input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_1, in_arith_bitstream_2,
+    input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_1_1, in_arith_bitstream_1_2,
+    input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_2_1, in_arith_bitstream_2_2,
     input [(S4_RANGE_WIDTH-1):0] in_arith_range,
     input [(S4_D_SIZE-1):0] in_arith_cnt,
     input [(S4_LOW_WIDTH-1):0] in_arith_low,
-    input [1:0] in_arith_flag,
+    input [1:0] in_arith_flag_1, in_arith_flag_2,
     // Outputs
     output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_1, out_carry_bit_2,
     output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_3, out_carry_bit_4,
@@ -50,8 +51,8 @@ module stage_4 #(
     Mux input 1: the output from FINAL_BITS_GENERATOR
     Mux output: the input to CARRY PROPAGATION
   */
-  wire [(S4_RANGE_WIDTH-1):0] mux_bitstream_1, mux_bitstream_2;
-  wire [1:0] mux_flag_final;
+  wire [(S4_RANGE_WIDTH-1):0] mux_bitstream_1, mux_bitstream_2, pb_1, pb_2;
+  wire [1:0] mux_flag_final, pb_flag;
   // -------------------------
 
   // FINAL_BITS_GENERATOR OUTPUT CONNECTIONS
@@ -101,6 +102,21 @@ module stage_4 #(
     .carry_ctrl (ctrl_carry_reg)
   );
 
+  s4_pb_mapper #(
+    .PB_WIDTH (S4_RANGE_WIDTH)
+    ) pb_mapper (
+      .in_pb_1_1 (in_arith_bitstream_1_1),
+      .in_pb_1_2 (in_arith_bitstream_1_2),
+      .in_pb_2_1 (in_arith_bitstream_2_1),
+      .in_pb_2_2 (in_arith_bitstream_2_2),
+      .in_pb_flag_1 (in_arith_flag_1),
+      .in_pb_flag_2 (in_arith_flag_2),
+      // Outputs
+      .pb_1 (pb_1),
+      .pb_2 (pb_2),
+      .pb_flag (pb_flag)
+    );
+
   final_bits_generator #(
     .OUTPUT_BITSTREAM_WIDTH (S4_RANGE_WIDTH),
     .D_SIZE (S4_D_SIZE),
@@ -140,11 +156,11 @@ module stage_4 #(
 
 
   assign mux_bitstream_1 =  (s4_final_flag) ? reg_final_bit_1 :
-                            in_arith_bitstream_1;
+                            pb_1;
   assign mux_bitstream_2 =  (s4_final_flag) ? reg_final_bit_2 :
-                            in_arith_bitstream_2;
+                            pb_2;
   assign mux_flag_final = (s4_final_flag) ? reg_flag_final :
-                          in_arith_flag;
+                          pb_flag;
 
   // =============================================================
 
@@ -180,5 +196,22 @@ module stage_4 #(
     reg_previous <= out_previous;
     reg_counter <= out_counter;
   end
+endmodule
 
+module s4_pb_mapper #(
+  // This module finds the valid pre-bitstream set
+  parameter PB_WIDTH = 9
+  ) (
+    input [(PB_WIDTH-1):0] in_pb_1_1, in_pb_1_2, in_pb_2_1, in_pb_2_2,
+    input [1:0] in_pb_flag_1, in_pb_flag_2,
+    output wire [(PB_WIDTH-1):0] pb_1, pb_2,
+    output wire [1:0] pb_flag
+  );
+  assign pb_flag =  (in_pb_flag_1 != 2'd0) ? in_pb_flag_1 :
+                    (in_pb_flag_2 != 2'd0) ? in_pb_flag_2 :
+                    2'd0;
+  assign pb_1 = (in_pb_flag_1 != 2'd0) ? in_pb_1_1 :
+                in_pb_2_1;
+  assign pb_2 = (in_pb_flag_1 != 2'd0) ? in_pb_1_2 :
+                in_pb_2_2;
 endmodule

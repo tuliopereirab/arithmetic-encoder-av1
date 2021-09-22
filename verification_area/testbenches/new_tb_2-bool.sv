@@ -138,10 +138,10 @@ module entropy_encoder_tb #(
       .top_nsyms (tb_nsyms),
       .top_bool_1 (tb_bool_1), .top_bool_2 (tb_bool_2),
       // outputs
-      .OUT_BIT_1_1 (tb_out_bit_1_1), .OUT_BIT_1_2 (tb_out_bit_1_2),
-      .OUT_BIT_1_3 (tb_out_bit_1_3), .OUT_BIT_1_4 (tb_out_bit_1_4),
-      .OUT_BIT_1_5 (tb_out_bit_1_5),
-      .OUT_FLAG_BITSTREAM_1 (tb_out_flag_bitstream_1),
+      .OUT_BIT_1 (tb_out_bit_1_1), .OUT_BIT_2 (tb_out_bit_1_2),
+      .OUT_BIT_3 (tb_out_bit_1_3), .OUT_BIT_4 (tb_out_bit_1_4),
+      .OUT_BIT_5 (tb_out_bit_1_5),
+      .OUT_FLAG_BITSTREAM (tb_out_flag_bitstream_1),
       .OUT_FLAG_LAST (tb_out_flag_last)
     );
   // -------------------------------------
