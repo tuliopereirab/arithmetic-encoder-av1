@@ -17,6 +17,7 @@ module stage_3 #(
     input [(RANGE_WIDTH-1):0] in_range_1, in_range_2, in_range_3, range_ready,
     output wire [(D_SIZE-1):0] out_s,
     output wire [(LOW_WIDTH-1):0] out_low,
+    output wire [(RANGE_WIDTH-1):0] out_range,
     output wire [(RANGE_WIDTH-1):0] OUT_BIT_1_1, OUT_BIT_1_2,
     output wire [(RANGE_WIDTH-1):0] OUT_BIT_2_1, OUT_BIT_2_2,
     output wire [(RANGE_WIDTH-1):0] OUT_BIT_3_1, OUT_BIT_3_2,
@@ -39,11 +40,11 @@ module stage_3 #(
     .RANGE_WIDTH (RANGE_WIDTH)
     ) s3_cdf (
       .u (u),
+      .in_d (d_1),
       .in_s (in_s),
       .in_low (in_low),
       .in_range (in_range_1),
       .COMP_mux_1 (COMP_mux_1),
-      .range_ready (range_ready),
       // Outputs
       .out_s (s_cdf),
       .out_low (low_cdf),
@@ -69,6 +70,7 @@ module stage_3 #(
       .in_low (in_low),
       .symbol (in_symbol_1),
       .pre_low (pre_low_bool_1),
+      .in_range (in_range_1),
       // Outputs
       .out_s (s_bool_1),
       .out_low (low_bool_1),
@@ -86,6 +88,7 @@ module stage_3 #(
       .in_low (low_bool_1),
       .symbol (in_symbol_2),
       .pre_low (pre_low_bool_2),
+      .in_range (in_range_2),
       // Outputs
       .out_s (s_bool_2),
       .out_low (low_bool_2),
@@ -103,6 +106,7 @@ module stage_3 #(
       .in_low (low_bool_2),
       .symbol (in_symbol_3),
       .pre_low (pre_low_bool_3),
+      .in_range (in_range_3),
       // Outputs
       .out_s (s_bool_3),
       .out_low (low_bool_3),
@@ -114,10 +118,12 @@ module stage_3 #(
   // The assignments bellow aim to find the latest valid output.
   assign s_bool = (in_bool_3 == 1'b1) ? s_bool_3 :
                   (in_bool_2 == 1'b1) ? s_bool_2 :
-                  s_bool_1;
+                  (in_bool_1 == 1'b1) ? s_bool_1 :
+                  5'd0;
   assign low_bool = (in_bool_3 == 1'b1) ? low_bool_3 :
                     (in_bool_2 == 1'b1) ? low_bool_2 :
-                    low_bool_1;
+                    (in_bool_1 == 1'b1) ? low_bool_1 :
+                    24'd0;
                     // ------------------------------------------------------
   // Outputs Assignments
   assign out_s =  (in_bool_1 == 1'b1) ? s_bool :
@@ -147,6 +153,11 @@ module stage_3 #(
                       2'd0;
   assign FLAG_BIT_3 = (in_bool_3 == 1'b1) ? flag_bool_3 :
                       2'd0;
+  // ------------------------------------------------------
+  /*  Variables already assigned upon the modules' output:
+      - Flags bitstream 2 and 3;
+      - Out Bitstreams 2_x and 3_x. */
+  assign out_range = range_ready;
 endmodule
 
 module s3_cdf #(
@@ -157,30 +168,25 @@ module s3_cdf #(
     input COMP_mux_1,
     input [RANGE_WIDTH:0] u,
     input [(LOW_WIDTH-1):0] in_low,
-    input [(D_SIZE-1):0] in_s,
-    input [(RANGE_WIDTH-1):0] in_range, range_ready,
+    input [(D_SIZE-1):0] in_d, in_s,
+    input [(RANGE_WIDTH-1):0] in_range,
     // Outputs
     output wire [1:0] flag_bitstream,
     output wire [(D_SIZE-1):0] out_s,
     output wire [(LOW_WIDTH-1):0] out_low,
     output wire [(RANGE_WIDTH-1):0] out_bit_1, out_bit_2
   );
-  wire v_lzc;
-  wire [3:0] d;
   wire [(LOW_WIDTH-1):0] low_1, low_raw;
-  lzc_miao_16 lzc_s3_cdf (.in (range_ready), .out_z (d), .v (v_lzc));
   assign low_1 = in_low + (in_range - u[(RANGE_WIDTH-1):0]);
 
   assign low_raw =  (COMP_mux_1 == 1'b1) ? low_1 :
                     in_low;
-
-
   s3_renormalization # (
     .D_SIZE (D_SIZE),
     .LOW_WIDTH (LOW_WIDTH),
     .RANGE_WIDTH (RANGE_WIDTH)
     ) s3_cdf_norm (
-      .d ({v_lzc, d}),
+      .d (in_d),
       .in_s (in_s),
       .low_raw (low_raw),
       // Outputs
@@ -200,7 +206,7 @@ module s3_bool #(
     input symbol,
     input [(LOW_WIDTH-1):0] in_low,
     input [(D_SIZE-1):0] in_d, in_s,
-    input [(RANGE_WIDTH-1):0] pre_low,
+    input [(RANGE_WIDTH-1):0] in_range, pre_low,
     // Outputs
     output wire [1:0] flag_bitstream,
     output wire [(D_SIZE-1):0] out_s,
@@ -258,7 +264,7 @@ module s3_renormalization #(
   assign m_s0 = (24'd1 << c_norm_s0) - 24'd1;
 
   // s_s0 adapted from: s0 = (in_s + 16) + d - 24
-  assign s_s0 = s_comp - 5'd8;
+  assign s_s0 = in_s + d - 5'd8;
   assign low_s0 = low_raw & m_s0;
   // -----------------------
   assign c_norm_s8 = in_s - 5'd1;
@@ -266,12 +272,12 @@ module s3_renormalization #(
   assign m_s8 = (24'd1 << c_norm_s8) - 24'd1;
 
   // s_s8 adapted from: s8 = (in_s + 8) + d - 24
-  assign s_s8 = s_comp - 5'd16;
+  assign s_s8 = in_s + d - 5'd16;
   assign low_s8 = low_raw & m_s8;
 
   // pre-bitstream generation
-  assign c_bit_s0 = c_norm_s0;
-  assign c_bit_s8 = c_norm_s8;
+  assign c_bit_s0 = in_s + 5'd7;
+  assign c_bit_s8 = in_s - 5'd1;
   // =========================================================================
   // Outputs
 

@@ -28,13 +28,13 @@ module lzc_miao_8 (
 
   assign g1 = q1 & q3;
   assign g2 = q1 & (!q3 | q5);
-  assign g3 = q2 & (q4 | q5);
+  assign g3 = q2 & (q4 | q6);
   assign g4 = q5 & q7;
 
   assign out_z[0] = g3;
   assign out_z[1] = g2;
   assign out_z[2] = g1;
-  assign v = !(g1 | g4);
+  assign v = !(!g1 | !g4);
 endmodule
 
 module lzc_miao_16 (

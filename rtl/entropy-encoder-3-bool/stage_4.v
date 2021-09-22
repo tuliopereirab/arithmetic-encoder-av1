@@ -4,10 +4,8 @@
   Stage 4 blocks:
     - Final Bits: uses the las LOW and S to generate the final bitstreams
     - Carry Propagation: runs the carry propagation process
-
     For more information about the carry propagation, see 'carry_propagation.v'
   header.
-
     The application of the Parallelized Boolean blocks upon S4 is defined by the
   sequentially allocate Carry Propagation blocks.
 */
@@ -31,6 +29,7 @@ module stage_4 #(
     input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_2_1, in_arith_bitstream_2_2,
     input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_3_1, in_arith_bitstream_3_2,
     input [1:0] in_arith_flag_1, in_arith_flag_2, in_arith_flag_3,
+    input [(S4_RANGE_WIDTH-1):0] in_arith_range,
     input [(S4_D_SIZE-1):0] in_arith_cnt,
     input [(S4_LOW_WIDTH-1):0] in_arith_low,
     // Outputs
@@ -46,7 +45,6 @@ module stage_4 #(
   ARITHMETIC ENCODER OUTPUT CONNECTIONS
   All arithmetic encoder outputs (low, range, etc) come from registers.
   Therefore, it isn't necessary to create more registers here.
-
   Mux bitstream to carry
   The MUX is necessary to define if it is being generated the final bitstream or
   a normal one
@@ -190,13 +188,10 @@ module stage_4 #(
       Internal variables
   The reg_1st_bitstream goes to 1 with reset and when the first bitstream
   finally reaches the Stage 4, the reg_1st_bitstream goes to 0.
-
   reg_1st_bitstream avoid the counter to start counting when the first bitstream
   is 255.
-
   All variables with suffix _c0 are used when counter == 0
   In the other hand, suffix _c1 is used with counter != 0
-
   When the variable has a suffix _final or _not_final, it means that it
   considers the flag_final.
   */

@@ -40,8 +40,8 @@ module entropy_encoder_tb #(
   `define TARGET_MAIN "target-main_data.csv"
   // TARGET_BITSTREAM shouldn't be changed. Used to run with modelsim_flow.tcl
   `define TARGET_BITSTREAM "target-bitstream.csv"
-  `define SPECIFIC_BITSTREAM "Jockey_1920x1080_120fps_420_8bit_YUV-final_bitstream.csv"
-  `define SPECIFIC_MAIN "Jockey_1920x1080_120fps_420_8bit_YUV-main_data.csv"
+  `define SPECIFIC_BITSTREAM "Netflix_RollerCoaster_1280x720_60fps_8bit_420_60f-bitstream.csv"
+  `define SPECIFIC_MAIN "Netflix_RollerCoaster_1280x720_60fps_8bit_420_60f-main_data.csv"
   // Next lines define the num of cols in the -main_data.csv and -bitstream.csv
   `define NUM_COL_MAIN 11
   `define NUM_COL_BITSTREAM 1
