@@ -52,19 +52,18 @@ module arithmetic_encoder #(
   reg [(GENERAL_LUT_DATA_WIDTH-1):0] reg_lut_u, reg_lut_v;
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_UU, reg_VV;
   reg [(GENERAL_SYMBOL_WIDTH-1):0] reg_symbol;
-  reg reg_COMP_mux_1, reg_bool;
+  reg reg_COMP_mux_1, reg_bool_s12;
   // stage 2
   wire [(GENERAL_RANGE_WIDTH-1):0] initial_range_out, range_ready_out;
-  wire [GENERAL_RANGE_WIDTH:0] u_out, v_out;
+  wire [(GENERAL_RANGE_WIDTH-1):0] pre_low_out;
+  wire [GENERAL_RANGE_WIDTH:0] u_out;
   wire [(GENERAL_D_SIZE-1):0] d_out;
-  wire [GENERAL_RANGE_WIDTH:0] v_bool_out;
-  wire [1:0] bool_symbol_out;
-  wire COMP_mux_1_out_s2;
+  wire bool_out_s23, symbol_out_s23, COMP_mux_1_out_s23;
   reg [(GENERAL_RANGE_WIDTH-1):0] reg_initial_range, reg_range_ready;
+  reg [(GENERAL_RANGE_WIDTH-1):0] reg_pre_low;
   reg [GENERAL_RANGE_WIDTH:0] reg_u, reg_v_bool;
   reg [(GENERAL_D_SIZE-1):0] reg_d;
-  reg [1:0] reg_bool_symbol;
-  reg reg_COMP_mux_1_s2;
+  reg reg_bool_s23, reg_symbol_s23, reg_COMP_mux_1_s23;
   // --------------------------------------------------
   // Stage 3
   wire [(GENERAL_RANGE_WIDTH-1):0] range_out_s3;
@@ -117,7 +116,7 @@ module arithmetic_encoder #(
       reg_UU <= uu_out;
       reg_VV <= vv_out;
       reg_COMP_mux_1 <= COMP_mux_1_out;
-      reg_bool <= bool_output;
+      reg_bool_s12 <= bool_output;
       reg_symbol <= symbol_output;
     end
   end
@@ -127,26 +126,24 @@ module arithmetic_encoder #(
     .D_SIZE (GENERAL_D_SIZE),
     .SYMBOL_WIDTH (GENERAL_SYMBOL_WIDTH)
     ) state_pipeline_2 (
-      // inputs from stage 1
+      // inputs
       .lut_u (reg_lut_u),
       .lut_v (reg_lut_v),
       .UU (reg_UU),
       .VV (reg_VV),
       .COMP_mux_1 (reg_COMP_mux_1),
-      // bool
-      .bool_flag (reg_bool),
+      .bool_flag (reg_bool_s12),
       .symbol (reg_symbol),
-      // inputs from stage 3
       .in_range (reg_range_ready),
-      // former stage 3
       // outputs
       .u (u_out),
-      .v_bool (v_bool_out),
+      .pre_low (pre_low_out),
       .initial_range (initial_range_out),
       .out_range (range_ready_out),
       .out_d (d_out),
-      .bool_symbol (bool_symbol_out),
-      .COMP_mux_1_out (COMP_mux_1_out_s2)
+      .bool_out (bool_out_s23),
+      .symbol_out (symbol_out_s23),
+      .COMP_mux_1_out (COMP_mux_1_out_s23)
     );
 
     always @ (posedge general_clk) begin
@@ -159,12 +156,13 @@ module arithmetic_encoder #(
     end
     always @ (posedge general_clk) begin
       if(ctrl_reg_2_3) begin
-        reg_u = u_out;
-        reg_v_bool = v_bool_out;
-        reg_initial_range = initial_range_out;
-        reg_d = d_out;
-        reg_bool_symbol = bool_symbol_out;
-        reg_COMP_mux_1_s2 = COMP_mux_1_out_s2;
+        reg_u <= u_out;
+        reg_pre_low <= pre_low_out;
+        reg_initial_range <= initial_range_out;
+        reg_d <= d_out;
+        reg_bool_s23 <= bool_out_s23;
+        reg_symbol_s23 <= symbol_out_s23;
+        reg_COMP_mux_1_s23 <= COMP_mux_1_out_s23;
       end
     end
 
@@ -174,20 +172,20 @@ module arithmetic_encoder #(
     .LOW_WIDTH (GENERAL_LOW_WIDTH),
     .D_SIZE (GENERAL_D_SIZE)
     ) stage_pipeline_3 (
-      .bool_symbol (reg_bool_symbol),
+      .bool_flag (reg_bool_s23),
+      .symbol (reg_symbol_s23),
       .in_range (reg_initial_range),
       .range_ready (reg_range_ready),
       .d (reg_d),
-      .COMP_mux_1 (reg_COMP_mux_1_s2),
+      .COMP_mux_1 (reg_COMP_mux_1_s23),
       .u (reg_u),
-      .v_bool (reg_v_bool),
+      .pre_low (reg_pre_low),
       .in_s (reg_S_s3),
       .in_low (reg_Low_s3),
-      // bitstream
+      // Outputs
       .flag_bitstream (out_flag_bitstream),
       .out_bit_1 (pre_bitstream_out_1),
       .out_bit_2 (pre_bitstream_out_2),
-      // outputs
       .out_low (low_out_s3),
       .out_range (range_out_s3),
       .out_s (s_out_s3)

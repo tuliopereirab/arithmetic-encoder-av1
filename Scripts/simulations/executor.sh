@@ -1,6 +1,7 @@
 #!/bin/bash
 LIST_ORIGINAL="lists/list_entropy_encoder.txt"
 LIST_LP="lists/list_entropy_encoder-lp.txt"
+LIST_1BOOL="lists/list_entropy_encoder_1-bool.txt"
 LIST_2BOOL="lists/list_entropy_encoder_2-bool.txt"
 LIST_3BOOL="lists/list_entropy_encoder_3-bool.txt"
 
@@ -60,6 +61,27 @@ sim_entropy_encoder_lp () {
     # vvp $OUTPUT_DIR/$OUTPUT_LP
     echo -e $line_space
     echo -e "${boldGreen}Successfully compiled: ${underGreen}Low-power version.${nc}"
+    # echo -e "${green}Done.${nc}"
+  else
+    echo -e $line_space
+    echo -e "${boldRed}Unable to compile. ${red}Check the problems on the log above.${nc}"
+  fi
+}
+
+sim_entropy_encoder_1_bool () {
+  if [ -f "$OUTPUT_DIR/$OUTPUT_IMPROVED" ]
+  then
+    rm $OUTPUT_DIR/$OUTPUT_IMPROVED
+  fi
+
+  echo -e "${cyan}Running Entropy Encoder: ${underCyan}Improved version (1-bool)${nc}"
+  iverilog -o $OUTPUT_DIR/$OUTPUT_IMPROVED -c $LIST_1BOOL
+  if [ -f "$OUTPUT_DIR/$OUTPUT_IMPROVED" ]
+  then
+    # echo "Trying to simulate the original"
+    # vvp $OUTPUT_DIR/$OUTPUT_ORIGINAL
+    echo -e $line_space
+    echo -e "${boldGreen}Successfully compiled: ${underGreen}Improved version (1-bool).${nc}"
     # echo -e "${green}Done.${nc}"
   else
     echo -e $line_space
@@ -129,4 +151,7 @@ then
 elif [ $1 = "4" ]
 then
   sim_entropy_encoder_3_bool
+elif [ $1 = "5" ]
+then
+  sim_entropy_encoder_1_bool
 fi
