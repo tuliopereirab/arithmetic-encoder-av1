@@ -23,9 +23,8 @@ module stage_3 #(
     output wire [(RANGE_WIDTH-1):0] OUT_BIT_3_1, OUT_BIT_3_2,
     output wire [1:0] FLAG_BIT_1, FLAG_BIT_2, FLAG_BIT_3
   );
-  wire [(LOW_WIDTH-1):0] low_bool, low_cdf;
-  wire [(LOW_WIDTH-1):0] low_bool_1, low_bool_2, low_bool_3;
-  wire [(D_SIZE-1):0] s_cdf, s_bool, s_bool_1, s_bool_2, s_bool_3;
+  wire [(LOW_WIDTH-1):0] low_bool_1, low_bool_2, low_bool_3, low_cdf;
+  wire [(D_SIZE-1):0] s_cdf, s_bool_1, s_bool_2, s_bool_3;
   wire [(RANGE_WIDTH-1):0] out_bit_1_cdf, out_bit_2_cdf;    // For the 1st cdf
   // Architecture Outputs
   wire [1:0] flag_cdf_1;   // For the 1st both
@@ -114,21 +113,14 @@ module stage_3 #(
       .out_bit_2 (bool_out_bit_3_2),
       .flag_bitstream (flag_bool_3)
   );
-  // ------------------------------------------------------
-  // The assignments bellow aim to find the latest valid output.
-  assign s_bool = (in_bool_3 == 1'b1) ? s_bool_3 :
-                  (in_bool_2 == 1'b1) ? s_bool_2 :
-                  (in_bool_1 == 1'b1) ? s_bool_1 :
-                  5'd0;
-  assign low_bool = (in_bool_3 == 1'b1) ? low_bool_3 :
-                    (in_bool_2 == 1'b1) ? low_bool_2 :
-                    (in_bool_1 == 1'b1) ? low_bool_1 :
-                    24'd0;
-                    // ------------------------------------------------------
   // Outputs Assignments
-  assign out_s =  (in_bool_1 == 1'b1) ? s_bool :
+  assign out_s =  (in_bool_1 == 1'b1) ? ((in_bool_3) ? s_bool_3 :
+                                        (in_bool_2) ? s_bool_2 :
+                                        s_bool_1) :
                   s_cdf;
-  assign out_low =  (in_bool_1 == 1'b1) ? low_bool :
+  assign out_low =  (in_bool_1 == 1'b1) ? ((in_bool_3) ? low_bool_3 :
+                                          (in_bool_2) ? low_bool_2 :
+                                          low_bool_1) :
                     low_cdf;
   // ------------------------------------------------------
   assign OUT_BIT_1_1 =  (in_bool_1 == 1'b1) ? bool_out_bit_1_1 :

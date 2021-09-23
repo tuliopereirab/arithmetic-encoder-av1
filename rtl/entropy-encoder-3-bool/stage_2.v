@@ -35,7 +35,7 @@ module stage_2 #(
     output wire [(RANGE_WIDTH-1):0] initial_range_3, out_range
   );
   wire [(RANGE_WIDTH-1):0] range_bool_1, range_bool_2, range_bool_3;
-  wire [(RANGE_WIDTH-1):0] range_cdf, range_bool;
+  wire [(RANGE_WIDTH-1):0] range_cdf;
   wire [(D_SIZE-1):0] out_d_bool_1, out_d_cdf_1;
 
 
@@ -101,19 +101,14 @@ module stage_2 #(
       .out_range (range_bool_3)
   );
   // -------------------
-  // Find the last valid Bool block
-  assign range_bool = (bool_flag_3 == 1'b1) ? range_bool_3 :
-                      (bool_flag_2 == 1'b1) ? range_bool_2 :
-                      (bool_flag_1 == 1'b1) ? range_bool_1 :
-                      16'd0;
 
   // Output assignments
   assign initial_range_1 = in_range;
-  assign initial_range_2 =  (bool_flag_2 == 1'b1) ? range_bool_1 :
-                            16'd0;
-  assign initial_range_3 =  (bool_flag_3 == 1'b1) ? range_bool_2 :
-                            16'd0;
-  assign out_range =  (bool_flag_1 == 1'b1) ? range_bool :
+  assign initial_range_2 = range_bool_1;
+  assign initial_range_3 = range_bool_2;
+  assign out_range =  (bool_flag_1 == 1'b1) ? ((bool_flag_3) ? range_bool_3 :
+                                              (bool_flag_2) ? range_bool_2 :
+                                              range_bool_1) :
                       range_cdf;
   assign out_d_1 =  (bool_flag_1 == 1'b1) ? out_d_bool_1 :
                     out_d_cdf_1;
