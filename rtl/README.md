@@ -2,7 +2,7 @@
 - This folder presents the different versions of the arithmetic encoder architecture.
 - The explanation of each stage can be found in the [master README](https://github.com/tuliopereirab/arithmetic-encoder-av1).
 
-## [High-throughput](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/rtl/entropy-encoder)
+## [High-throughput](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/rtl/entropy-encoder-original)
 
 ### Introduction
 
@@ -22,11 +22,11 @@ This architecture, as the other versions of it, relies on a 4-stage pipeline. Th
 
 ### Introduction
 
-- This version comprises the same logic as the [High-throughput](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/rtl/entropy-encoder) version, but uses low-power techniques (i.e., clock gating and operand isolation) to reduce the overall power consumption.
+- This version comprises the same logic as the [High-throughput](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/rtl/entropy-encoder-original) version, but uses low-power techniques (i.e., clock gating and operand isolation) to reduce the overall power consumption.
 - As the reduction of the power consumption relies on the addition of clock gating and operand isolation cells into the architecture, the critical path was then enlarged. This surely affected the architecture's frequency.
 - For an accurate power estimation with real-world inputs, simulations were executed and the power consumed was estimated by analysis the _.tcf_ files.
 
-### Changes from [High-throughput](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/rtl/entropy-encoder)
+### Changes from [High-throughput](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/rtl/entropy-encoder-original)
 #### Clock Gating
 - It was added clock gating triggers nto all registers related to the _Boolean Operation_ (_bool_);
 - Moreover, the registers related to the _bitstream generation_ (before and after Stage 4) also received the triggers.
