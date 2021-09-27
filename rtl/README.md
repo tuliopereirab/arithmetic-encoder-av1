@@ -32,7 +32,7 @@ This architecture, as the other versions of it, relies on a 4-stage pipeline. Th
 - Moreover, the registers related to the _bitstream generation_ (before and after Stage 4) also received the triggers.
 - **Triggers**: formulas used as _enable_ and capable of deciding whether the register will useful or not for the current round;
 #### Operand Isolation
-- It was added triggers before each operation inside the _Bool_ block (see Stage 2 of [Figure](../Project/images/Architecture-Stage_2.jpg));
+- It was added triggers before each operation inside the _Bool_ block (see Stage 2 of [Figure](../Project/images/Original_Arc/hitecture-Stage_2.jpg));
 - The _final_bits_ block also received operand isolation triggers as it is only executed upon the arrival of the last input for the current frame (in other words, just before the reset).
 
 ### Characteristics
