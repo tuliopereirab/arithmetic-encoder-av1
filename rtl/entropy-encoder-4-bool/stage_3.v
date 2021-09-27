@@ -74,9 +74,11 @@ module stage_3 #(
       .LOW_WIDTH (LOW_WIDTH),
       .RANGE_WIDTH (RANGE_WIDTH)
       ) s3_bool_2 (
-        .in_d (d_2),
+        // S3 internal
         .in_s (s_bool_1),
         .in_low (low_bool_1),
+        // S3 inputs
+        .in_d (d_2),
         .symbol (symbol_2),
         .pre_low (pre_low_2),
         .in_range (range_in_2),
@@ -92,9 +94,11 @@ module stage_3 #(
       .LOW_WIDTH (LOW_WIDTH),
       .RANGE_WIDTH (RANGE_WIDTH)
       ) s3_bool_3 (
-        .in_d (d_3),
+        // S3 internal
         .in_s (s_bool_2),
         .in_low (low_bool_2),
+        // S3 inputs
+        .in_d (d_3),
         .symbol (symbol_3),
         .pre_low (pre_low_3),
         .in_range (range_in_3),
@@ -110,9 +114,11 @@ module stage_3 #(
       .LOW_WIDTH (LOW_WIDTH),
       .RANGE_WIDTH (RANGE_WIDTH)
       ) s3_bool_4 (
-        .in_d (d_4),
+        // S3 internal
         .in_s (s_bool_3),
         .in_low (low_bool_3),
+        // S3 inputs
+        .in_d (d_4),
         .symbol (symbol_4),
         .pre_low (pre_low_4),
         .in_range (range_in_4),
@@ -141,11 +147,11 @@ module stage_3 #(
                         out_bit_2_cdf;
   assign flag_bitstream_1 = (bool_flag_1) ? flag_bit_bool_1 :
                             flag_cdf_1;
-  assign flag_bitstream_2 = (bool_flag_2) ? flag_bit_bool_2 :
+  assign flag_bitstream_2 = (bool_flag_1 && bool_flag_2) ? flag_bit_bool_2 :
                             2'd0;
-  assign flag_bitstream_3 = (bool_flag_3) ? flag_bit_bool_3 :
+  assign flag_bitstream_3 = (bool_flag_1 && bool_flag_3) ? flag_bit_bool_3 :
                             2'd0;
-  assign flag_bitstream_4 = (bool_flag_4) ? flag_bit_bool_4 :
+  assign flag_bitstream_4 = (bool_flag_1 && bool_flag_4) ? flag_bit_bool_4 :
                             2'd0;
   // ------------------------------------------------------
   // Assigned Outputs

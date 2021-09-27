@@ -76,7 +76,7 @@ module stage_4 #(
 
   // CARRY PROPAGATION OUTPUT CONNECTIONS
   wire [(S4_BITSTREAM_WIDTH-1):0] out_previous, out_counter;
-  wire [(S4_BITSTREAM_WIDTH-1):0] prev_1, counter_1;
+  wire [(S4_BITSTREAM_WIDTH-1):0] prev_1, prev_2, counter_1, counter_2;
   reg [(S4_BITSTREAM_WIDTH-1):0] reg_previous, reg_counter;
   wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1_1, out_carry_bitstream_1_2;
   wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bitstream_1_3, out_carry_bitstream_1_4;
@@ -185,21 +185,21 @@ module stage_4 #(
     ) carry_propag_2 (
       .clk (s4_clk),
       .reset (s4_reset),
-      .flag_in (mux_flag_final),
+      .flag_in (pb_flag_2),
       .flag_first (s4_flag_first),
-      .flag_final (s4_final_flag),
+      .flag_final (1'b0),// Fixed in zero because only carry_propag_1 does last
       .in_counter (counter_1),
       .in_previous (prev_1),
-      .in_bitstream_1 (mux_bitstream_1),
-      .in_bitstream_2 (mux_bitstream_2),
+      .in_bitstream_1 (pb_2_1),
+      .in_bitstream_2 (pb_2_2),
       // outputs
       .out_bitstream_1 (out_carry_bitstream_2_1),
       .out_bitstream_2 (out_carry_bitstream_2_2),
       .out_bitstream_3 (out_carry_bitstream_2_3),
       .out_bitstream_4 (out_carry_bitstream_2_4),
       .out_bitstream_5 (out_carry_bitstream_2_5),
-      .previous (out_previous),
-      .counter (out_counter),
+      .previous (prev_2),
+      .counter (counter_2),
       .out_flag (out_carry_flag_2),
       .out_flag_last (out_carry_flag_last)
     );
@@ -213,6 +213,13 @@ module stage_4 #(
                           pb_flag_1;
 
   // =============================================================
+  assign out_previous = (pb_flag_2 != 2'd0) ? prev_2 :
+                        (pb_flag_1 != 2'd0) ? prev_1 :
+                        reg_previous;
+  assign out_counter =  (pb_flag_2 != 2'd0) ? counter_2 :
+                        (pb_flag_1 != 2'd0) ? counter_1 :
+                        reg_counter;
+
 
   always @ (posedge s4_clk) begin
     if(ctrl_carry_reg) begin

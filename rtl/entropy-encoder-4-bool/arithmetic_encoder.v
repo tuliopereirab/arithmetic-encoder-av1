@@ -38,10 +38,10 @@ module arithmetic_encoder #(
   assign PB_2_1 = reg_pb_2_1;
   assign PB_2_2 = reg_pb_2_2;
   assign PB_FLAG_3 = reg_pb_flag_3;
-  assign PB_3_2 = reg_pb_3_2;
+  assign PB_3_1 = reg_pb_3_1;
   assign PB_3_2 = reg_pb_3_2;
   assign PB_FLAG_4 = reg_pb_flag_4;
-  assign PB_4_2 = reg_pb_4_2;
+  assign PB_4_1 = reg_pb_4_1;
   assign PB_4_2 = reg_pb_4_2;
   assign CNT_OUTPUT = reg_cnt_s34;
 
@@ -266,7 +266,7 @@ module arithmetic_encoder #(
       .flag_bitstream_2 (pb_flag_2),
       .out_bit_2_1 (pb_2_1), .out_bit_2_2 (pb_2_2),
       .flag_bitstream_3 (pb_flag_3),
-      .out_bit_3_1 (pb_3_1), .out_bit_3_2 (pb_2_2),
+      .out_bit_3_1 (pb_3_1), .out_bit_3_2 (pb_3_2),
       .flag_bitstream_4 (pb_flag_4),
       .out_bit_4_1 (pb_4_1), .out_bit_4_2 (pb_4_2)
     );

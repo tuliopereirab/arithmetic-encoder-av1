@@ -139,16 +139,17 @@ module entropy_encoder_tb #(
       .top_fl (tb_fl),
       .top_fh (tb_fh),
       .top_symbol_1 (tb_symbol_1), .top_symbol_2 (tb_symbol_2),
-      .top_symbol_3 (tb_symbol_3),
+      .top_symbol_3 (tb_symbol_3), .top_symbol_4 (tb_symbol_4),
       .top_nsyms (tb_nsyms),
-      .top_bool_1 (tb_bool_1), .top_bool_2 (tb_bool_2), .top_bool_3 (tb_bool_3),
+      .top_bool_1 (tb_bool_1), .top_bool_2 (tb_bool_2),
+      .top_bool_3 (tb_bool_3), .top_bool_4 (tb_bool_4),
       // outputs
       .OUT_BIT_1_1 (tb_out_bit_1_1), .OUT_BIT_1_2 (tb_out_bit_1_2),
       .OUT_BIT_1_3 (tb_out_bit_1_3), .OUT_BIT_1_4 (tb_out_bit_1_4),
       .OUT_BIT_1_5 (tb_out_bit_1_5),
-      .OUT_bit_2_1 (tb_out_bit_2_1), .OUT_bit_2_2 (tb_out_bit_2_2),
-      .OUT_bit_2_3 (tb_out_bit_2_3), .OUT_bit_2_4 (tb_out_bit_2_4),
-      .OUT_bit_2_5 (tb_out_bit_2_5),
+      .OUT_BIT_2_1 (tb_out_bit_2_1), .OUT_BIT_2_2 (tb_out_bit_2_2),
+      .OUT_BIT_2_3 (tb_out_bit_2_3), .OUT_BIT_2_4 (tb_out_bit_2_4),
+      .OUT_BIT_2_5 (tb_out_bit_2_5),
       .OUT_FLAG_BITSTREAM_1 (tb_out_flag_bitstream_1),
       .OUT_FLAG_BITSTREAM_2 (tb_out_flag_bitstream_2),
       .OUT_FLAG_LAST (tb_out_flag_last)
@@ -198,6 +199,7 @@ module entropy_encoder_tb #(
     tb_bool_3 = temp_bool;
     tb_symbol_3 = temp_symbol;
   endfunction
+
   function void SetArchitectureInputs_Bool4;
     tb_bool_4 = temp_bool;
     tb_symbol_4 = temp_symbol;
@@ -216,6 +218,7 @@ module entropy_encoder_tb #(
     tb_bool_1 = temp_bool;
     tb_bool_2 = 1;  // CDF
     tb_bool_3 = 1;  // CDF
+    tb_bool_4 = 1;  // CDF
   endfunction
 
   task SetFlagLast;
@@ -329,6 +332,7 @@ module entropy_encoder_tb #(
     flag_data_waiting = 1'b0;   // 0-> read file, 1-> don't read file
     bool_burst_1 = 1'b0;        // posedge triggers the always for symbol_2
     bool_burst_2 = 1'b0;        // posedge triggers the always for symbol_3
+    bool_burst_3 = 1'b0;        // posedge triggers the always for symbol_3
     tb_clk <= 1'b1;    // Clk initiation value
     counter = 0;     // Counts the number of current inputs
     resets_counter = -1;  // It's incremented inside SetReset()
