@@ -35,7 +35,8 @@ module stage_2 #(
     output wire COMP_mux_1_out
   );
   wire [(RANGE_WIDTH-1):0] range_bool_1, range_bool_2, range_cdf;
-  wire [(D_SIZE-1):0] d_cdf, d_bool_1, d_bool_2;
+  wire [(RANGE_WIDTH-1):0] range_bool_3, range_bool_4;
+  wire [(D_SIZE-1):0] d_cdf, d_bool_1, d_bool_2, d_bool_3, d_bool_4;
 
 
   // CDF block returns the Range already normalized
@@ -67,7 +68,6 @@ module stage_2 #(
       .range_1 (pre_low_1),
       .out_d (d_bool_1)
   );
-
   s2_bool #(
     .RANGE_WIDTH (RANGE_WIDTH),
     .SYMBOL_WIDTH (SYMBOL_WIDTH)
@@ -79,20 +79,52 @@ module stage_2 #(
       .range_1 (pre_low_2),
       .out_d (d_bool_2)
   );
+  s2_bool #(
+    .RANGE_WIDTH (RANGE_WIDTH),
+    .SYMBOL_WIDTH (SYMBOL_WIDTH)
+    ) s2_bool_3 (
+      .in_range (range_bool_2),
+      .symbol (symbol_3),
+      // Outputs
+      .out_range (range_bool_3),
+      .range_1 (pre_low_3),
+      .out_d (d_bool_3)
+  );
+  s2_bool #(
+    .RANGE_WIDTH (RANGE_WIDTH),
+    .SYMBOL_WIDTH (SYMBOL_WIDTH)
+    ) s2_bool_4 (
+      .in_range (range_bool_3),
+      .symbol (symbol_4),
+      // Outputs
+      .out_range (range_bool_4),
+      .range_1 (pre_low_4),
+      .out_d (d_bool_4)
+  );
   // -------------------
   // Outputs
-  assign out_range =  (bool_flag_1) ? ((bool_flag_2) ? range_bool_2 :
+  assign out_range =  (bool_flag_1) ? ((bool_flag_4) ? range_bool_4 :
+                                      (bool_flag_3) ? range_bool_3 :
+                                      (bool_flag_2) ? range_bool_2 :
                                       range_bool_1) :
                       range_cdf;
   assign out_d_1 =  (bool_flag_1) ? d_bool_1 :
                     d_cdf;
   assign out_d_2 = d_bool_2;
+  assign out_d_3 = d_bool_3;
+  assign out_d_4 = d_bool_4;
   assign initial_range_1 = in_range;
-  assign initial_range_2 = range_bool_1;// Output from Bool_1 = Input of Bool_2
+  assign initial_range_2 = range_bool_1;  // Input Bool_2 = Output Bool_1
+  assign initial_range_3 = range_bool_2;  // Input Bool_3 = Output Bool_2
+  assign initial_range_4 = range_bool_3;  // Input Bool_4 = Output Bool_3
   assign bool_1 = bool_flag_1;
   assign bool_2 = bool_flag_2;
+  assign bool_3 = bool_flag_3;
+  assign bool_4 = bool_flag_4;
   assign symbol_out_1 = symbol_1[0];
   assign symbol_out_2 = symbol_2[0];
+  assign symbol_out_3 = symbol_3[0];
+  assign symbol_out_4 = symbol_4[0];
   assign COMP_mux_1_out = COMP_mux_1;
 endmodule
 

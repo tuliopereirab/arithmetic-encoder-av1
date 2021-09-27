@@ -25,10 +25,12 @@ module stage_3 #(
     output wire [(D_SIZE-1):0] out_s
   );
   wire [(LOW_WIDTH-1):0] low_bool_1, low_bool_2, low_cdf;
+  wire [(LOW_WIDTH-1):0] low_bool_3, low_bool_4;
   wire [(RANGE_WIDTH-1):0] out_bit_1_cdf, out_bit_2_cdf;
   wire [(RANGE_WIDTH-1):0] bool_out_bit_1_1, bool_out_bit_1_2;
-  wire [1:0] flag_cdf_1, flag_bit_bool_1, flag_bit_bool_2;
-  wire [(D_SIZE-1):0] s_cdf, s_bool_1, s_bool_2;
+  wire [1:0] flag_cdf_1, flag_bit_bool_1, flag_bit_bool_2, flag_bit_bool_3;
+  wire [1:0] flag_bit_bool_4;
+  wire [(D_SIZE-1):0] s_cdf, s_bool_1, s_bool_2, s_bool_3, s_bool_4;
 
   s3_cdf #(
     .D_SIZE (D_SIZE),
@@ -85,12 +87,52 @@ module stage_3 #(
         .out_bit_2 (out_bit_2_2),
         .flag_bitstream (flag_bit_bool_2) // If bool_flag_2 == 0, then flag = 0
     );
+    s3_bool #(
+      .D_SIZE (D_SIZE),
+      .LOW_WIDTH (LOW_WIDTH),
+      .RANGE_WIDTH (RANGE_WIDTH)
+      ) s3_bool_3 (
+        .in_d (d_3),
+        .in_s (s_bool_2),
+        .in_low (low_bool_2),
+        .symbol (symbol_3),
+        .pre_low (pre_low_3),
+        .in_range (range_in_3),
+        // Outputs
+        .out_s (s_bool_3),
+        .out_low (low_bool_3),
+        .out_bit_1 (out_bit_3_1),
+        .out_bit_2 (out_bit_3_2),
+        .flag_bitstream (flag_bit_bool_3) // If bool_flag_2 == 0, then flag = 0
+    );
+    s3_bool #(
+      .D_SIZE (D_SIZE),
+      .LOW_WIDTH (LOW_WIDTH),
+      .RANGE_WIDTH (RANGE_WIDTH)
+      ) s3_bool_4 (
+        .in_d (d_4),
+        .in_s (s_bool_3),
+        .in_low (low_bool_3),
+        .symbol (symbol_4),
+        .pre_low (pre_low_4),
+        .in_range (range_in_4),
+        // Outputs
+        .out_s (s_bool_4),
+        .out_low (low_bool_4),
+        .out_bit_1 (out_bit_4_1),
+        .out_bit_2 (out_bit_4_2),
+        .flag_bitstream (flag_bit_bool_4) // If bool_flag_2 == 0, then flag = 0
+    );
 
   // ------------------------------------------------------
-  assign out_low =  (bool_flag_1) ? ((bool_flag_2) ? low_bool_2 :
+  assign out_low =  (bool_flag_1) ? ((bool_flag_4) ? low_bool_4 :
+                                    (bool_flag_3) ? low_bool_3 :
+                                    (bool_flag_2) ? low_bool_2 :
                                     low_bool_1) :
                     low_cdf;
-  assign out_s =  (bool_flag_1) ? ((bool_flag_2) ? s_bool_2 :
+  assign out_s =  (bool_flag_1) ? ((bool_flag_4) ? s_bool_4 :
+                                  (bool_flag_3) ? s_bool_3 :
+                                  (bool_flag_2) ? s_bool_2 :
                                   s_bool_1) :
                   s_cdf;
   assign out_bit_1_1 =  (bool_flag_1) ? bool_out_bit_1_1 :
@@ -100,6 +142,10 @@ module stage_3 #(
   assign flag_bitstream_1 = (bool_flag_1) ? flag_bit_bool_1 :
                             flag_cdf_1;
   assign flag_bitstream_2 = (bool_flag_2) ? flag_bit_bool_2 :
+                            2'd0;
+  assign flag_bitstream_3 = (bool_flag_3) ? flag_bit_bool_3 :
+                            2'd0;
+  assign flag_bitstream_4 = (bool_flag_4) ? flag_bit_bool_4 :
                             2'd0;
   // ------------------------------------------------------
   // Assigned Outputs
