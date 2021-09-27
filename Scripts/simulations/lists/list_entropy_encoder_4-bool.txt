@@ -1,0 +1,12 @@
+../../rtl/entropy-encoder-4-bool/Miao_LZC.v
+../../rtl/entropy-encoder-4-bool/luts.v
+../../rtl/entropy-encoder-4-bool/final_bits.v
+../../rtl/entropy-encoder-4-bool/top_registers_control.v
+../../rtl/entropy-encoder-4-bool/control_unit.v
+../../rtl/entropy-encoder-4-bool/carry_propagation.v
+../../rtl/entropy-encoder-4-bool/stage_1.v
+../../rtl/entropy-encoder-4-bool/stage_2.v
+../../rtl/entropy-encoder-4-bool/stage_3.v
+../../rtl/entropy-encoder-4-bool/stage_4.v
+../../rtl/entropy-encoder-4-bool/arithmetic_encoder.v
+../../rtl/entropy-encoder-4-bool/entropy_encoder.v
