@@ -7,16 +7,21 @@ module stage_3 #(
   parameter D_SIZE = 5
   ) (
     input bool_flag_1, bool_flag_2, symbol_1, symbol_2, COMP_mux_1,
+    input bool_flag_3, bool_flag_4, symbol_3, symbol_4,
     input [RANGE_WIDTH:0] u,
     input [(LOW_WIDTH-1):0] in_low,
-    input [(D_SIZE-1):0] in_s, d_1, d_2,
-    input [(RANGE_WIDTH-1):0] pre_low_1, pre_low_2,
+    input [(D_SIZE-1):0] in_s, d_1, d_2, d_3, d_4,
+    input [(RANGE_WIDTH-1):0] pre_low_1, pre_low_2, pre_low_3, pre_low_4,
     input [(RANGE_WIDTH-1):0] range_in_1, range_in_2, range_ready,
+    input [(RANGE_WIDTH-1):0] range_in_3, range_in_4,
     output wire [(LOW_WIDTH-1):0] out_low,
     output wire [(RANGE_WIDTH-1):0] out_range,
     output wire [(RANGE_WIDTH-1):0] out_bit_1_1, out_bit_1_2,
     output wire [(RANGE_WIDTH-1):0] out_bit_2_1, out_bit_2_2,
+    output wire [(RANGE_WIDTH-1):0] out_bit_3_1, out_bit_3_2,
+    output wire [(RANGE_WIDTH-1):0] out_bit_4_1, out_bit_4_2,
     output wire [1:0] flag_bitstream_1, flag_bitstream_2,
+    output wire [1:0] flag_bitstream_3, flag_bitstream_4,
     output wire [(D_SIZE-1):0] out_s
   );
   wire [(LOW_WIDTH-1):0] low_bool_1, low_bool_2, low_cdf;

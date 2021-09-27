@@ -22,14 +22,16 @@ module stage_2 #(
     input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v,
     input COMP_mux_1,
     // bool
-    input [(SYMBOL_WIDTH-1):0] symbol_1, symbol_2,
-    input bool_flag_1, bool_flag_2,
+    input [(SYMBOL_WIDTH-1):0] symbol_1, symbol_2, symbol_3, symbol_4,
+    input bool_flag_1, bool_flag_2, bool_flag_3, bool_flag_4,
     // former stage 3 outputs
     output wire [RANGE_WIDTH:0] u,
-    output wire [(RANGE_WIDTH-1):0] pre_low_1, pre_low_2,
+    output wire [(RANGE_WIDTH-1):0] pre_low_1, pre_low_2, pre_low_3, pre_low_4,
     output wire [(RANGE_WIDTH-1):0] initial_range_1, initial_range_2, out_range,
-    output wire [(D_SIZE-1):0] out_d_1, out_d_2,
+    output wire [(RANGE_WIDTH-1):0] initial_range_3, initial_range_4,
+    output wire [(D_SIZE-1):0] out_d_1, out_d_2, out_d_3, out_d_4,
     output wire bool_1, bool_2, symbol_out_1, symbol_out_2,
+    output wire bool_3, bool_4, symbol_out_3, symbol_out_4,
     output wire COMP_mux_1_out
   );
   wire [(RANGE_WIDTH-1):0] range_bool_1, range_bool_2, range_cdf;

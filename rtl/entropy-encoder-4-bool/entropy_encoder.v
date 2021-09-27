@@ -15,12 +15,15 @@ module entropy_encoder #(
     the last input. */
     input top_final_flag,
     input [(TOP_RANGE_WIDTH-1):0] top_fl, top_fh,
-    input [(TOP_SYMBOL_WIDTH-1):0] top_symbol_1, top_symbol_2,
+    input [(TOP_SYMBOL_WIDTH-1):0] top_symbol_1, top_symbol_2, top_symbol_3,
+    input [(TOP_SYMBOL_WIDTH-1):0] top_symbol_4,
     input [TOP_SYMBOL_WIDTH:0] top_nsyms,
-    input top_bool_1, top_bool_2,
-    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1, OUT_BIT_2, OUT_BIT_3,
-    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_4, OUT_BIT_5,
-    output wire [2:0] OUT_FLAG_BITSTREAM,
+    input top_bool_1, top_bool_2, top_bool_3, top_bool_4,
+    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1_1, OUT_BIT_1_2, OUT_BIT_1_3,
+    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_1_4, OUT_BIT_1_5,
+    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_2_1, OUT_BIT_2_2, OUT_BIT_2_3,
+    output wire [(TOP_BITSTREAM_WIDTH-1):0] OUT_BIT_2_4, OUT_BIT_2_5,
+    output wire [2:0] OUT_FLAG_BITSTREAM_1, OUT_FLAG_BITSTREAM_2,
     output wire OUT_FLAG_LAST
   );
 
@@ -57,10 +60,11 @@ module entropy_encoder #(
     // ALl arithmetic encoder outputs come from registers
     // Therefore, it isn't necessary to create more registers here
   wire [(TOP_RANGE_WIDTH-1):0] pb_1_1, pb_1_2, pb_2_1, pb_2_2;
+  wire [(TOP_RANGE_WIDTH-1):0] pb_3_1, pb_3_2, pb_4_1, pb_4_2;
   wire [(TOP_RANGE_WIDTH-1):0] out_arith_range;
   wire [(TOP_D_SIZE-1):0] out_arith_cnt;
   wire [(TOP_LOW_WIDTH-1):0] out_arith_low;
-  wire [1:0] pb_flag_1, pb_flag_2;
+  wire [1:0] pb_flag_1, pb_flag_2, pb_flag_3, pb_flag_4;
 
 
   arithmetic_encoder #(
@@ -78,8 +82,12 @@ module entropy_encoder #(
       .general_nsyms (top_nsyms),
       .general_symbol_1 (top_symbol_1),
       .general_symbol_2 (top_symbol_2),
+      .general_symbol_3 (top_symbol_3),
+      .general_symbol_4 (top_symbol_4),
       .general_bool_1 (top_bool_1),
       .general_bool_2 (top_bool_2),
+      .general_bool_3 (top_bool_3),
+      .general_bool_4 (top_bool_4),
       // outputs
       .RANGE_OUTPUT (out_arith_range),
       .LOW_OUTPUT (out_arith_low),
@@ -88,8 +96,14 @@ module entropy_encoder #(
       .PB_1_2 (pb_1_2),
       .PB_2_1 (pb_2_1),
       .PB_2_2 (pb_2_2),
+      .PB_3_1 (pb_3_1),
+      .PB_3_2 (pb_3_2),
+      .PB_4_1 (pb_4_1),
+      .PB_4_2 (pb_4_2),
       .PB_FLAG_1 (pb_flag_1),
-      .PB_FLAG_2 (pb_flag_2)
+      .PB_FLAG_2 (pb_flag_2),
+      .PB_FLAG_3 (pb_flag_3),
+      .PB_FLAG_4 (pb_flag_4)
     );
 
   stage_4 #(
@@ -107,22 +121,31 @@ module entropy_encoder #(
       .s4_flag_first (reg_first_3_4),
       .s4_final_flag (reg_final_exec_3_4),
       .s4_final_flag_2_3 (reg_final_exec_2_3),
-      .in_arith_bitstream_1_1 (pb_1_1),
-      .in_arith_bitstream_1_2 (pb_1_2),
-      .in_arith_bitstream_2_1 (pb_2_1),
-      .in_arith_bitstream_2_2 (pb_2_2),
+      .in_arith_bitstream_1_1 (pb_1_1), .in_arith_bitstream_1_2 (pb_1_2),
+      .in_arith_bitstream_2_1 (pb_2_1), .in_arith_bitstream_2_2 (pb_2_2),
+      .in_arith_bitstream_3_1 (pb_3_1), .in_arith_bitstream_3_2 (pb_3_2),
+      .in_arith_bitstream_4_1 (pb_4_1), .in_arith_bitstream_4_2 (pb_4_2),
       .in_arith_range (out_arith_range),
       .in_arith_cnt(out_arith_cnt),
       .in_arith_low (out_arith_low),
       .in_arith_flag_1 (pb_flag_1),
       .in_arith_flag_2 (pb_flag_2),
+      .in_arith_flag_3 (pb_flag_3),
+      .in_arith_flag_4 (pb_flag_4),
       // outputs
-      .out_carry_bit_1 (OUT_BIT_1),
-      .out_carry_bit_2 (OUT_BIT_2),
-      .out_carry_bit_3 (OUT_BIT_3),
-      .out_carry_bit_4 (OUT_BIT_4),
-      .out_carry_bit_5 (OUT_BIT_5),
-      .out_carry_flag_bitstream (OUT_FLAG_BITSTREAM),
+      .out_carry_flag_bitstream_1 (OUT_FLAG_BITSTREAM_1),
+      .out_carry_bit_1_1 (OUT_BIT_1_1),
+      .out_carry_bit_1_2 (OUT_BIT_1_2),
+      .out_carry_bit_1_3 (OUT_BIT_1_3),
+      .out_carry_bit_1_4 (OUT_BIT_1_4),
+      .out_carry_bit_1_5 (OUT_BIT_1_5),
+      // ---
+      .out_carry_flag_bitstream_2 (OUT_FLAG_BITSTREAM_2),
+      .out_carry_bit_2_1 (OUT_BIT_2_1),
+      .out_carry_bit_2_2 (OUT_BIT_2_2),
+      .out_carry_bit_2_3 (OUT_BIT_2_3),
+      .out_carry_bit_2_4 (OUT_BIT_2_4),
+      .out_carry_bit_2_5 (OUT_BIT_2_5),
       .output_flag_last (OUT_FLAG_LAST)
     );
 endmodule

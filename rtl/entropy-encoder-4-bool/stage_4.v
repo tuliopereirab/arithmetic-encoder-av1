@@ -24,15 +24,21 @@ module stage_4 #(
                         //exactly in the next clock cycle after the last input
     input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_1_1, in_arith_bitstream_1_2,
     input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_2_1, in_arith_bitstream_2_2,
+    input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_3_1, in_arith_bitstream_3_2,
+    input [(S4_RANGE_WIDTH-1):0] in_arith_bitstream_4_1, in_arith_bitstream_4_2,
     input [(S4_RANGE_WIDTH-1):0] in_arith_range,
     input [(S4_D_SIZE-1):0] in_arith_cnt,
     input [(S4_LOW_WIDTH-1):0] in_arith_low,
-    input [1:0] in_arith_flag_1, in_arith_flag_2,
+    input [1:0] in_arith_flag_1, in_arith_flag_2, in_arith_flag_3,
+    input [1:0] in_arith_flag_4,
     // Outputs
-    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_1, out_carry_bit_2,
-    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_3, out_carry_bit_4,
-    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_5,
-    output wire [2:0] out_carry_flag_bitstream,
+    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_1_1, out_carry_bit_1_2,
+    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_1_3, out_carry_bit_1_4,
+    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_1_5,
+    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_2_1, out_carry_bit_2_2,
+    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_2_3, out_carry_bit_2_4,
+    output wire [(S4_BITSTREAM_WIDTH-1):0] out_carry_bit_2_5,
+    output wire [2:0] out_carry_flag_bitstream_1, out_carry_flag_bitstream_2,
     output wire output_flag_last
   );
 
