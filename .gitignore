@@ -2,9 +2,22 @@
 verification_area/Modelsim/modelsim_project/
 Quartus/
 lut/
-verification_area/c-arithmetic-encoder-av1/output-files/
 Scripts/outputs/
 docker/
+quartus-project/
+verification_area/c-arithmetic-encoder-av1/output-files/
+verification_area/c-arithmetic-encoder-av1/*.csv
+verification_area/entropy_encoder_tb/
+verification_area/modelsim_project/
+vivado-project/
+
+
+# Ignore specific files
+Project/solution_255_carry_glitch.txt
+Scripts/New_range.py
+Scripts/analysis.txt
+
+# -------------------------------------------------------
 
 # Ignore for C
 # Prerequisites
@@ -201,4 +214,3 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 #---------------------
-
