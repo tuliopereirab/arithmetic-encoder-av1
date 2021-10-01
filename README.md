@@ -10,7 +10,6 @@
 
 ## What is still missing?
 1. **Improve frequency and reduce area**: as higher as an architecture's frequency is, there are always ways to make it even higher without increasing the area.
-2. **Possible solution**: One of the possible solutions for increasing the throughput rate without increasing the frequency would be to remove the multiplication from the _Boolean Operation_ and create on the testbenches the possibility to execute two or three input lines (from the _.csv_ files) during the same clock cycle. This would only be possible on the _Boolean Operation_ and would required a burst of booleans.
 
 ## Project overview
 ### 4-stage pipeline
@@ -102,8 +101,12 @@
 **More information about the architecture in [Project](Project) folder.**
 
 ## Versions
-1. _entropy-encoder_ is the original architecture comprised by stages 1, 2, 3 and 4, as explained above.
-2. _entropy-encoder-lp_ is a low-power version of the architecture. This version uses Operand Isolation and Clock Gating to reduce the power consumption of the architecture. This version aims to prevent useless values from _Boolean Operation_ from being generated and stored.
+1. <code>[rtl/entropy-encoder-original](rtl/entropy-encoder-original)</code> is the original architecture comprised by stages 1, 2, 3 and 4, as explained above.
+2. <code>[rtl/entropy-encoder-lp](rtl/entropy-encoder-lp)</code> is a low-power version of the architecture. This version uses Operand Isolation and Clock Gating to reduce the power consumption of the architecture. This version aims to prevent useless values from _Boolean Operation_ from being generated and stored.
+3. <code>[rtl/entropy-encoder-1-bool](rtl/entropy-encoder-1-bool)</code> version with only one _Boolean Operation_ in Stages 2 and 3 (same as the <code>[rtl/entropy-encoder-original](rtl/entropy-encoder-original)</code> with the code divided in modules for _CDF_ and _Boolean Operations_);
+4. <code>[rtl/entropy-encoder-2-bool](rtl/entropy-encoder-2-bool)</code> version with 2 _Boolean Operations_ in parallel in Stages 2 and 3.
+5. <code>[rtl/entropy-encoder-3-bool](rtl/entropy-encoder-3-bool)</code> version with 3 _Boolean Operations_ in parallel in Stages 2 and 3.
+6. <code>[rtl/entropy-encoder-4-bool](rtl/entropy-encoder-4-bool)</code> version with 4 _Boolean Operations_ in parallel in Stages 2 and 3. Also added another _Carry Propagation_ block in Stage 4 totaling 2.
 
 ## How to run the main testbench?
 1. Generate the simulation data and generate the LUT data ([lut-generator.py](Scripts/lut-generator.py));

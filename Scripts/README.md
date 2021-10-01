@@ -5,7 +5,7 @@
 - Each of the scripts will be explained here.
 - A **grade of importance** (0-10) is added to each script.
 
-## [get_frame.py](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/get_frame.py)
+## [get_frame.py](get_frame.py)
 - **Importance:** 7
 - **Goal:** Randomly select a frame from datasets (originally datasets have 120 frames) and save it into a new file.
 ### Methodology
@@ -17,7 +17,7 @@
 - **Note 2**: some frames might have too few inputs. This might reduce the verification coverage or impacts the power analysis.  
 
 
-## [lut-generator.py](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/lut-generator.py)
+## [lut-generator.py](lut-generator.py)
 - **Importance:** 10
 - **Goal:** This script is able to generate the look-up table (LUT) data. It is capable of generating data in _.mem_, _.mif_ or _Verilog_ files (the latter represents an arrangements of multiplexers that behaves as a LUT).
 ### Methodology
@@ -27,14 +27,14 @@
 - The variables **N** and **s** are used as address for the look-up table, which means the LUT is **addressed by an 8-bit array**.
 - By running a _for_ loop inside another _for_ loop it is possible to ensure the right addresses for the data.
 
-## [~simulation-file-generator.py~](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/simulation-file-generator.py)
+## [~simulation-file-generator.py~](simulation-file-generator.py)
 - **Importance:** 1
 - **Goal:** Used, at the beginning of the project, to convert decimal input datasets to binary ones. _It is currently out of use due to the SystemVerilog possibility to accept decimal inputs._
 ### Methodology
 - **This script shouldn't be used but it won't be removed from the repository.**
 
 
-## [statistics.py](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/statistics.py)
+## [statistics.py](statistics.py)
 - **Importance:** 7
 - **Goal:** To calculate the percentage of _Boolean Operations_ among all inputs. Used mainly to achieve a better low-power version.
 ### Methodology
@@ -42,7 +42,7 @@
 - After that, the script prints on screen the total of inputs, the total of _Boolean Operations_ found and the boolean percentage.
 
 
-## [throughput_analysis.py](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/throughput_analysis.py)
+## [throughput_analysis.py](throughput_analysis.py)
 - **Importance:** 8
 - **Goal:** To analyze the throughput rate of the architecture according to the input datasets.
 ### Methodology
@@ -58,8 +58,8 @@
 - The final result is: **The average number of bits encoded per cycle**
 - **Note:** If eventually it is found a way to increase the number of symbols encoded per clock cycle in the architecture, then this script should be modified as well. This script assumes that only one symbol will be encoded per clock cycle.
 
-## [simulations](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/Scripts/simulations) folder
-- This folder comprises scripts ([executor.sh](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/simulations/executor.sh) and [Makefile](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/simulations/Makefile)) that allows an easier compilation with _Icarus Verilog_ (iverilog).
+## [simulations](simulations) folder
+- This folder comprises scripts ([executor.sh](simulations/executor.sh) and [Makefile](simulations/Makefile)) that allows an easier compilation with _Icarus Verilog_ (iverilog).
 - _Icarus Verilog_ is a tool that runs a very light and efficient compiler. It surely provides a simulation property as well, but it doesn't support _SystemVerilog_ testbenches, which was the language chosen for the project. Hence, _iverilog_ is only used for raw compilation before sending the files to a Modelsim environment.
-- To simplify the use of _iverilog_, a folder with the [lists](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/Scripts/simulations/lists) of files was created. The lists are for the [entropy-encoder](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/simulations/lists/list_entropy_encoder.txt) and for the [entropy-encoder-lp](https://github.com/tuliopereirab/arithmetic-encoder-av1/blob/master/Scripts/simulations/lists/list_entropy_encoder-lp.txt).
+- To simplify the use of _iverilog_, a folder with the [lists](simulations/lists) of files was created. The lists are for the [entropy-encoder](simulations/lists/list_entropy_encoder.txt) and for the [entropy-encoder-lp](simulations/lists/list_entropy_encoder-lp.txt).
 - **Note**: before using these scripts, please make sure the files **exist** and their are correctly pointed by the lists.

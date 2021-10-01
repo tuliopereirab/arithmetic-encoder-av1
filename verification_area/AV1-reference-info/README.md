@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This directory contains all the necessary files to generate valid datasets from the AV1 Reference software that match with the [testbenches](https://github.com/tuliopereirab/arithmetic-encoder-av1/tree/master/verification_area/testbenches) created.
+This directory contains all the necessary files to generate valid datasets from the AV1 Reference software that match with the [testbenches](../testbenches) created.
 
 ## Important Files
 
