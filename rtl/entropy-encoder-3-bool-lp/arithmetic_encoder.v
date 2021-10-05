@@ -168,9 +168,17 @@ module arithmetic_encoder #(
       reg_bool_s12_1 <= bool_output_s12_1;
       reg_bool_s12_2 <= bool_output_s12_2;      // Parallel Bool
       reg_bool_s12_3 <= bool_output_s12_3;      // Parallel Bool
+    end
+  end
+  // Clock Gating for Stage 1
+  always @ (posedge general_clk) begin
+    if(ctrl_reg_1_2 && bool_output_s12_1) begin
       reg_symbol_s12_1 <= symbol_output_s12_1;
-      reg_symbol_s12_2 <= symbol_output_s12_2;  // Parallel Bool
-      reg_symbol_s12_3 <= symbol_output_s12_3;  // Parallel Bool
+      if(bool_output_s12_2) begin
+        reg_symbol_s12_2 <= symbol_output_s12_2;  // Parallel Bool
+        if(bool_output_s12_3)
+          reg_symbol_s12_3 <= symbol_output_s12_3;  // Parallel Bool
+      end
     end
   end
   // ---------------------------------------------------
@@ -228,23 +236,32 @@ module arithmetic_encoder #(
       if(ctrl_reg_2_3) begin
         reg_COMP_mux_1_s23 = COMP_mux_1_out_s23;
         // Parallel Bool
-        reg_initial_range_1 = initial_range_out_1;
-        reg_initial_range_2 = initial_range_out_2;
-        reg_initial_range_3 = initial_range_out_3;
-        reg_bool_s23_1 = bool_output_s23_1;
-        reg_bool_s23_2 = bool_output_s23_2;
-        reg_bool_s23_3 = bool_output_s23_3;
-        reg_symbol_s23_1 = symbol_output_s23_1;
-        reg_symbol_s23_2 = symbol_output_s23_2;
-        reg_symbol_s23_3 = symbol_output_s23_3;
-        reg_u = u_out;
-        reg_d_1 = d_out_1;
-        reg_d_2 = d_out_2;
-        reg_d_3 = d_out_3;
+        reg_initial_range_1 <= initial_range_out_1;
+        reg_bool_s23_1 <= bool_output_s23_1;
+        reg_bool_s23_2 <= bool_output_s23_2;
+        reg_bool_s23_3 <= bool_output_s23_3;
+        reg_u <= u_out;
+        reg_d_1 <= d_out_1;
         // Pre-low
-        reg_pre_low_bool_1 = pre_low_bool_1;
-        reg_pre_low_bool_2 = pre_low_bool_2;
-        reg_pre_low_bool_3 = pre_low_bool_3;
+      end
+    end
+    // Clock Gating Stage 2
+    always @ (posedge general_clk) begin
+      if(ctrl_reg_2_3 && bool_output_s23_1) begin
+        reg_symbol_s23_1 <= symbol_output_s23_1;
+        reg_pre_low_bool_1 <= pre_low_bool_1;
+        if(bool_output_s23_2) begin
+          reg_initial_range_2 <= initial_range_out_2;
+          reg_symbol_s23_2 <= symbol_output_s23_2;
+          reg_d_2 <= d_out_2;
+          reg_pre_low_bool_2 <= pre_low_bool_2;
+          if(bool_output_s23_3) begin
+            reg_initial_range_3 <= initial_range_out_3;
+            reg_d_3 <= d_out_3;
+            reg_symbol_s23_3 <= symbol_output_s23_3;
+            reg_pre_low_bool_3 <= pre_low_bool_3;
+          end
+        end
       end
     end
 
@@ -296,14 +313,26 @@ module arithmetic_encoder #(
     if(ctrl_reg_final) begin
       // First
       reg_flag_bitstream_1 <= out_flag_bitstream_1;
-      reg_pre_bitstream_1_1 <= pre_bitstream_out_1_1;
-      reg_pre_bitstream_1_2 <= pre_bitstream_out_1_2;
       // Second
       reg_flag_bitstream_2 <= out_flag_bitstream_2;
-      reg_pre_bitstream_2_1 <= pre_bitstream_out_2_1;
-      reg_pre_bitstream_2_2 <= pre_bitstream_out_2_2;
       // Third
       reg_flag_bitstream_3 <= out_flag_bitstream_3;
+    end
+  end
+  // Clock Gating Stage 3
+  always @ (posedge general_clk) begin
+    if(ctrl_reg_final &&
+      (out_flag_bitstream_1[0] || out_flag_bitstream_1[1])) begin
+      reg_pre_bitstream_1_1 <= pre_bitstream_out_1_1;
+      reg_pre_bitstream_1_2 <= pre_bitstream_out_1_2;
+    end
+    if(ctrl_reg_final &&
+      (out_flag_bitstream_2[0] || out_flag_bitstream_2[1])) begin
+      reg_pre_bitstream_2_1 <= pre_bitstream_out_2_1;
+      reg_pre_bitstream_2_2 <= pre_bitstream_out_2_2;
+    end
+    if(ctrl_reg_final &&
+      (out_flag_bitstream_3[0] || out_flag_bitstream_3[1])) begin
       reg_pre_bitstream_3_1 <= pre_bitstream_out_3_1;
       reg_pre_bitstream_3_2 <= pre_bitstream_out_3_2;
     end

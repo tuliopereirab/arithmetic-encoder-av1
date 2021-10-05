@@ -202,13 +202,21 @@ module stage_4 #(
       reg_1st_bitstream <= out_flag_1st_bitstream;
   end
 
+  // Clock Gating Stage 4
+  always @ (posedge s4_clk) begin
+    if(ctrl_carry_reg &&
+      (s4_final_flag || cp_input_flag_1[0] || cp_input_flag_1[1])) begin
+        reg_out_bitstream_1_1 <= out_carry_bitstream_1_1;
+        reg_out_bitstream_1_2 <= out_carry_bitstream_1_2;
+        reg_out_bitstream_1_3 <= out_carry_bitstream_1_3;
+        reg_out_bitstream_1_4 <= out_carry_bitstream_1_4;
+        reg_out_bitstream_1_5 <= out_carry_bitstream_1_5;
+      end
+  end
+  // ---------------------------
+
   always @ (posedge s4_clk) begin
     if(ctrl_carry_reg) begin
-      reg_out_bitstream_1_1 <= out_carry_bitstream_1_1;
-      reg_out_bitstream_1_2 <= out_carry_bitstream_1_2;
-      reg_out_bitstream_1_3 <= out_carry_bitstream_1_3;
-      reg_out_bitstream_1_4 <= out_carry_bitstream_1_4;
-      reg_out_bitstream_1_5 <= out_carry_bitstream_1_5;
       reg_flag_last_output <= out_carry_flag_last;
     end
   end
