@@ -150,12 +150,18 @@ module stage_4 #(
   // =============================================================
 
   always @ (posedge s4_clk) begin
-    if(ctrl_carry_reg) begin
+    if(ctrl_carry_reg &&
+      (s4_final_flag || in_arith_flag[0] || in_arith_flag[1])) begin
       reg_out_bitstream_1 <= out_carry_bitstream_1;
       reg_out_bitstream_2 <= out_carry_bitstream_2;
       reg_out_bitstream_3 <= out_carry_bitstream_3;
       reg_out_bitstream_4 <= out_carry_bitstream_4;
       reg_out_bitstream_5 <= out_carry_bitstream_5;
+    end
+  end
+
+  always @ (posedge s4_clk) begin
+    if(ctrl_carry_reg) begin
       reg_flag_last_output <= out_carry_flag_last;
     end
   end

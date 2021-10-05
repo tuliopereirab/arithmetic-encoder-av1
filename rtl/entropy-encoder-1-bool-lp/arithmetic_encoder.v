@@ -117,6 +117,11 @@ module arithmetic_encoder #(
       reg_VV <= vv_out;
       reg_COMP_mux_1 <= COMP_mux_1_out;
       reg_bool_s12 <= bool_output;
+    end
+  end
+  // Clock Gating for Stage 1
+  always @ (posedge general_clk) begin
+    if(ctrl_reg_1_2 && bool_output) begin
       reg_symbol <= symbol_output;
     end
   end
@@ -157,12 +162,17 @@ module arithmetic_encoder #(
     always @ (posedge general_clk) begin
       if(ctrl_reg_2_3) begin
         reg_u <= u_out;
-        reg_pre_low <= pre_low_out;
         reg_initial_range <= initial_range_out;
         reg_d <= d_out;
         reg_bool_s23 <= bool_out_s23;
-        reg_symbol_s23 <= symbol_out_s23;
         reg_COMP_mux_1_s23 <= COMP_mux_1_out_s23;
+      end
+    end
+    // Clock Gating for Stage 2
+    always @ (posedge general_clk) begin
+      if(ctrl_reg_2_3 && bool_out_s23) begin
+        reg_pre_low <= pre_low_out;
+        reg_symbol_s23 <= symbol_out_s23;
       end
     end
 
@@ -193,6 +203,11 @@ module arithmetic_encoder #(
   always @ (posedge general_clk) begin
     if(ctrl_reg_final) begin
       reg_flag_bitstream <= out_flag_bitstream;
+    end
+  end
+  // Clock gating for Stage 3
+  always @ (posedge general_clk) begin
+    if(ctrl_reg_final && (out_flag_bitstream[0] || out_flag_bitstream[1])) begin
       reg_pre_bitstream_1 <= pre_bitstream_out_1;
       reg_pre_bitstream_2 <= pre_bitstream_out_2;
     end
