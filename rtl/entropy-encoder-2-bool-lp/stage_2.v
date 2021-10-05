@@ -35,6 +35,13 @@ module stage_2 #(
   wire [(RANGE_WIDTH-1):0] range_bool_1, range_bool_2, range_cdf;
   wire [(D_SIZE-1):0] d_cdf, d_bool_1, d_bool_2;
 
+  // Operand Isolation
+  wire [(RANGE_WIDTH-1):0] op_bool_1, op_bool_2;
+  assign op_bool_1 =  (bool_flag_1) ? 16'd65535 :
+                      16'd0;
+  assign op_bool_2 =  (bool_flag_1 && bool_flag_2) ? 16'd65535 :
+                      16'd0;
+  // ----------------------------
 
   // CDF block returns the Range already normalized
   s2_cdf #(
@@ -58,7 +65,7 @@ module stage_2 #(
     .RANGE_WIDTH (RANGE_WIDTH),
     .SYMBOL_WIDTH (SYMBOL_WIDTH)
     ) s2_bool_1 (
-      .in_range (in_range),
+      .in_range (in_range & op_bool_1),
       .symbol (symbol_1),
       // Outputs
       .out_range (range_bool_1),
@@ -70,7 +77,7 @@ module stage_2 #(
     .RANGE_WIDTH (RANGE_WIDTH),
     .SYMBOL_WIDTH (SYMBOL_WIDTH)
     ) s2_bool_2 (
-      .in_range (range_bool_1),
+      .in_range (range_bool_1 & op_bool_2),
       .symbol (symbol_2),
       // Outputs
       .out_range (range_bool_2),
