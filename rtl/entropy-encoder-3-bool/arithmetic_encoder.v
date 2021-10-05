@@ -218,33 +218,33 @@ module arithmetic_encoder #(
 
     always @ (posedge general_clk) begin
       if(reset) begin
-        reg_range_ready = 16'd32768;
+        reg_range_ready <= 16'd32768;
       end
       else if(ctrl_reg_2_3) begin
-        reg_range_ready = range_ready_out;
+        reg_range_ready <= range_ready_out;
       end
     end
     always @ (posedge general_clk) begin
       if(ctrl_reg_2_3) begin
-        reg_COMP_mux_1_s23 = COMP_mux_1_out_s23;
+        reg_COMP_mux_1_s23 <= COMP_mux_1_out_s23;
         // Parallel Bool
-        reg_initial_range_1 = initial_range_out_1;
-        reg_initial_range_2 = initial_range_out_2;
-        reg_initial_range_3 = initial_range_out_3;
-        reg_bool_s23_1 = bool_output_s23_1;
-        reg_bool_s23_2 = bool_output_s23_2;
-        reg_bool_s23_3 = bool_output_s23_3;
-        reg_symbol_s23_1 = symbol_output_s23_1;
-        reg_symbol_s23_2 = symbol_output_s23_2;
-        reg_symbol_s23_3 = symbol_output_s23_3;
-        reg_u = u_out;
-        reg_d_1 = d_out_1;
-        reg_d_2 = d_out_2;
-        reg_d_3 = d_out_3;
+        reg_initial_range_1 <= initial_range_out_1;
+        reg_initial_range_2 <= initial_range_out_2;
+        reg_initial_range_3 <= initial_range_out_3;
+        reg_bool_s23_1 <= bool_output_s23_1;
+        reg_bool_s23_2 <= bool_output_s23_2;
+        reg_bool_s23_3 <= bool_output_s23_3;
+        reg_symbol_s23_1 <= symbol_output_s23_1;
+        reg_symbol_s23_2 <= symbol_output_s23_2;
+        reg_symbol_s23_3 <= symbol_output_s23_3;
+        reg_u <= u_out;
+        reg_d_1 <= d_out_1;
+        reg_d_2 <= d_out_2;
+        reg_d_3 <= d_out_3;
         // Pre-low
-        reg_pre_low_bool_1 = pre_low_bool_1;
-        reg_pre_low_bool_2 = pre_low_bool_2;
-        reg_pre_low_bool_3 = pre_low_bool_3;
+        reg_pre_low_bool_1 <= pre_low_bool_1;
+        reg_pre_low_bool_2 <= pre_low_bool_2;
+        reg_pre_low_bool_3 <= pre_low_bool_3;
       end
     end
 
