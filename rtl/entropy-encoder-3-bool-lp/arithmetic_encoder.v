@@ -113,10 +113,9 @@ module arithmetic_encoder #(
   wire [1:0] out_flag_bitstream_1, out_flag_bitstream_2, out_flag_bitstream_3;
   // ---------------------------------------------------
   // Operand Isolation Variables
-  wire [(LOW_WIDTH-1):0] out_op_iso_1_s12, out_op_iso_2_s12, out_op_iso_3_s12;
-  wire [(LOW_WIDTH-1):0] op_iso_1_out_s23, op_iso_2_out_s23, op_iso_3_out_s23;
-  reg [(LOW_WIDTH-1):0] reg_op_iso_1_s23, reg_op_iso_2_s23, reg_op_iso_3_s23;
-  reg [(LOW_WIDTH-1):0] reg_op_iso_1_s23, reg_op_iso_2_s23, reg_op_iso_3_s23;
+  wire [(GENERAL_LOW_WIDTH-1):0] out_op_iso_1_s12, out_op_iso_2_s12, out_op_iso_3_s12;
+  reg [(GENERAL_LOW_WIDTH-1):0] reg_op_iso_1_s12, reg_op_iso_2_s12, reg_op_iso_3_s12;
+  reg [(GENERAL_LOW_WIDTH-1):0] reg_op_iso_1_s23, reg_op_iso_2_s23, reg_op_iso_3_s23;
   // ---------------------------------------------------
   // reset
   always @ (posedge general_clk) begin

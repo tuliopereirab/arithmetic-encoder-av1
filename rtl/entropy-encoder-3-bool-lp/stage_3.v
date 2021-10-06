@@ -15,7 +15,7 @@ module stage_3 #(
     input [RANGE_WIDTH:0] u,
     input [(RANGE_WIDTH-1):0] pre_low_bool_1, pre_low_bool_2, pre_low_bool_3,
     input [(RANGE_WIDTH-1):0] in_range_1, in_range_2, in_range_3, range_ready,
-    output wire [(LOW_WIDTH-1):0] op_iso_bool_1, op_iso_bool_2, op_iso_bool_3,
+    input [(LOW_WIDTH-1):0] op_iso_bool_1, op_iso_bool_2, op_iso_bool_3,
     output wire [(D_SIZE-1):0] out_s,
     output wire [(LOW_WIDTH-1):0] out_low,
     output wire [(RANGE_WIDTH-1):0] out_range,

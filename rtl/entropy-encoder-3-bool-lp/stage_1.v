@@ -20,7 +20,7 @@ module stage_1 #(
                                       // receives the symbol (0 <= SYMB <= 15)
     input [SYMBOL_WIDTH:0] NSYMS,   // defined as 1 bit longer than SYMBOL;
                                     // nsyms receives the number of symbols used
-    output wire [(RANGE_WIDTH-1):0] op_iso_bool_1, op_iso_bool_2, op_iso_bool_3,
+    output wire [(LOW_WIDTH-1):0] op_iso_bool_1, op_iso_bool_2, op_iso_bool_3,
     output wire COMP_mux_1, bool_out_1, bool_out_2, bool_out_3,
     output wire [(LUT_DATA_WIDTH-1):0] lut_u_out, lut_v_out, lut_uv_out,
     output wire [(SYMBOL_WIDTH-1):0] out_symbol_1, out_symbol_2, out_symbol_3,

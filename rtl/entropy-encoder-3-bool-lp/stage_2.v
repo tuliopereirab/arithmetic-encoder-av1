@@ -23,8 +23,8 @@ module stage_2 #(
     input bool_flag_1, bool_flag_2, bool_flag_3,
     input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v, lut_uv,
     input [(SYMBOL_WIDTH-1):0] in_symbol_1, in_symbol_2, in_symbol_3,
+    input [(RANGE_WIDTH-1):0] op_iso_bool_1, op_iso_bool_2, op_iso_bool_3,
     // Outputs
-    output wire [(RANGE_WIDTH-1):0] op_iso_bool_1, op_iso_bool_2, op_iso_bool_3,
     output wire COMP_mux_1_out,
     output wire out_bool_1, out_bool_2, out_bool_3,
     output wire out_symbol_1, out_symbol_2, out_symbol_3, // LSB symbol
