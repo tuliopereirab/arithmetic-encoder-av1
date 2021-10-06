@@ -55,18 +55,32 @@ This architecture, as the other versions of it, relies on a 4-stage pipeline. Th
 ### Versions:
 - _Following information generated in 2021-09-27_
 - _Using ST 65nm PDF for synthesis_
-- [1-bool](entropy-encoder-1-bool): only 1 Boolean block.
-  - **Frequency**: 576.701 MHz
-  - **Area**: 10.7k
-- [2-bool](entropy-encoder-2-bool): only 2 Boolean blocks.
-  - **Frequency**: 584.112 MHz
-  - **Area**: 15.5k
-- [3-bool](entropy-encoder-3-bool): only 3 Boolean blocks.
-  - **Frequency**: 566.893 MHz
-  - **Area**: 21.2k
-- [4-bool](entropy-encoder-4-bool): only 4 Boolean blocks.
+- [1-bool](entropy-encoder-1-bool): only 1 Boolean block. Critical path located in Stage 2 (_Range updating process_).
+  - **Frequency**: 581.395 MHz
+  - **Area**: 11.7k
+- [2-bool](entropy-encoder-2-bool): only 2 Boolean blocks. Critical path located in Stage 2 (_Range updating process_).
+  - **Frequency**: 590.319 MHz
+  - **Area**: 16.3k
+- [3-bool](entropy-encoder-3-bool): only 3 Boolean blocks. Critical path located in Stage 2 (_Range updating process_).
+  - **Frequency**: 558.971 MHz
+  - **Area**: 20.3k
+- [4-bool](entropy-encoder-4-bool): only 4 Boolean blocks. Frequency drop due to critical path moving to Stage 3 instead of Stage 2.
   - **Frequency**: 445.434 MHz
   - **Area**: 20.7k
+
+### Low-Power Multi-Boolean Versions
+- _Check the v1.3-MB-LP tag for all techniques and important information._
+- _Following information generated in 2021-10-06_
+- _Using ST 65nm PDF for synthesis_
+- [1-bool-lp](entropy-encoder-1-bool-lp): only 1 Boolean block using Low-Power techniques. Critical path in Stage 2 (_Range updating process_).
+  - **Frequency**: 584.795 MHz
+  - **Area**: 11.5k
+- [2-bool-lp](entropy-encoder-2-bool-lp): only 2 Boolean blocks using Low-Power techniques. Critical path in Stage 2 (_Range updating process_).
+  - **Frequency**: 584.112 MHz
+  - **Area**: 16.8k
+- [3-bool-lp](entropy-encoder-3-bool-lp): only 3 Boolean blocks using Low-Power techniques. Critical path in Stage 2 (_Range updating process_).
+  - **Frequency**: 519.211 MHz
+  - **Area**: 20.8k
 
 
 ## [Other-blocks](other-blocks)

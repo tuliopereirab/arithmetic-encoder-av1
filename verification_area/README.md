@@ -10,9 +10,9 @@
 
 The [verification_area](../verification_area) comprises several SystemVerilog files that allow different kinds of simulation.
 
-- [testbenches/tb_1-bool.sv](testbenches/tb_1-bool.sv) testbench for [entropy-encoder-original](../rtl/entropy-encoder-original), [entropy-encoder-lp](../rtl/entropy-encoder-lp) and [entropy-encoder-1-bool](../rtl/entropy-encoder-1-bool);
-- [testbenches/tb_2-bool.sv](testbenches/tb_2-bool.sv) testbench for [entropy-encoder-2-bool](../rtl/entropy-encoder-2-bool);
-- [testbenches/tb_3-bool.sv](testbenches/tb_3-bool.sv) testbench for [entropy-encoder-3-bool](../rtl/entropy-encoder-3-bool);
+- [testbenches/tb_1-bool.sv](testbenches/tb_1-bool.sv) testbench for [entropy-encoder-original](../rtl/entropy-encoder-original), [entropy-encoder-lp](../rtl/entropy-encoder-lp), [entropy-encoder-1-bool](../rtl/entropy-encoder-1-bool) and [entropy-encoder-1-bool-lp](../rtl/entropy-encoder-1-bool-lp);
+- [testbenches/tb_2-bool.sv](testbenches/tb_2-bool.sv) testbench for [entropy-encoder-2-bool](../rtl/entropy-encoder-2-bool) and [entropy-encoder-2-bool-lp](../rtl/entropy-encoder-2-bool-lp);
+- [testbenches/tb_3-bool.sv](testbenches/tb_3-bool.sv) testbench for [entropy-encoder-3-bool](../rtl/entropy-encoder-3-bool) and [entropy-encoder-3-bool-lp](../rtl/entropy-encoder-3-bool-lp);
 - [testbenches/tb_4-bool.sv](testbenches/tb_4-bool.sv) testbench for [entropy-encoder-4-bool](../rtl/entropy-encoder-4-bool);
 - [testbenches/tb_arith_encoder.sv](testbenches/tb_arith_encoder.sv) is a SystemVerilog that only simulates the sub-module 'Arith_Encoder' (this sub-module comprises the pipeline stages 1, 2 and 3);
 - [testbenches/components/](/testbenches/components) is a directory that comprises testbenches for the different modules found within the repository ([LZC.v](../rtl/other-blocks/vedic-multiplier/vedic_16x16.v), etc);
@@ -37,3 +37,24 @@ The [verification_area](../verification_area) comprises several SystemVerilog fi
 ## Observation
 
 - The herein cited testbenches were simulated until **Altera ModelSim**. Therefore, the use of other softwares might required some changes upon the <code>.sv</code> files, or even on the <code>rtl</code> files.
+
+## Modelsim Flow
+- _Problem?_ Running simulation using the Altera Modelsim tool doesn't allow the use of different datasets. Hence, it was created the <code>[modelsim_flow.tcl](Modelsim/modelsim_flow.tcl)</code> script to solve this problem.
+### <code>[modelsim_flow.tcl](Modelsim/modelsim_flow.tcl)</code> features
+- Easy to configure:
+  1. Set the <code>arc_version</code> variable to define the waveforms to be added into the proper Modelsim window;
+  2. If the testbench is set to generate VCD files for each simulation, set <code>dump_vcd</code> to 1. Otherwise, leave it 0;
+  3. Take the corresponding testbench from [testbenches](testbenches) and set the constant <code>MODELSIM_FLOW</code> to one. Change the <code>DUMPFILE</code> variable in the testbench according to step 2;
+  4. Make sure <code>TARGET_PATH</code> in the testbench matches with <code>target_path</code> in <code>[modelsim_flow.tcl](Modelsim/modelsim_flow.tcl)</code>;
+  5. Use the variable <code>set_dataset</code> in <code>[modelsim_flow.tcl](Modelsim/modelsim_flow.tcl)</code> or modify the _if_ statement around line 40 to reflect your sequence directory. The script will read the directories according to the following path: <code>cqs/configs/videos</code>.
+  6. As a follow-up for **5.**, set the <code>final_bitstream</code> and <code>final_main</code> in <code>[modelsim_flow.tcl](Modelsim/modelsim_flow.tcl)</code> to reflect the suffix used for the <code>bitstream</code> and <code>main_data</code> files for each video sequence.
+    - The file with all inputs will be set to: <code>${videos}-${final_main}</code>
+    - The file with all outputs for verification will be set to: <code>${videos}-${final_bitstream}</code>
+  7. Make sure <code>TARGET_MAIN</code> and <code>TARGET_BITSTREAM</code> in the testbench match with <code>${target_name}-${final_main}</code> and <code>${target_name}-${final_bitstream}</code>, respectively, in the <code>[modelsim_flow.tcl](Modelsim/modelsim_flow.tcl)</code>.
+- Most of the above presented steps are just part of a check-list to ensure the correct execution of the flow.
+- The <code>[modelsim_flow.tcl](Modelsim/modelsim_flow.tcl)</code> relies on the idea of moving the datasets to an specific directory to be read by the testbench.
+- The execution loop is defined by:
+  1. The flow moves each dataset (<code>main_data</code> and <code>bitstream</code>),
+  2. Runs the simulation,
+  3. Deletes the dataset, and
+  4. Restarts with another video sequence.
