@@ -24,6 +24,7 @@ module stage_2 #(
     input [(RANGE_WIDTH-1):0] UU, VV, in_range, lut_u, lut_v, lut_uv,
     input [(SYMBOL_WIDTH-1):0] in_symbol_1, in_symbol_2, in_symbol_3,
     // Outputs
+    output wire [(RANGE_WIDTH-1):0] op_iso_bool_1, op_iso_bool_2, op_iso_bool_3,
     output wire COMP_mux_1_out,
     output wire out_bool_1, out_bool_2, out_bool_3,
     output wire out_symbol_1, out_symbol_2, out_symbol_3, // LSB symbol
@@ -37,17 +38,6 @@ module stage_2 #(
   wire [(RANGE_WIDTH-1):0] range_bool_1, range_bool_2, range_bool_3;
   wire [(RANGE_WIDTH-1):0] range_cdf;
   wire [(D_SIZE-1):0] out_d_bool_1, out_d_cdf_1;
-
-  // Operand Isolation
-  wire [(RANGE_WIDTH-1):0] op_bool_1, op_bool_2, op_bool_3;
-  assign op_bool_1 =  (bool_flag_1) ? 16'd65535 :
-                      16'd0;
-  assign op_bool_2 =  (bool_flag_1 && bool_flag_2) ? 16'd65535 :
-                      16'd0;
-  assign op_bool_3 =  (bool_flag_1 && bool_flag_2 && bool_flag_3) ? 16'd65535 :
-                      16'd0;
-  // --------------------------------------
-
 
   // CDF Operation
   s2_cdf #(
@@ -79,7 +69,7 @@ module stage_2 #(
     .SYMBOL_WIDTH (SYMBOL_WIDTH),
     .D_SIZE (D_SIZE)
     ) s2_bool_1 (
-      .in_range (in_range & op_bool_1),
+      .in_range (in_range & op_iso_bool_1),
       .symbol (in_symbol_1),
       // Outputs
       .out_d (out_d_bool_1),
@@ -91,7 +81,7 @@ module stage_2 #(
     .SYMBOL_WIDTH (SYMBOL_WIDTH),
     .D_SIZE (D_SIZE)
     ) s2_bool_2 (
-      .in_range (range_bool_1 & op_bool_2),
+      .in_range (range_bool_1 & op_iso_bool_2),
       .symbol (in_symbol_2),
       // Outputs
       .out_d (out_d_2),
@@ -103,7 +93,7 @@ module stage_2 #(
     .SYMBOL_WIDTH (SYMBOL_WIDTH),
     .D_SIZE (D_SIZE)
     ) s2_bool_3 (
-      .in_range (range_bool_2 & op_bool_3),
+      .in_range (range_bool_2 & op_iso_bool_3),
       .symbol (in_symbol_3),
       // Outputs
       .out_d (out_d_3),

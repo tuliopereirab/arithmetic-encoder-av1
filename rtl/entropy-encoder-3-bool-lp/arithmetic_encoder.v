@@ -112,6 +112,12 @@ module arithmetic_encoder #(
   wire [(GENERAL_RANGE_WIDTH-1):0] pre_bitstream_out_3_1, pre_bitstream_out_3_2;
   wire [1:0] out_flag_bitstream_1, out_flag_bitstream_2, out_flag_bitstream_3;
   // ---------------------------------------------------
+  // Operand Isolation Variables
+  wire [(LOW_WIDTH-1):0] out_op_iso_1_s12, out_op_iso_2_s12, out_op_iso_3_s12;
+  wire [(LOW_WIDTH-1):0] op_iso_1_out_s23, op_iso_2_out_s23, op_iso_3_out_s23;
+  reg [(LOW_WIDTH-1):0] reg_op_iso_1_s23, reg_op_iso_2_s23, reg_op_iso_3_s23;
+  reg [(LOW_WIDTH-1):0] reg_op_iso_1_s23, reg_op_iso_2_s23, reg_op_iso_3_s23;
+  // ---------------------------------------------------
   // reset
   always @ (posedge general_clk) begin
     if(reset) begin
@@ -128,6 +134,7 @@ module arithmetic_encoder #(
   // ---------------------------------------------------
   stage_1 #(
     .RANGE_WIDTH (GENERAL_RANGE_WIDTH),
+    .LOW_WIDTH (GENERAL_LOW_WIDTH),
     .SYMBOL_WIDTH (GENERAL_SYMBOL_WIDTH),
     .LUT_ADDR_WIDTH (GENERAL_LUT_ADDR_WIDTH),
     .LUT_DATA_WIDTH (GENERAL_LUT_DATA_WIDTH)
@@ -142,6 +149,10 @@ module arithmetic_encoder #(
       .bool_flag_1 (general_bool_1),
       .bool_flag_2 (general_bool_2),    // Parallel Bool
       .bool_flag_3 (general_bool_3),    // Parallel Bool
+      // Operand Isolation outputs
+      .op_iso_bool_1 (out_op_iso_1_s12),
+      .op_iso_bool_2 (out_op_iso_2_s12),
+      .op_iso_bool_3 (out_op_iso_3_s12),
       // outputs
       .lut_u_out (lut_u_output),
       .lut_v_out (lut_v_output),
@@ -159,6 +170,11 @@ module arithmetic_encoder #(
 
   always @ (posedge general_clk) begin
     if(ctrl_reg_1_2) begin
+      // Operand Isoaltion
+      reg_op_iso_1_s12 <= out_op_iso_1_s12;
+      reg_op_iso_2_s12 <= out_op_iso_2_s12;
+      reg_op_iso_3_s12 <= out_op_iso_3_s12;
+      // --------------------
       reg_lut_u <= lut_u_output;
       reg_lut_v <= lut_v_output;
       reg_lut_uv <= lut_uv_output;
@@ -202,6 +218,10 @@ module arithmetic_encoder #(
       .in_symbol_1 (reg_symbol_s12_1),
       .in_symbol_2 (reg_symbol_s12_2),
       .in_symbol_3 (reg_symbol_s12_3),
+      // Operand Isolation inputs
+      .op_iso_bool_1 (reg_op_iso_1_s12[(GENERAL_RANGE_WIDTH-1):0]),
+      .op_iso_bool_2 (reg_op_iso_2_s12[(GENERAL_RANGE_WIDTH-1):0]),
+      .op_iso_bool_3 (reg_op_iso_3_s12[(GENERAL_RANGE_WIDTH-1):0]),
       // outputs
       .out_d_1 (d_out_1),
       .out_d_2 (d_out_2),
@@ -234,6 +254,11 @@ module arithmetic_encoder #(
     end
     always @ (posedge general_clk) begin
       if(ctrl_reg_2_3) begin
+        // Operand Isolation
+        reg_op_iso_1_s23 <= reg_op_iso_1_s12;
+        reg_op_iso_2_s23 <= reg_op_iso_2_s12;
+        reg_op_iso_3_s23 <= reg_op_iso_3_s12;
+        // --------------------------
         reg_COMP_mux_1_s23 = COMP_mux_1_out_s23;
         // Parallel Bool
         reg_initial_range_1 <= initial_range_out_1;
@@ -288,6 +313,10 @@ module arithmetic_encoder #(
       .in_range_1 (reg_initial_range_1),
       .in_range_2 (reg_initial_range_2),
       .in_range_3 (reg_initial_range_3),
+      // Operand Isolation inputs
+      .op_iso_bool_1 (reg_op_iso_1_s23),
+      .op_iso_bool_2 (reg_op_iso_2_s23),
+      .op_iso_bool_3 (reg_op_iso_3_s23),
       // Outputs
       .out_s (s_out_s3),
       .out_low (low_out_s3),

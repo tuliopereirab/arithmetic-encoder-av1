@@ -1,5 +1,6 @@
 module stage_1 #(
   parameter RANGE_WIDTH = 16,
+  parameter LOW_WIDTH = 24,
   parameter SYMBOL_WIDTH = 4,
   parameter LUT_ADDR_WIDTH = 8,
   parameter LUT_DATA_WIDTH = 16
@@ -19,6 +20,7 @@ module stage_1 #(
                                       // receives the symbol (0 <= SYMB <= 15)
     input [SYMBOL_WIDTH:0] NSYMS,   // defined as 1 bit longer than SYMBOL;
                                     // nsyms receives the number of symbols used
+    output wire [(RANGE_WIDTH-1):0] op_iso_bool_1, op_iso_bool_2, op_iso_bool_3,
     output wire COMP_mux_1, bool_out_1, bool_out_2, bool_out_3,
     output wire [(LUT_DATA_WIDTH-1):0] lut_u_out, lut_v_out, lut_uv_out,
     output wire [(SYMBOL_WIDTH-1):0] out_symbol_1, out_symbol_2, out_symbol_3,
@@ -28,6 +30,16 @@ module stage_1 #(
   wire [SYMBOL_WIDTH:0] N_5bits;
   wire [(SYMBOL_WIDTH-1):0] N;
   wire [(LUT_ADDR_WIDTH-1):0] lut_addr;
+  // ---------------------
+  /* Due to the tight arrangement within Stages 2 and 3, the Operand Isolation
+  variable must be defined in Stage 1 and be passed forward with registers. */
+  assign op_iso_bool_1 =  (bool_out_1) ? 24'd16777215 :
+                          24'd0;
+  assign op_iso_bool_2 =  (bool_out_1 && bool_out_2) ? 24'd16777215 :
+                          24'd0;
+  assign op_iso_bool_3 =  (bool_out_1 &&
+                            bool_out_2 && bool_out_3) ? 24'd16777215 :
+                          24'd0;
   // ---------------------
 
   assign N_5bits = NSYMS - 5'd1;
