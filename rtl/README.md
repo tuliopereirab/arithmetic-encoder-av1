@@ -65,8 +65,8 @@ This architecture, as the other versions of it, relies on a 4-stage pipeline. Th
   - **Frequency**: 558.971 MHz
   - **Area**: 20.3k
 - [4-bool](entropy-encoder-4-bool): only 4 Boolean blocks. Frequency drop due to critical path moving to Stage 3 instead of Stage 2.
-  - **Frequency**: 445.434 MHz
-  - **Area**: 20.7k
+  - **Frequency**: 438.789 MHz
+  - **Area**: 20.1k
 
 ### Low-Power Multi-Boolean Versions
 - _Check the v1.3-MB-LP tag for all techniques and important information._
