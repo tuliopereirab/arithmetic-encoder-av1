@@ -63,3 +63,15 @@
 - _Icarus Verilog_ is a tool that runs a very light and efficient compiler. It surely provides a simulation property as well, but it doesn't support _SystemVerilog_ testbenches, which was the language chosen for the project. Hence, _iverilog_ is only used for raw compilation before sending the files to a Modelsim environment.
 - To simplify the use of _iverilog_, a folder with the [lists](simulations/lists) of files was created. The lists are for the [entropy-encoder](simulations/lists/list_entropy_encoder.txt) and for the [entropy-encoder-lp](simulations/lists/list_entropy_encoder-lp.txt).
 - **Note**: before using these scripts, please make sure the files **exist** and their are correctly pointed by the lists.
+
+## [mix_csv-py](mix_csv.py)
+- Combines all columns from a CSV file number 1 (csv1) with a target column from a CSV file number 2 (csv2).
+- No comparisons are done to ensure that the data match.
+- Requirements:
+  1. Both CSV files should be exactly the same and the only different column should be the target_column. No comparisons, searches or verification is done to ensure that the right data in csv1 matches with the right data in csv2.
+  2. Both files MUST have the SAME number of rows.
+  3. Target column should be a number smaller than the number of columns in csv2.
+- The configuration is messy:
+  - The user should ensure that function <code>mixer()</code> receives the data from each file (<code>data1</code> and <code>data2</code>) with a <code>target_column</code> number representing the column in csv2 to be saved into csv1.
+  - How the user will ensure that isn't mandatory and will variate according to the file tree and the formats of file names.
+- More information regarding this script can be found as comments at the top of <code>[mix_csv-py](mix_csv.py)</code> file.
