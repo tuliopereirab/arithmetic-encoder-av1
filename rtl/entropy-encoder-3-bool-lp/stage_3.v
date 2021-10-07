@@ -15,7 +15,6 @@ module stage_3 #(
     input [RANGE_WIDTH:0] u,
     input [(RANGE_WIDTH-1):0] pre_low_bool_1, pre_low_bool_2, pre_low_bool_3,
     input [(RANGE_WIDTH-1):0] in_range_1, in_range_2, in_range_3, range_ready,
-    input [(LOW_WIDTH-1):0] op_iso_bool_1, op_iso_bool_2, op_iso_bool_3,
     output wire [(D_SIZE-1):0] out_s,
     output wire [(LOW_WIDTH-1):0] out_low,
     output wire [(RANGE_WIDTH-1):0] out_range,
@@ -33,6 +32,17 @@ module stage_3 #(
   wire [(RANGE_WIDTH-1):0] bool_out_bit_1_1, bool_out_bit_1_2;
   wire [(RANGE_WIDTH-1):0] bool_out_bit_2_1, bool_out_bit_2_2;
   wire [(RANGE_WIDTH-1):0] bool_out_bit_3_1, bool_out_bit_3_2;
+
+  // Operand Isolation
+  wire [(LOW_WIDTH-1):0] op_bool_1, op_bool_2, op_bool_3;
+  assign op_bool_1 =  (in_bool_1) ? 24'd16777215 :
+                      24'd0;
+  assign op_bool_2 =  (in_bool_1 && in_bool_2) ? 24'd16777215 :
+                      24'd0;
+  assign op_bool_3 =  (in_bool_1 && in_bool_2 && in_bool_3) ?
+                                                                24'd16777215 :
+                      24'd0;
+  // -----------------------------------------------------
 
   s3_cdf #(
     .D_SIZE (D_SIZE),
@@ -65,12 +75,12 @@ module stage_3 #(
     .LOW_WIDTH (LOW_WIDTH),
     .RANGE_WIDTH (RANGE_WIDTH)
     ) s3_bool_1 (
-      .in_d (d_1 & op_iso_bool_1[(D_SIZE-1):0]),
-      .in_s (in_s & op_iso_bool_1[(D_SIZE-1):0]),
-      .in_low (in_low & op_iso_bool_1),
+      .in_d (d_1 & op_bool_1[(D_SIZE-1):0]),
+      .in_s (in_s & op_bool_1[(D_SIZE-1):0]),
+      .in_low (in_low & op_bool_1),
       .symbol (in_symbol_1),
-      .pre_low (pre_low_bool_1 & op_iso_bool_1[(RANGE_WIDTH-1):0]),
-      .in_range (in_range_1 & op_iso_bool_1[(RANGE_WIDTH-1):0]),
+      .pre_low (pre_low_bool_1 & op_bool_1[(RANGE_WIDTH-1):0]),
+      .in_range (in_range_1 & op_bool_1[(RANGE_WIDTH-1):0]),
       // Outputs
       .out_s (s_bool_1),
       .out_low (low_bool_1),
@@ -83,12 +93,12 @@ module stage_3 #(
     .LOW_WIDTH (LOW_WIDTH),
     .RANGE_WIDTH (RANGE_WIDTH)
     ) s3_bool_2 (
-      .in_d (d_2 & op_iso_bool_2[(D_SIZE-1):0]),
-      .in_s (s_bool_1 & op_iso_bool_2[(D_SIZE-1):0]),
-      .in_low (low_bool_1 & op_iso_bool_2),
+      .in_d (d_2 & op_bool_2[(D_SIZE-1):0]),
+      .in_s (s_bool_1 & op_bool_2[(D_SIZE-1):0]),
+      .in_low (low_bool_1 & op_bool_2),
       .symbol (in_symbol_2),
-      .pre_low (pre_low_bool_2 & op_iso_bool_2[(RANGE_WIDTH-1):0]),
-      .in_range (in_range_2 & op_iso_bool_2[(RANGE_WIDTH-1):0]),
+      .pre_low (pre_low_bool_2 & op_bool_2[(RANGE_WIDTH-1):0]),
+      .in_range (in_range_2 & op_bool_2[(RANGE_WIDTH-1):0]),
       // Outputs
       .out_s (s_bool_2),
       .out_low (low_bool_2),
@@ -101,12 +111,12 @@ module stage_3 #(
     .LOW_WIDTH (LOW_WIDTH),
     .RANGE_WIDTH (RANGE_WIDTH)
     ) s3_bool_3 (
-      .in_d (d_3 & op_iso_bool_3[(D_SIZE-1):0]),
-      .in_s (s_bool_2 & op_iso_bool_3[(D_SIZE-1):0]),
-      .in_low (low_bool_2 & op_iso_bool_3),
+      .in_d (d_3 & op_bool_3[(D_SIZE-1):0]),
+      .in_s (s_bool_2 & op_bool_3[(D_SIZE-1):0]),
+      .in_low (low_bool_2 & op_bool_3),
       .symbol (in_symbol_3),
-      .pre_low (pre_low_bool_3 & op_iso_bool_3[(RANGE_WIDTH-1):0]),
-      .in_range (in_range_3 & op_iso_bool_3[(RANGE_WIDTH-1):0]),
+      .pre_low (pre_low_bool_3 & op_bool_3[(RANGE_WIDTH-1):0]),
+      .in_range (in_range_3 & op_bool_3[(RANGE_WIDTH-1):0]),
       // Outputs
       .out_s (s_bool_3),
       .out_low (low_bool_3),
