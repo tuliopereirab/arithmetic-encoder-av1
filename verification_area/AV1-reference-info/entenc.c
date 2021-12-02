@@ -20,7 +20,6 @@ int first_file = 1;
 int first_reset = 0;
 
 static void insert_main_arq(unsigned rng, unsigned low, unsigned fl, unsigned fh, int s, int nsyms, int add_code);
-static void add_pre_bitstream(uint16_t bitstream, int option);
 
 #if OD_MEASURE_EC_OVERHEAD
 #if !defined(M_LOG2E)
@@ -60,20 +59,10 @@ static void add_pre_bitstream(uint16_t bitstream, int option);
   low: The new value of low.
   rng: The new value of the range.*/
 
-static void add_pre_bitstream(uint16_t bitstream, int option){
-     FILE *arq;
-     arq = fopen("arith_analysis/pre_bitstream.csv", "a");
-     if(option == 8){
-          fprintf(arq, "%"PRIu16";", bitstream);
-     }else if(option == 0){
-          fprintf(arq, "%"PRIu16";\n", bitstream);
-     }
-     fclose(arq);
-}
 
 static void insert_main_arq(unsigned rng, unsigned low, unsigned fl, unsigned fh, int s, int nsyms, int add_code){
      FILE *arq_main;
-     arq_main = fopen("/home/tulio/av1/arith_analysis/main_data.csv", "a");
+     arq_main = fopen("/media/tulio/HD2/temp_files/arith_analysis/main_data.csv", "a");
      // add code:   0- inputs bool; 1- inputs q15; 2- inputs normalize; 3- output normalize
      if(add_code == 0){
           fprintf(arq_main, "0;%"PRIu32";%"PRIu32";0;%"PRIu32";%"PRIu32";0;", rng, low, fh, s);
@@ -134,23 +123,16 @@ static void od_ec_enc_normalize(od_ec_enc *enc, od_ec_window low,
                assert(offs < storage);
                buf[offs++] = (uint16_t)(low >> c);
                temp_output_bitstream = low >> c;
-               add_pre_bitstream(temp_output_bitstream, 8);      // adding the s>=8
                low &= m;
                c -= 8;
                m >>= 8;
-          }else{
-               add_pre_bitstream(0, 8);      // adding zero for the s>=8
           }
          assert(offs < storage);
          buf[offs++] = (uint16_t)(low >> c);
          temp_output_bitstream = low >> c;
-         add_pre_bitstream(temp_output_bitstream, 0);
          s = c + d - 24;
          low &= m;
          enc->offs = offs;
-    }else{
-         add_pre_bitstream(0, 8);  // add the zero into the file for S >= 8
-         add_pre_bitstream(0, 0);  // add the zero into the file for S >= 0
     }
      // binary_number = temp_binary_1 | temp_binary_2;
      // insert_main_arq(binary_number, 0, 0, 0, 0, 0, 4);
@@ -184,22 +166,6 @@ void od_ec_enc_reset(od_ec_enc *enc) {
   enc->offs = 0;
   enc->low = 0;
   enc->rng = 0x8000;
-  FILE *arq;
-  if(first_file == 1){
-       //arq = fopen("arith_analysis/main_data.csv", "w+");
-       //fprintf(arq, "flag_input;init_range;init_low;fl;fh;s;nsyms;norm_in_rng;norm_in_low;final_rng;final_low;\n");
-       fclose(arq);
-       arq = fopen("arith_analysis/q15/input", "w+");
-       fprintf(arq, "flag;fl;fh;s;nsyms\n");
-       fclose(arq);
-       arq = fopen("arith_analysis/done_function/done.csv", "w+");
-       fclose(arq);
-       arq = fopen("arith_analysis/pre_bitstream.csv", "w+");
-       fclose(arq);
-       //arq = fopen("arith_analysis/complete_final_bitstream.csv", "w+");
-       //fclose(arq);
-       first_file = 0;
- }
   /*This is initialized to -9 so that it crosses zero after we've accumulated
      one byte + one carry bit.*/
   enc->cnt = -9;
@@ -231,29 +197,9 @@ static void od_ec_encode_q15(od_ec_enc *enc, unsigned fl, unsigned fh, int s,
   unsigned v;
   l = enc->low;
   r = enc->rng;
-  FILE *arq_input;
-  int status_file_parameters = 0;
 
   insert_main_arq(r, l, fl, fh, s, nsyms, 1);
 
-  if((arq_input = fopen("arith_analysis/q15/input", "a+")) != NULL){
-       fprintf(arq_input, "1;%"PRIu32";%"PRIu32";%"PRIu32";%"PRIu32";\n", fl, fh, s, nsyms);   // flag 1 indicates q15
-       fclose(arq_input);
- }else{
-      printf("Unable to open 'input' file\n");
-}
-//  if((arq_consts = fopen("arith_analysis/q15/constants", "a+")) != NULL){
-//       fprintf(arq_consts, "%"PRIu32";%"PRIu32";%"PRIu32";%"PRIu32";\n", EC_PROB_SHIFT, CDF_SHIFT, CDF_PROB_TOP, EC_MIN_PROB);
-//       fclose(arq_consts);
-// }else{
-//      printf("Unable to open 'Constants'");
-// }
-//  if((arq_parameters = fopen("arith_analysis/q15/parameters", "a+")) != NULL){
-//       fprintf(arq_parameters, "%"PRIu32";%"PRIu32";%"PRIu32";%"PRIu32";%"PRIu32";%"PRIu32";%"PRIu32";", l, r, fl, fh, s, nsyms,r);
-//       status_file_parameters = 1;
-// }else{
-//      printf("Unable to open 'Parameters' file");
-// }
   assert(32768U <= r);
   assert(fh <= fl);
   assert(fl <= 32768U);
@@ -290,13 +236,6 @@ void od_ec_encode_bool_q15(od_ec_enc *enc, int val, unsigned f) {
   unsigned v;
   assert(0 < f);
   assert(f < 32768U);
-  FILE *arq_input;
-  if((arq_input = fopen("arith_analysis/q15/input", "a+")) != NULL){
-       fprintf(arq_input, "0;;%"PRIu32";%"PRIu32";;\n", f, val);   // flag 0 indicates bool
-       fclose(arq_input);
-}else{
-      printf("Unable to open 'input' file\n");
-}
   l = enc->low;
   r = enc->rng;
   insert_main_arq(r, l, 0, f, val, 0, 0);
@@ -370,22 +309,6 @@ void od_ec_enc_patch_initial_bits(od_ec_enc *enc, unsigned val, int nbits) {
 #include <stdio.h>
 #endif
 
-static void insert_data_done(unsigned low, int c, int mode, uint32_t offs);
-
-static void insert_data_done(unsigned low, int c, int mode, uint32_t offs){
-     FILE *arq_done;
-     arq_done = fopen("arith_analysis/done_function/done.csv", "a");
-     if(mode == 0)            // Add to the file the input of the enc_done function
-          fprintf(arq_done, "%"PRIu32";%d;", low, c);
-     else if(mode == 1)       // This part will keep inserting columns during the while in the end of the enc_done function
-          fprintf(arq_done, "%d;", c);
-     else if(mode == 2)
-          fprintf(arq_done, "%"PRIu32";", offs);
-     else
-          fprintf(arq_done, "\n");
-     fclose(arq_done);
-}
-
 /*Indicates that there are no more symbols to encode.
   All remaining output bytes are flushed to the output buffer.
   od_ec_enc_reset() should be called before using the encoder again.
@@ -419,7 +342,7 @@ unsigned char *od_ec_enc_done(od_ec_enc *enc, uint32_t *nbytes) {
      thus far will be decoded correctly regardless of the bits that follow.*/
   l = enc->low;
   c = enc->cnt;
-  insert_data_done(l, c, 0, 0);
+  // insert_data_done(l, c, 0, 0);
   s = 10;
   m = 0x3FFF;
   e = ((l + m) & ~m) | (m + 1);
@@ -468,7 +391,6 @@ unsigned char *od_ec_enc_done(od_ec_enc *enc, uint32_t *nbytes) {
   assert(offs <= storage);
   out = out + storage - offs;
   c = 0;
-  insert_data_done(0, 0, 2, offs);
   total_offs = (int)offs;
   while (offs > 0) {
     offs--;
@@ -477,7 +399,6 @@ unsigned char *od_ec_enc_done(od_ec_enc *enc, uint32_t *nbytes) {
     //insert_data_done(0, c, 1);          // keep adding the C
     c >>= 8;
   }
-  insert_data_done(0, 0, 3, 0);       // just add the \n in the end of the line
   /*Note: Unless there's an allocation error, if you keep encoding into the
      current buffer and call this function again later, everything will work
      just fine (you won't get a new packet out, but you will get a single
@@ -486,15 +407,7 @@ unsigned char *od_ec_enc_done(od_ec_enc *enc, uint32_t *nbytes) {
      so calling it more than once for a given packet is a bad idea.*/
      FILE *arq_out;
      int i;
-     if(first_reset == 0){
-          first_reset = 1;
-          arq_out = fopen("arith_analysis/final_bitstream.csv", "w+");
-          for(i=0;i<total_offs;i++){
-               fprintf(arq_out, "%u\n", out[i]);
-          }
-          fclose(arq_out);
-     }
-     arq_out = fopen("arith_analysis/complete_final_bitstream.csv", "a");
+     arq_out = fopen("/media/tulio/HD2/temp_files/arith_analysis/complete_final_bitstream.csv", "a");
      for(i=0;i<total_offs;i++){
           fprintf(arq_out, "%u;\n", out[i]);
      }
