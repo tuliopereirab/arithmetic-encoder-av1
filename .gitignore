@@ -10,7 +10,7 @@ verification_area/c-arithmetic-encoder-av1/*.csv
 verification_area/entropy_encoder_tb/
 verification_area/modelsim_project/
 vivado-project/
-
+digital/verif/
 
 # Ignore specific files
 Project/solution_255_carry_glitch.txt
