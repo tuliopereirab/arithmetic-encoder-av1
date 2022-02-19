@@ -24,20 +24,33 @@ package av1_ee_rand_1_bool_uvm;
     rand bit                        bool_flag;
 
     // Non-random Input Variables
-    bit                             flag_first, final_flag;   // As a non-random variable, they're assigned by the 
-    bit                             rst;                      // sequence class. At the first symbol of a frame, 
+    bit                           flag_first, final_flag;   // As a non-random variable, they're assigned by the 
+    bit                           rst;                      // sequence class. At the first symbol of a frame, 
 
     // Control Variables
-    rand int                        frame_length;   // Defines the number of symbols within a frame
-    int                             symbols_remaining = null;  // Once a new frame is started, symbols executed are set
-    int                             symbols_executed  = null;       // to zero and symbols remaining are set to the frame_length
-                                    // Once the frame is over (i.e., when symbols_remaining = 0), then the flag_final 
-                                    // set to '1' and the reset procedure starts.  
+    rand int                      frame_length;   // Defines the number of symbols within a frame
+    int                           symbols_remaining = null;  // Once a new frame is started, symbols executed are set
+    int                           symbols_executed  = null;       // to zero and symbols remaining are set to the 
+                                  // frame_length. Once the frame is over (i.e., when symbols_remaining = 0), then the  
+                                  // flag_final set to '1' and the reset procedure starts.  
   
-    // Output Variables
-    bit                             out_flag_final;
-    bit [2:0]                       fb_flag;
-    bit [(`BITSTREAM_WIDTH-1):0]    fb_1, fb_2, fb_3, fb_4, fb_5;
+    // Output Variables from the architecture
+    bit                           out_flag_final;
+    bit [2:0]                     fb_flag;
+    bit [(`BITSTREAM_WIDTH-1):0]  fb_1, fb_2, fb_3, fb_4, fb_5;
+
+    // Intern Variables
+    bit [(`RANGE_WIDTH-1):0]      final_range;
+    bit [(`LOW_WIDTH-1):0]        final_low;
+    bit [(`D_SIZE-1):0]           final_cnt, d;
+    
+    bit [(`BITSTREAM_WIDTH-1):0]  pb_1, pb_2;
+    bit [1:0]                     pb_flag;
+
+    // Expected Output Variables
+    bit [(`BITSTREAM_WIDTH-1):0]  expected_fb_1, expected_fb_2, expected_fb_3;
+    bit [(`BITSTREAM_WIDTH-1):0]  expected_fb_4, expected_fb_5;
+    bit [2:0]                     expected_fb_flag;
 
     //  Group: Constraints
     constraint prob_c {
